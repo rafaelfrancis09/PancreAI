@@ -1,0 +1,15 @@
+.language-option {
+  grid-template-columns: 40px minmax(0, 1fr) auto !important;
+  column-gap: 10px !important;
+  direction: ltr !important;
+}
+.language-option__flag { justify-self: start !important; }
+.language-option__text {
+  width: 100% !important;
+  justify-self: start !important;
+  text-align: left !important;
+  direction: ltr !important;
+}
+.language-option__text strong { justify-content: flex-start !important; }
+.language-option__check, .language-option__lock { justify-self: end !important; }
+@media (max-width: 420px) { .language-option { grid-template-columns: 34px minmax(0, 1fr) auto !important; } }

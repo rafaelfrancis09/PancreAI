@@ -1,0 +1,839 @@
+(function () {
+  const api = window.PancreAII18n;
+  if (!api || api.__fullTranslationLayer) return;
+
+  const languages = ["en", "es", "fr", "de", "it"];
+
+  const keyRows = [
+    ["common.continue", "Continue", "Continuar", "Continuer", "Weiter", "Continua"],
+    ["common.back", "Back", "Volver", "Retour", "Zurück", "Indietro"],
+    ["common.save", "Save", "Guardar", "Enregistrer", "Speichern", "Salva"],
+    ["common.cancel", "Cancel", "Cancelar", "Annuler", "Abbrechen", "Annulla"],
+    ["common.confirm", "Confirm", "Confirmar", "Confirmer", "Bestätigen", "Conferma"],
+    ["common.edit", "Edit", "Editar", "Modifier", "Bearbeiten", "Modifica"],
+    ["common.remove", "Remove", "Eliminar", "Supprimer", "Entfernen", "Rimuovi"],
+    ["common.add", "Add", "Agregar", "Ajouter", "Hinzufügen", "Aggiungi"],
+    ["common.next", "Next", "Siguiente", "Suivant", "Weiter", "Avanti"],
+    ["common.finish", "Finish", "Finalizar", "Terminer", "Fertig", "Fine"],
+    ["common.close", "Close", "Cerrar", "Fermer", "Schließen", "Chiudi"],
+    ["common.review", "Review", "Revisar", "Vérifier", "Prüfen", "Controlla"],
+    ["common.warning", "Warning", "Aviso", "Avertissement", "Warnung", "Avviso"],
+    ["common.error", "Error", "Error", "Erreur", "Fehler", "Errore"],
+    ["common.info", "Information", "Información", "Information", "Information", "Informazione"],
+    ["common.comingSoon", "Coming soon", "Próximamente", "Bientôt", "Demnächst", "Prossimamente"],
+    ["common.availableNow", "Available now", "Disponible ahora", "Disponible maintenant", "Jetzt verfügbar", "Disponibile ora"],
+    ["nav.home", "Home", "Inicio", "Accueil", "Home", "Home"],
+    ["nav.history", "History", "Historial", "Historique", "Verlauf", "Cronologia"],
+    ["nav.profile", "Profile", "Perfil", "Profil", "Profil", "Profilo"],
+    ["nav.favorites", "Favorites", "Favoritos", "Favoris", "Favoriten", "Preferiti"],
+    ["nav.settings", "Settings", "Ajustes", "Réglages", "Einstellungen", "Impostazioni"],
+    ["nav.terms", "Terms of use", "Términos de uso", "Conditions d’utilisation", "Nutzungsbedingungen", "Termini d’uso"],
+    ["nav.language", "Language", "Idioma", "Langue", "Sprache", "Lingua"],
+    ["language.title", "Choose your language", "Elige tu idioma", "Choisissez votre langue", "Sprache auswählen", "Scegli la lingua"],
+    ["language.description", "PancreAI is being prepared for multilingual support. Choose one of the available languages to continue.", "PancreAI se está preparando para soporte multilingüe. Elige uno de los idiomas disponibles para continuar.", "PancreAI se prépare au support multilingue. Choisissez une langue disponible pour continuer.", "PancreAI wird für mehrsprachige Nutzung vorbereitet. Wählen Sie eine verfügbare Sprache aus.", "PancreAI si sta preparando al supporto multilingue. Scegli una lingua disponibile per continuare."],
+    ["language.availableTitle", "Available now", "Disponibles ahora", "Disponibles maintenant", "Jetzt verfügbar", "Disponibili ora"],
+    ["language.futureTitle", "Future languages", "Idiomas futuros", "Langues futures", "Zukünftige Sprachen", "Lingue future"],
+    ["language.futureDescription", "We are preparing PancreAI to reach more people. These languages will be released in future versions.", "Estamos preparando PancreAI para llegar a más personas. Estos idiomas se lanzarán en próximas versiones.", "Nous préparons PancreAI pour atteindre plus de personnes. Ces langues seront publiées dans de prochaines versions.", "Wir bereiten PancreAI darauf vor, mehr Menschen zu erreichen. Diese Sprachen erscheinen in späteren Versionen.", "Stiamo preparando PancreAI per raggiungere più persone. Queste lingue arriveranno nelle prossime versioni."],
+    ["language.availableDescription", "Interface available in this version", "Interfaz disponible en esta versión", "Interface disponible dans cette version", "Oberfläche in dieser Version verfügbar", "Interfaccia disponibile in questa versione"],
+    ["language.continue", "Continue", "Continuar", "Continuer", "Weiter", "Continua"],
+    ["language.toastFuture", "This language will be added in the future.", "Este idioma se agregará en el futuro.", "Cette langue sera ajoutée plus tard.", "Diese Sprache wird später hinzugefügt.", "Questa lingua sarà aggiunta in futuro."],
+    ["intro.welcomeTitle", "Welcome to PancreAI", "Bienvenido a PancreAI", "Bienvenue sur PancreAI", "Willkommen bei PancreAI", "Benvenuto in PancreAI"],
+    ["intro.welcomeText", "An app to estimate enzymes with more clarity, safety, and manual confirmation before calculation.", "Una app para estimar enzimas con más claridad, seguridad y confirmación manual antes del cálculo.", "Une app pour estimer les enzymes avec plus de clarté, de sécurité et une confirmation manuelle avant le calcul.", "Eine App zur Enzymschätzung mit mehr Klarheit, Sicherheit und manueller Bestätigung vor der Berechnung.", "Un’app per stimare gli enzimi con più chiarezza, sicurezza e conferma manuale prima del calcolo."],
+    ["intro.reviewTitle", "Take a photo, review, and confirm", "Fotografías, revisas y confirmas", "Photographiez, vérifiez et confirmez", "Foto aufnehmen, prüfen und bestätigen", "Scatta, controlla e conferma"],
+    ["intro.reviewText", "PancreAI never calculates by itself. First the meal is analyzed, then you calmly check everything.", "PancreAI nunca calcula solo. Primero se analiza la comida y luego revisas todo con calma.", "PancreAI ne calcule jamais seul. Le repas est d’abord analysé, puis vous vérifiez tout calmement.", "PancreAI berechnet nie allein. Erst wird die Mahlzeit analysiert, dann prüfst du alles in Ruhe.", "PancreAI non calcola mai da solo. Prima il pasto viene analizzato, poi controlli tutto con calma."],
+    ["intro.setupTitle", "First, set up your treatment", "Primero, configura tu tratamiento", "D’abord, configurez votre traitement", "Zuerst die Behandlung einrichten", "Prima configura il trattamento"],
+    ["intro.setupText", "Weight, prescribed dose, and pancreatic enzyme are saved and used automatically in future calculations.", "El peso, la dosis prescrita y la enzima pancreática quedan guardados y se usan automáticamente en los próximos cálculos.", "Le poids, la dose prescrite et l’enzyme pancréatique sont enregistrés et utilisés automatiquement dans les prochains calculs.", "Gewicht, verordnete Dosis und Pankreasenzym werden gespeichert und automatisch für spätere Berechnungen verwendet.", "Peso, dose prescritta ed enzima pancreatico vengono salvati e usati automaticamente nei prossimi calcoli."],
+    ["treatment.title", "My Treatment", "Mi tratamiento", "Mon traitement", "Meine Behandlung", "Il mio trattamento"],
+    ["treatment.intro", "These details are used in calculations and stay saved locally on your device. Choose only the treatment already prescribed.", "Estos datos se usan en los cálculos y quedan guardados localmente en tu dispositivo. Elige solo el tratamiento ya prescrito.", "Ces données sont utilisées dans les calculs et restent enregistrées localement sur votre appareil. Choisissez uniquement le traitement déjà prescrit.", "Diese Angaben werden für Berechnungen genutzt und lokal auf deinem Gerät gespeichert. Wähle nur die bereits verordnete Behandlung.", "Questi dati vengono usati nei calcoli e restano salvati localmente sul dispositivo. Scegli solo il trattamento già prescritto."],
+    ["treatment.country", "Treatment country or region", "País o región del tratamiento", "Pays ou région du traitement", "Land oder Region der Behandlung", "Paese o regione del trattamento"],
+    ["treatment.countryNone", "None", "Ninguno", "Aucun", "Keine", "Nessuno"],
+    ["treatment.selectCountry", "Select a country or region to see medication options.", "Selecciona un país o región para ver las opciones de medicamento.", "Sélectionnez un pays ou une région pour voir les options de médicament.", "Wähle ein Land oder eine Region, um Medikamentenoptionen zu sehen.", "Seleziona un paese o una regione per vedere le opzioni di farmaco."],
+    ["treatment.countryHelp", "This helps the app show more likely medication options. Availability may vary.", "Esto ayuda a la app a mostrar opciones de medicamento más probables. La disponibilidad puede variar.", "Cela aide l’app à afficher les options de médicament les plus probables. La disponibilité peut varier.", "Dies hilft der App, wahrscheinlichere Medikamentenoptionen anzuzeigen. Die Verfügbarkeit kann variieren.", "Questo aiuta l’app a mostrare le opzioni di farmaco più probabili. La disponibilità può variare."],
+    ["treatment.weight", "Patient weight", "Peso del paciente", "Poids du patient", "Patientengewicht", "Peso del paziente"],
+    ["treatment.prescribedDose", "Prescribed dose", "Dosis prescrita", "Dose prescrite", "Verordnete Dosis", "Dose prescritta"],
+    ["treatment.prescribedDoseHelp", "Lipase units per gram of fat.", "Unidades de lipasa por gramo de grasa.", "Unités de lipase par gramme de graisse.", "Lipase-Einheiten pro Gramm Fett.", "Unità di lipasi per grammo di grassi."],
+    ["treatment.medication", "Prescribed enzyme medication", "Medicamento enzimático prescrito", "Médicament enzymatique prescrit", "Verordnetes Enzymmedikament", "Farmaco enzimatico prescritto"],
+    ["treatment.medicationHelp", "Choose only the medication that has already been prescribed.", "Elige solo el medicamento que ya fue prescrito.", "Choisissez uniquement le médicament déjà prescrit.", "Wähle nur das Medikament aus, das bereits verordnet wurde.", "Scegli solo il farmaco già prescritto."],
+    ["treatment.lipasePerUnit", "Lipase units per capsule/tablet/unit", "Unidades de lipasa por cápsula/comprimido/unidad", "Unités de lipase par gélule/comprimé/unité", "Lipase-Einheiten pro Kapsel/Tablette/Einheit", "Unità di lipasi per capsula/compressa/unità"],
+    ["treatment.customMedication", "My medication is not listed", "Mi medicamento no está en la lista", "Mon médicament n’est pas dans la liste", "Mein Medikament ist nicht in der Liste", "Il mio farmaco non è nell’elenco"],
+    ["treatment.customHelp", "Enter only values shown on your prescription, package, or leaflet.", "Ingresa solo valores que aparezcan en tu receta, envase o prospecto.", "Saisissez uniquement les valeurs indiquées sur votre prescription, l’emballage ou la notice.", "Gib nur Werte ein, die auf Verordnung, Verpackung oder Beipackzettel stehen.", "Inserisci solo valori presenti nella prescrizione, confezione o foglietto illustrativo."],
+    ["treatment.form", "Medication form", "Forma del medicamento", "Forme du médicament", "Form des Medikaments", "Forma del farmaco"],
+    ["treatment.unitName", "Unit name", "Nombre de la unidad", "Nom de l’unité", "Name der Einheit", "Nome dell’unità"],
+    ["treatment.prescriptionNote", "Prescription note", "Nota de la receta", "Note de prescription", "Hinweis zur Verordnung", "Nota della prescrizione"],
+    ["treatment.save", "Save treatment", "Guardar tratamiento", "Enregistrer le traitement", "Behandlung speichern", "Salva trattamento"],
+    ["treatment.saved", "Treatment saved.", "Tratamiento guardado.", "Traitement enregistré.", "Behandlung gespeichert.", "Trattamento salvato."],
+    ["treatment.noSubstitution", "PancreAI does not recommend changing medication.", "PancreAI no recomienda cambiar de medicamento.", "PancreAI ne recommande pas de changer de médicament.", "PancreAI empfiehlt keinen Medikamentenwechsel.", "PancreAI non consiglia di cambiare farmaco."],
+    ["treatment.onlyPrescription", "Change this option only if it matches your prescription. Enzyme medicines can have different strengths and forms.", "Cambia esta opción solo si coincide con tu receta. Los medicamentos enzimáticos pueden tener potencias y formas diferentes.", "Modifiez cette option uniquement si elle correspond à votre prescription. Les médicaments enzymatiques peuvent avoir des dosages et formes différents.", "Ändere diese Option nur, wenn sie deiner Verordnung entspricht. Enzymmedikamente können unterschiedliche Stärken und Formen haben.", "Modifica questa opzione solo se corrisponde alla prescrizione. I farmaci enzimatici possono avere potenze e forme diverse."],
+    ["treatment.manualPower", "Enter the strength shown on your prescription or package.", "Ingresa la potencia que aparece en tu receta o envase.", "Indiquez le dosage affiché sur votre prescription ou emballage.", "Gib die Stärke ein, die auf Verordnung oder Verpackung steht.", "Inserisci la potenza indicata sulla prescrizione o confezione."],
+    ["treatment.confirmPower", "Check that the lipase strength was entered exactly as shown on the prescription or package.", "Confirma que la potencia de lipasa se ingresó exactamente como aparece en la receta o el envase.", "Vérifiez que le dosage de lipase a été saisi exactement comme sur la prescription ou l’emballage.", "Prüfe, dass die Lipase-Stärke exakt wie auf Verordnung oder Verpackung eingegeben wurde.", "Controlla che la potenza di lipasi sia stata inserita esattamente come nella prescrizione o confezione."],
+    ["treatment.completeRequired", "Enter weight and prescribed dose to continue.", "Ingresa peso y dosis prescrita para continuar.", "Saisissez le poids et la dose prescrite pour continuer.", "Gib Gewicht und verordnete Dosis ein, um fortzufahren.", "Inserisci peso e dose prescritta per continuare."],
+    ["treatment.selectMedication", "Select a verified option or use “My medication is not listed” to enter it manually.", "Selecciona una opción verificada o usa “Mi medicamento no está en la lista” para registrarlo manualmente.", "Sélectionnez une option vérifiée ou utilisez “Mon médicament n’est pas dans la liste” pour le saisir manuellement.", "Wähle eine geprüfte Option oder nutze „Mein Medikament ist nicht in der Liste“, um es manuell einzugeben.", "Seleziona un’opzione verificata o usa “Il mio farmaco non è nell’elenco” per inserirlo manualmente."],
+    ["treatment.manualNameRequired", "Enter the manual medication name.", "Ingresa el nombre del medicamento manual.", "Saisissez le nom du médicament manuel.", "Gib den Namen des manuell erfassten Medikaments ein.", "Inserisci il nome del farmaco manuale."],
+    ["treatment.savedSuccess", "Treatment saved successfully.", "Tratamiento guardado correctamente.", "Traitement enregistré avec succès.", "Behandlung erfolgreich gespeichert.", "Trattamento salvato correttamente."],
+    ["home.welcome", "Welcome!", "¡Bienvenido!", "Bienvenue !", "Willkommen!", "Benvenuto!"],
+    ["home.ready", "Ready to analyze your meal?", "¿Listo para analizar tu comida?", "Prêt à analyser votre repas ?", "Bereit, deine Mahlzeit zu analysieren?", "Pronto ad analizzare il pasto?"],
+    ["home.analyzeMeal", "Analyze meal", "Analizar comida", "Analyser le repas", "Mahlzeit analysieren", "Analizza pasto"],
+    ["home.howItWorks", "How it works", "Cómo funciona", "Comment ça marche", "So funktioniert es", "Come funziona"],
+    ["home.howItWorksText", "Take a photo of your meal or choose one from the gallery. The app estimates fat and suggests enzyme units.", "Toma una foto de tu comida o elige una de la galería. La app estima la grasa y sugiere unidades enzimáticas.", "Prenez une photo du repas ou choisissez-en une dans la galerie. L’app estime la graisse et suggère des unités enzymatiques.", "Mache ein Foto deiner Mahlzeit oder wähle eines aus der Galerie. Die App schätzt Fett und schlägt Enzymeinheiten vor.", "Scatta una foto del pasto o scegline una dalla galleria. L’app stima i grassi e suggerisce unità enzimatiche."],
+    ["home.shortcuts", "Shortcuts", "Atajos", "Raccourcis", "Kurzwege", "Scorciatoie"],
+    ["analysis.confirmTitle", "Confirm analysis", "Confirmar análisis", "Confirmer l’analyse", "Analyse bestätigen", "Conferma analisi"],
+    ["analysis.detectedFoods", "Detected foods", "Alimentos detectados", "Aliments détectés", "Erkannte Lebensmittel", "Alimenti rilevati"],
+    ["analysis.reviewBeforeCalculate", "Review foods before calculating.", "Revisa los alimentos antes de calcular.", "Vérifiez les aliments avant de calculer.", "Prüfe die Lebensmittel vor der Berechnung.", "Controlla gli alimenti prima del calcolo."],
+    ["analysis.addFood", "Add food", "Agregar alimento", "Ajouter un aliment", "Lebensmittel hinzufügen", "Aggiungi alimento"],
+    ["analysis.confirm", "Confirm analysis", "Confirmar análisis", "Confirmer l’analyse", "Analyse bestätigen", "Conferma analisi"],
+    ["analysis.reanalyze", "Analyze again", "Analizar de nuevo", "Analyser à nouveau", "Erneut analysieren", "Analizza di nuovo"],
+    ["result.title", "Result", "Resultado", "Résultat", "Ergebnis", "Risultato"],
+    ["result.summary", "Summary", "Resumen", "Résumé", "Zusammenfassung", "Riepilogo"],
+    ["result.totalFat", "Total fat", "Grasa total", "Graisse totale", "Gesamtfett", "Grassi totali"],
+    ["result.fat", "Fat", "Grasa", "Graisse", "Fett", "Grassi"],
+    ["result.protein", "Protein", "Proteína", "Protéine", "Protein", "Proteine"],
+    ["result.carbs", "Carbs", "Carbohidratos", "Glucides", "Kohlenhydrate", "Carboidrati"],
+    ["result.prescribedDose", "Prescribed dose", "Dosis prescrita", "Dose prescrite", "Verordnete Dosis", "Dose prescritta"],
+    ["result.medication", "Medication", "Medicamento", "Médicament", "Medikament", "Farmaco"],
+    ["result.power", "Strength", "Potencia", "Dosage", "Stärke", "Potenza"],
+    ["result.requiredLipase", "Required lipase", "Lipasa necesaria", "Lipase nécessaire", "Benötigte Lipase", "Lipasi necessaria"],
+    ["result.calculation", "Calculation", "Cálculo", "Calcul", "Berechnung", "Calcolo"],
+    ["result.estimatedUnits", "Suggested units", "Unidades sugeridas", "Unités suggérées", "Vorgeschlagene Einheiten", "Unità suggerite"],
+    ["result.unitsInUse", "Units in use", "Unidades en uso", "Unités utilisées", "Verwendete Einheiten", "Unità in uso"],
+    ["result.deliveredLipase", "Delivered lipase", "Lipasa entregada", "Lipase fournie", "Abgegebene Lipase", "Lipasi erogata"],
+    ["result.fullCalculation", "View full calculation", "Ver cálculo completo", "Voir le calcul complet", "Vollständige Berechnung anzeigen", "Vedi calcolo completo"],
+    ["result.saveFavorite", "Save favorite meal", "Guardar comida favorita", "Enregistrer le repas favori", "Lieblingsmahlzeit speichern", "Salva pasto preferito"],
+    ["result.favoriteSaved", "Meal saved to favorites", "Comida guardada en favoritos", "Repas enregistré dans les favoris", "Mahlzeit in Favoriten gespeichert", "Pasto salvato nei preferiti"],
+    ["result.favoriteSavedToast", "Meal saved", "Comida guardada", "Repas enregistré", "Mahlzeit gespeichert", "Pasto salvato"],
+    ["result.adjustDose", "Adjust dose", "Ajustar dosis", "Ajuster la dose", "Dosis anpassen", "Regola dose"],
+    ["result.adjustedDoseNote", "Dose manually adjusted from the suggestion of {dose}.", "Dosis ajustada manualmente respecto a la sugerencia de {dose}.", "Dose ajustée manuellement par rapport à la suggestion de {dose}.", "Dosis manuell gegenüber dem Vorschlag von {dose} angepasst.", "Dose modificata manualmente rispetto al suggerimento di {dose}."],
+    ["result.unusual", "We found an unusual result. Review the foods before using this calculation.", "Encontramos un resultado inusual. Revisa los alimentos antes de usar este cálculo.", "Nous avons trouvé un résultat inhabituel. Vérifiez les aliments avant d’utiliser ce calcul.", "Wir haben ein ungewöhnliches Ergebnis gefunden. Prüfe die Lebensmittel, bevor du diese Berechnung nutzt.", "Abbiamo trovato un risultato insolito. Controlla gli alimenti prima di usare questo calcolo."],
+    ["result.estimatedNote", "This result is an estimate based on the registered data and does not replace professional guidance.", "Este resultado es una estimación basada en los datos registrados y no reemplaza la orientación profesional.", "Ce résultat est une estimation basée sur les données enregistrées et ne remplace pas un avis professionnel.", "Dieses Ergebnis ist eine Schätzung auf Basis der gespeicherten Daten und ersetzt keine professionelle Beratung.", "Questo risultato è una stima basata sui dati registrati e non sostituisce il parere professionale."],
+    ["profile.subtitle", "Settings and preferences", "Ajustes y preferencias", "Réglages et préférences", "Einstellungen und Präferenzen", "Impostazioni e preferenze"],
+    ["profile.preferences", "Preferences", "Preferencias", "Préférences", "Präferenzen", "Preferenze"],
+    ["profile.notifications", "Notifications", "Notificaciones", "Notifications", "Benachrichtigungen", "Notifiche"],
+    ["profile.security", "Safety", "Seguridad", "Sécurité", "Sicherheit", "Sicurezza"],
+    ["profile.about", "About", "Acerca de", "À propos", "Über", "Info"],
+    ["profile.childMode", "Child mode", "Modo infantil", "Mode enfant", "Kindermodus", "Modalità bambino"],
+    ["profile.medicalAlerts", "Medical warnings", "Avisos médicos", "Avertissements médicaux", "Medizinische Hinweise", "Avvisi medici"],
+    ["profile.mealReminders", "Meal reminders", "Recordatorios de comidas", "Rappels de repas", "Mahlzeit-Erinnerungen", "Promemoria pasti"],
+    ["profile.photoTutorial", "Photo tutorial", "Tutorial de fotos", "Tutoriel photo", "Foto-Tutorial", "Tutorial foto"],
+    ["profile.medicalReport", "Medical report", "Informe médico", "Rapport médical", "Medizinischer Bericht", "Report medico"],
+    ["profile.aboutFlow", "About and how it works", "Acerca de y funcionamiento", "À propos et fonctionnement", "Über und Funktionsweise", "Info e funzionamento"],
+    ["profile.favoriteMeals", "Favorite meals", "Comidas favoritas", "Repas favoris", "Lieblingsmahlzeiten", "Pasti preferiti"]
+  ];
+
+  const phraseRows = [
+    ["Continuar em português", "Continue in Portuguese", "Continuar en portugués", "Continuer en portugais", "Auf Portugiesisch fortfahren", "Continua in portoghese"],
+    ["Interface completa nesta versão", "Full interface in this version", "Interfaz completa en esta versión", "Interface complète dans cette version", "Vollständige Oberfläche in dieser Version", "Interfaccia completa in questa versione"],
+    ["DISPONÍVEL AGORA", "AVAILABLE NOW", "DISPONIBLE AHORA", "DISPONIBLE MAINTENANT", "JETZT VERFÜGBAR", "DISPONIBILE ORA"],
+    ["IDIOMAS FUTUROS", "FUTURE LANGUAGES", "IDIOMAS FUTUROS", "LANGUES FUTURES", "ZUKÜNFTIGE SPRACHEN", "LINGUE FUTURE"],
+    ["Bem-vindo!", "Welcome!", "¡Bienvenido!", "Bienvenue !", "Willkommen!", "Benvenuto!"],
+    ["Pronto para analisar sua refeição?", "Ready to analyze your meal?", "¿Listo para analizar tu comida?", "Prêt à analyser votre repas ?", "Bereit, deine Mahlzeit zu analysieren?", "Pronto ad analizzare il pasto?"],
+    ["Analisar refeição", "Analyze meal", "Analizar comida", "Analyser le repas", "Mahlzeit analysieren", "Analizza pasto"],
+    ["Como funciona", "How it works", "Cómo funciona", "Comment ça marche", "So funktioniert es", "Come funziona"],
+    ["Tire uma foto da sua refeição ou escolha da galeria. O app estima a gordura e sugere a quantidade de unidades enzimáticas.", "Take a photo of your meal or choose one from the gallery. The app estimates fat and suggests enzyme units.", "Toma una foto de tu comida o elige una de la galería. La app estima la grasa y sugiere unidades enzimáticas.", "Prenez une photo du repas ou choisissez-en une dans la galerie. L’app estime la graisse et suggère des unités enzymatiques.", "Mache ein Foto deiner Mahlzeit oder wähle eines aus der Galerie. Die App schätzt Fett und schlägt Enzymeinheiten vor.", "Scatta una foto del pasto o scegline una dalla galleria. L’app stima i grassi e suggerisce unità enzimatiche."],
+    ["Atalhos", "Shortcuts", "Atajos", "Raccourcis", "Kurzwege", "Scorciatoie"],
+    ["Favoritas", "Favorites", "Favoritas", "Favoris", "Favoriten", "Preferite"],
+    ["Tutorial", "Tutorial", "Tutorial", "Tutoriel", "Tutorial", "Tutorial"],
+    ["Relatório", "Report", "Informe", "Rapport", "Bericht", "Report"],
+    ["Adicionar refeição", "Add meal", "Agregar comida", "Ajouter un repas", "Mahlzeit hinzufügen", "Aggiungi pasto"],
+    ["Tirar foto", "Take photo", "Tomar foto", "Prendre une photo", "Foto aufnehmen", "Scatta foto"],
+    ["Escolher da galeria", "Choose from gallery", "Elegir de la galería", "Choisir dans la galerie", "Aus Galerie wählen", "Scegli dalla galleria"],
+    ["Cancelar", "Cancel", "Cancelar", "Annuler", "Abbrechen", "Annulla"],
+    ["Câmera", "Camera", "Cámara", "Caméra", "Kamera", "Fotocamera"],
+    ["Posicione a refeição no quadro.", "Position the meal inside the frame.", "Coloca la comida dentro del encuadre.", "Placez le repas dans le cadre.", "Positioniere die Mahlzeit im Rahmen.", "Posiziona il pasto nell’inquadratura."],
+    ["Abrindo câmera...", "Opening camera...", "Abriendo cámara...", "Ouverture de la caméra...", "Kamera wird geöffnet...", "Apertura fotocamera..."],
+    ["Centralize o prato no guia.", "Center the plate in the guide.", "Centra el plato en la guía.", "Centrez l’assiette dans le guide.", "Zentriere den Teller in der Führung.", "Centra il piatto nella guida."],
+    ["Prato centralizado.", "Plate centered.", "Plato centrado.", "Assiette centrée.", "Teller zentriert.", "Piatto centrato."],
+    ["Capturando foto...", "Capturing photo...", "Capturando foto...", "Capture de la photo...", "Foto wird aufgenommen...", "Acquisizione foto..."],
+    ["Não foi possível acessar a câmera. Use a galeria.", "Could not access the camera. Use the gallery.", "No fue posible acceder a la cámara. Usa la galería.", "Impossible d’accéder à la caméra. Utilisez la galerie.", "Kamera konnte nicht geöffnet werden. Nutze die Galerie.", "Impossibile accedere alla fotocamera. Usa la galleria."],
+    ["Analisando refeição...", "Analyzing meal...", "Analizando comida...", "Analyse du repas...", "Mahlzeit wird analysiert...", "Analisi del pasto..."],
+    ["Detectando alimentos...", "Detecting foods...", "Detectando alimentos...", "Détection des aliments...", "Lebensmittel werden erkannt...", "Rilevamento alimenti..."],
+    ["Estimando porções...", "Estimating portions...", "Estimando porciones...", "Estimation des portions...", "Portionen werden geschätzt...", "Stima porzioni..."],
+    ["Consultando banco nutricional...", "Checking nutrition database...", "Consultando banco nutricional...", "Consultation de la base nutritionnelle...", "Nährwertdatenbank wird geprüft...", "Consultazione banca nutrizionale..."],
+    ["Calculando composição nutricional...", "Calculating nutritional composition...", "Calculando composición nutricional...", "Calcul de la composition nutritionnelle...", "Nährwerte werden berechnet...", "Calcolo composizione nutrizionale..."],
+    ["Confirmar análise", "Confirm analysis", "Confirmar análisis", "Confirmer l’analyse", "Analyse bestätigen", "Conferma analisi"],
+    ["Alimentos detectados", "Detected foods", "Alimentos detectados", "Aliments détectés", "Erkannte Lebensmittel", "Alimenti rilevati"],
+    ["Revise os alimentos antes de calcular.", "Review foods before calculating.", "Revisa los alimentos antes de calcular.", "Vérifiez les aliments avant de calculer.", "Prüfe die Lebensmittel vor der Berechnung.", "Controlla gli alimenti prima del calcolo."],
+    ["A precisão pode ser reduzida devido às condições da foto.", "Accuracy may be reduced because of photo conditions.", "La precisión puede reducirse por las condiciones de la foto.", "La précision peut être réduite à cause des conditions de la photo.", "Die Genauigkeit kann durch die Fotobedingungen sinken.", "La precisione può ridursi per le condizioni della foto."],
+    ["Confiança alta para uma simulação realista.", "High confidence for a realistic simulation.", "Alta confianza para una simulación realista.", "Confiance élevée pour une simulation réaliste.", "Hohe Zuverlässigkeit für eine realistische Simulation.", "Alta affidabilità per una simulazione realistica."],
+    ["Esta análise possui baixa confiança. Recomendamos fotografar novamente.", "This analysis has low confidence. We recommend taking another photo.", "Este análisis tiene baja confianza. Recomendamos fotografiar de nuevo.", "Cette analyse a une faible confiance. Nous recommandons de reprendre la photo.", "Diese Analyse hat geringe Zuverlässigkeit. Wir empfehlen ein neues Foto.", "Questa analisi ha bassa affidabilità. Consigliamo di rifare la foto."],
+    ["Revise a foto", "Review the photo", "Revisa la foto", "Vérifiez la photo", "Foto prüfen", "Controlla la foto"],
+    ["Confira os alimentos antes de calcular.", "Check the foods before calculating.", "Revisa los alimentos antes de calcular.", "Vérifiez les aliments avant de calculer.", "Prüfe die Lebensmittel vor der Berechnung.", "Controlla gli alimenti prima del calcolo."],
+    ["Qualidade da foto", "Photo quality", "Calidad de la foto", "Qualité de la photo", "Fotoqualität", "Qualità della foto"],
+    ["Imagem tremida", "Blurry image", "Imagen movida", "Image floue", "Verwackeltes Bild", "Immagine mossa"],
+    ["Foto boa", "Good photo", "Foto buena", "Bonne photo", "Gutes Foto", "Foto buona"],
+    ["Foto excelente", "Excellent photo", "Foto excelente", "Excellente photo", "Ausgezeichnetes Foto", "Foto eccellente"],
+    ["Embalagem detectada", "Package detected", "Envase detectado", "Emballage détecté", "Verpackung erkannt", "Confezione rilevata"],
+    ["Parece que há um alimento embalado. No futuro será possível ler automaticamente a tabela nutricional.", "It looks like there is packaged food. In the future, the nutrition label may be read automatically.", "Parece que hay un alimento envasado. En el futuro será posible leer automáticamente la tabla nutricional.", "Il semble y avoir un aliment emballé. À l’avenir, l’étiquette nutritionnelle pourra être lue automatiquement.", "Es sieht nach verpacktem Essen aus. Künftig kann die Nährwerttabelle automatisch gelesen werden.", "Sembra esserci un alimento confezionato. In futuro sarà possibile leggere automaticamente la tabella nutrizionale."],
+    ["Alimento não identificado", "Unidentified food", "Alimento no identificado", "Aliment non identifié", "Nicht erkanntes Lebensmittel", "Alimento non identificato"],
+    ["O módulo de análise encontrou um item sem identificação confiável.", "The analysis module found an item without reliable identification.", "El módulo de análisis encontró un elemento sin identificación confiable.", "Le module d’analyse a trouvé un élément sans identification fiable.", "Das Analysemodul fand ein Element ohne verlässliche Erkennung.", "Il modulo di analisi ha trovato un elemento senza identificazione affidabile."],
+    ["Substituir", "Replace", "Sustituir", "Remplacer", "Ersetzen", "Sostituisci"],
+    ["Adicionar alimento", "Add food", "Agregar alimento", "Ajouter un aliment", "Lebensmittel hinzufügen", "Aggiungi alimento"],
+    ["Reanalisar foto", "Analyze again", "Analizar de nuevo", "Analyser à nouveau", "Erneut analysieren", "Analizza di nuovo"],
+    ["Resultado", "Result", "Resultado", "Résultat", "Ergebnis", "Risultato"],
+    ["Refeição analisada", "Analyzed meal", "Comida analizada", "Repas analysé", "Analysierte Mahlzeit", "Pasto analizzato"],
+    ["Resumo", "Summary", "Resumen", "Résumé", "Zusammenfassung", "Riepilogo"],
+    ["Gordura", "Fat", "Grasa", "Graisse", "Fett", "Grassi"],
+    ["Proteína", "Protein", "Proteína", "Protéine", "Protein", "Proteine"],
+    ["Carboidratos", "Carbs", "Carbohidratos", "Glucides", "Kohlenhydrate", "Carboidrati"],
+    ["Carboidrato", "Carb", "Carbohidrato", "Glucide", "Kohlenhydrat", "Carboidrato"],
+    ["Calorias", "Calories", "Calorías", "Calories", "Kalorien", "Calorie"],
+    ["Lipase", "Lipase", "Lipasa", "Lipase", "Lipase", "Lipasi"],
+    ["Cápsulas", "Capsules", "Cápsulas", "Gélules", "Kapseln", "Capsule"],
+    ["Dose estimada", "Estimated dose", "Dosis estimada", "Dose estimée", "Geschätzte Dosis", "Dose stimata"],
+    ["Medicamento cadastrado", "Registered medication", "Medicamento registrado", "Médicament enregistré", "Gespeichertes Medikament", "Farmaco registrato"],
+    ["Estimativa baseada no seu perfil.", "Estimate based on your profile.", "Estimación basada en tu perfil.", "Estimation basée sur votre profil.", "Schätzung basierend auf deinem Profil.", "Stima basata sul tuo profilo."],
+    ["Ver cálculo completo", "View full calculation", "Ver cálculo completo", "Voir le calcul complet", "Vollständige Berechnung anzeigen", "Vedi calcolo completo"],
+    ["Salvar refeição favorita", "Save favorite meal", "Guardar comida favorita", "Enregistrer le repas favori", "Lieblingsmahlzeit speichern", "Salva pasto preferito"],
+    ["Ajustar dose", "Adjust dose", "Ajustar dosis", "Ajuster la dose", "Dosis anpassen", "Regola dose"],
+    ["Concluir", "Finish", "Finalizar", "Terminer", "Fertig", "Fine"],
+    ["Histórico atualizado", "History updated", "Historial actualizado", "Historique mis à jour", "Verlauf aktualisiert", "Cronologia aggiornata"],
+    ["Refeição salva nos favoritos", "Meal saved to favorites", "Comida guardada en favoritos", "Repas enregistré dans les favoris", "Mahlzeit in Favoriten gespeichert", "Pasto salvato nei preferiti"],
+    ["Refeição salva", "Meal saved", "Comida guardada", "Repas enregistré", "Mahlzeit gespeichert", "Pasto salvato"],
+    ["Pesquisar alimento", "Search food", "Buscar alimento", "Rechercher un aliment", "Lebensmittel suchen", "Cerca alimento"],
+    ["Histórico", "History", "Historial", "Historique", "Verlauf", "Cronologia"],
+    ["Suas refeições anteriores", "Your previous meals", "Tus comidas anteriores", "Vos repas précédents", "Deine früheren Mahlzeiten", "I tuoi pasti precedenti"],
+    ["Nenhuma refeição analisada", "No analyzed meals yet", "Ninguna comida analizada", "Aucun repas analysé", "Noch keine Mahlzeit analysiert", "Nessun pasto analizzato"],
+    ["Quando você analisar sua primeira refeição, ela aparecerá aqui", "When you analyze your first meal, it will appear here", "Cuando analices tu primera comida, aparecerá aquí", "Lorsque vous analyserez votre premier repas, il apparaîtra ici", "Wenn du deine erste Mahlzeit analysierst, erscheint sie hier", "Quando analizzi il primo pasto, apparirà qui"],
+    ["Analisar primeira refeição", "Analyze first meal", "Analizar primera comida", "Analyser le premier repas", "Erste Mahlzeit analysieren", "Analizza primo pasto"],
+    ["Detalhes", "Details", "Detalles", "Détails", "Details", "Dettagli"],
+    ["Alimentos e quantidades", "Foods and quantities", "Alimentos y cantidades", "Aliments et quantités", "Lebensmittel und Mengen", "Alimenti e quantità"],
+    ["Resumo nutricional", "Nutrition summary", "Resumen nutricional", "Résumé nutritionnel", "Nährwertübersicht", "Riepilogo nutrizionale"],
+    ["Análise simulada", "Simulated analysis", "Análisis simulado", "Analyse simulée", "Simulierte Analyse", "Analisi simulata"],
+    ["Confiança", "Confidence", "Confianza", "Confiance", "Zuverlässigkeit", "Affidabilità"],
+    ["Qualidade", "Quality", "Calidad", "Qualité", "Qualität", "Qualità"],
+    ["Reanálises", "Reanalyses", "Reanálisis", "Réanalyses", "Neue Analysen", "Rianalisi"],
+    ["Alterações realizadas", "Changes made", "Cambios realizados", "Modifications effectuées", "Vorgenommene Änderungen", "Modifiche effettuate"],
+    ["Nenhuma alteração manual registrada.", "No manual change recorded.", "Ningún cambio manual registrado.", "Aucune modification manuelle enregistrée.", "Keine manuelle Änderung gespeichert.", "Nessuna modifica manuale registrata."],
+    ["Encontramos um resultado incomum. Revise os alimentos antes de utilizar este cálculo.", "We found an unusual result. Review the foods before using this calculation.", "Encontramos un resultado inusual. Revisa los alimentos antes de usar este cálculo.", "Nous avons trouvé un résultat inhabituel. Vérifiez les aliments avant d’utiliser ce calcul.", "Wir haben ein ungewöhnliches Ergebnis gefunden. Prüfe die Lebensmittel, bevor du diese Berechnung nutzt.", "Abbiamo trovato un risultato insolito. Controlla gli alimenti prima di usare questo calcolo."],
+    ["Perfil", "Profile", "Perfil", "Profil", "Profil", "Profilo"],
+    ["Configurações e preferências", "Settings and preferences", "Ajustes y preferencias", "Réglages et préférences", "Einstellungen und Präferenzen", "Impostazioni e preferenze"],
+    ["Preferências", "Preferences", "Preferencias", "Préférences", "Präferenzen", "Preferenze"],
+    ["Notificações", "Notifications", "Notificaciones", "Notifications", "Benachrichtigungen", "Notifiche"],
+    ["Segurança", "Safety", "Seguridad", "Sécurité", "Sicherheit", "Sicurezza"],
+    ["Sobre", "About", "Acerca de", "À propos", "Über", "Info"],
+    ["Configuração inicial", "Initial setup", "Configuración inicial", "Configuration initiale", "Ersteinrichtung", "Configurazione iniziale"],
+    ["Unidade de medida", "Measurement unit", "Unidad de medida", "Unité de mesure", "Maßeinheit", "Unità di misura"],
+    ["Modo infantil", "Child mode", "Modo infantil", "Mode enfant", "Kindermodus", "Modalità bambino"],
+    ["Lembretes de refeições", "Meal reminders", "Recordatorios de comidas", "Rappels de repas", "Mahlzeit-Erinnerungen", "Promemoria pasti"],
+    ["Avisos médicos", "Medical warnings", "Avisos médicos", "Avertissements médicaux", "Medizinische Hinweise", "Avvisi medici"],
+    ["Refeições favoritas", "Favorite meals", "Comidas favoritas", "Repas favoris", "Lieblingsmahlzeiten", "Pasti preferiti"],
+    ["Tutorial de fotos", "Photo tutorial", "Tutorial de fotos", "Tutoriel photo", "Foto-Tutorial", "Tutorial foto"],
+    ["Relatório médico", "Medical report", "Informe médico", "Rapport médical", "Medizinischer Bericht", "Report medico"],
+    ["Sobre e funcionamento", "About and how it works", "Acerca de y funcionamiento", "À propos et fonctionnement", "Über und Funktionsweise", "Info e funzionamento"],
+    ["Idioma", "Language", "Idioma", "Langue", "Sprache", "Lingua"],
+    ["Termos de uso", "Terms of use", "Términos de uso", "Conditions d’utilisation", "Nutzungsbedingungen", "Termini d’uso"],
+    ["Privacidade", "Privacy", "Privacidad", "Confidentialité", "Datenschutz", "Privacy"],
+    ["Meu Tratamento", "My Treatment", "Mi tratamiento", "Mon traitement", "Meine Behandlung", "Il mio trattamento"],
+    ["País ou região do tratamento", "Treatment country or region", "País o región del tratamiento", "Pays ou région du traitement", "Land oder Region der Behandlung", "Paese o regione del trattamento"],
+    ["Peso do paciente", "Patient weight", "Peso del paciente", "Poids du patient", "Patientengewicht", "Peso del paziente"],
+    ["Dose prescrita", "Prescribed dose", "Dosis prescrita", "Dose prescrite", "Verordnete Dosis", "Dose prescritta"],
+    ["Medicamento enzimático prescrito", "Prescribed enzyme medication", "Medicamento enzimático prescrito", "Médicament enzymatique prescrit", "Verordnetes Enzymmedikament", "Farmaco enzimatico prescritto"],
+    ["Meu medicamento não está na lista", "My medication is not listed", "Mi medicamento no está en la lista", "Mon médicament n’est pas dans la liste", "Mein Medikament ist nicht in der Liste", "Il mio farmaco non è nell’elenco"],
+    ["Forma do medicamento", "Medication form", "Forma del medicamento", "Forme du médicament", "Form des Medikaments", "Forma del farmaco"],
+    ["Nome da unidade", "Unit name", "Nombre de la unidad", "Nom de l’unité", "Name der Einheit", "Nome dell’unità"],
+    ["Observação da prescrição", "Prescription note", "Nota de la receta", "Note de prescription", "Hinweis zur Verordnung", "Nota della prescrizione"],
+    ["Salvar tratamento", "Save treatment", "Guardar tratamiento", "Enregistrer le traitement", "Behandlung speichern", "Salva trattamento"],
+    ["Mostrar mais", "Show more", "Mostrar más", "Afficher plus", "Mehr anzeigen", "Mostra altro"],
+    ["Ver mais", "See more", "Ver más", "Voir plus", "Mehr anzeigen", "Mostra altro"],
+    ["Fotografe o prato de cima", "Photograph the plate from above", "Fotografía el plato desde arriba", "Photographiez l’assiette du dessus", "Fotografiere den Teller von oben", "Fotografa il piatto dall’alto"],
+    ["Mantenha o celular acima da refeição para facilitar a identificação.", "Keep the phone above the meal to make identification easier.", "Mantén el celular sobre la comida para facilitar la identificación.", "Gardez le téléphone au-dessus du repas pour faciliter l’identification.", "Halte das Handy über die Mahlzeit, damit sie leichter erkannt wird.", "Tieni il telefono sopra il pasto per facilitare l’identificazione."],
+    ["Enquadre toda a refeição", "Frame the whole meal", "Encuadra toda la comida", "Cadrez tout le repas", "Rahme die ganze Mahlzeit ein", "Inquadra tutto il pasto"],
+    ["Todos os alimentos precisam aparecer completamente.", "All foods need to appear completely.", "Todos los alimentos deben aparecer completos.", "Tous les aliments doivent apparaître entièrement.", "Alle Lebensmittel müssen vollständig sichtbar sein.", "Tutti gli alimenti devono comparire per intero."],
+    ["Utilize boa iluminação", "Use good lighting", "Usa buena iluminación", "Utilisez une bonne lumière", "Nutze gutes Licht", "Usa una buona illuminazione"],
+    ["Ambientes claros ajudam na identificação dos alimentos.", "Bright environments help identify foods.", "Los ambientes claros ayudan a identificar los alimentos.", "Les environnements clairs aident à identifier les aliments.", "Helle Umgebungen helfen bei der Erkennung.", "Gli ambienti luminosi aiutano a identificare gli alimenti."],
+    ["Evite mover o celular", "Avoid moving the phone", "Evita mover el celular", "Évitez de bouger le téléphone", "Bewege das Handy nicht", "Evita di muovere il telefono"],
+    ["Espere alguns segundos antes de fotografar.", "Wait a few seconds before taking the photo.", "Espera unos segundos antes de fotografiar.", "Attendez quelques secondes avant de prendre la photo.", "Warte ein paar Sekunden vor dem Foto.", "Aspetta alcuni secondi prima di fotografare."],
+    ["Retire embalagens e objetos", "Remove packages and objects", "Retira envases y objetos", "Retirez emballages et objets", "Entferne Verpackungen und Gegenstände", "Rimuovi confezioni e oggetti"],
+    ["Deixe apenas os alimentos visíveis.", "Leave only the foods visible.", "Deja visibles solo los alimentos.", "Ne laissez visibles que les aliments.", "Lasse nur die Lebensmittel sichtbar.", "Lascia visibili solo gli alimenti."],
+    ["Revise antes de calcular", "Review before calculating", "Revisa antes de calcular", "Vérifiez avant de calculer", "Vor dem Berechnen prüfen", "Controlla prima di calcolare"],
+    ["Sempre confirme os alimentos encontrados antes do cálculo.", "Always confirm the detected foods before the calculation.", "Siempre confirma los alimentos encontrados antes del cálculo.", "Confirmez toujours les aliments détectés avant le calcul.", "Bestätige immer die erkannten Lebensmittel vor der Berechnung.", "Conferma sempre gli alimenti rilevati prima del calcolo."],
+    ["Voltar para a home", "Back to home", "Volver al inicio", "Retour à l’accueil", "Zurück zur Startseite", "Torna alla home"],
+    ["Voltar para o perfil", "Back to profile", "Volver al perfil", "Retour au profil", "Zurück zum Profil", "Torna al profilo"],
+    ["Próximo", "Next", "Siguiente", "Suivant", "Weiter", "Avanti"],
+    ["Começar", "Start", "Comenzar", "Commencer", "Starten", "Inizia"],
+    ["Voltar", "Back", "Volver", "Retour", "Zurück", "Indietro"],
+    ["Horários cadastrados", "Saved times", "Horarios guardados", "Horaires enregistrés", "Gespeicherte Uhrzeiten", "Orari salvati"],
+    ["Limite atingido", "Limit reached", "Límite alcanzado", "Limite atteinte", "Limit erreicht", "Limite raggiunto"],
+    ["Limite de horários atingido", "Time limit reached", "Límite de horarios alcanzado", "Limite d’horaires atteinte", "Zeitlimit erreicht", "Limite di orari raggiunto"],
+    ["Adicionar horário", "Add time", "Agregar horario", "Ajouter un horaire", "Uhrzeit hinzufügen", "Aggiungi orario"],
+    ["Café da manhã", "Breakfast", "Desayuno", "Petit-déjeuner", "Frühstück", "Colazione"],
+    ["Almoço", "Lunch", "Almuerzo", "Déjeuner", "Mittagessen", "Pranzo"],
+    ["Jantar", "Dinner", "Cena", "Dîner", "Abendessen", "Cena"],
+    ["Novo horário", "New time", "Nuevo horario", "Nouvel horaire", "Neue Uhrzeit", "Nuovo orario"],
+    ["Nome", "Name", "Nombre", "Nom", "Name", "Nome"],
+    ["Horário", "Time", "Hora", "Heure", "Uhrzeit", "Orario"],
+    ["Nome do lembrete", "Reminder name", "Nombre del recordatorio", "Nom du rappel", "Name der Erinnerung", "Nome promemoria"],
+    ["Horário do lembrete", "Reminder time", "Hora del recordatorio", "Heure du rappel", "Uhrzeit der Erinnerung", "Orario promemoria"],
+    ["Nenhuma refeição favorita", "No favorite meal yet", "Ninguna comida favorita", "Aucun repas favori", "Noch keine Lieblingsmahlzeit", "Nessun pasto preferito"],
+    ["Salve uma refeição após o cálculo para vê-la aqui.", "Save a meal after calculation to see it here.", "Guarda una comida después del cálculo para verla aquí.", "Enregistrez un repas après le calcul pour le voir ici.", "Speichere eine Mahlzeit nach der Berechnung, um sie hier zu sehen.", "Salva un pasto dopo il calcolo per vederlo qui."],
+    ["Escolha como deseja visualizar as quantidades de alimentos", "Choose how you want to view food quantities", "Elige cómo deseas ver las cantidades de alimentos", "Choisissez comment afficher les quantités d’aliments", "Wähle, wie du Lebensmittelmengen sehen möchtest", "Scegli come visualizzare le quantità degli alimenti"],
+    ["Gramas (g)", "Grams (g)", "Gramos (g)", "Grammes (g)", "Gramm (g)", "Grammi (g)"],
+    ["Peso em gramas", "Weight in grams", "Peso en gramos", "Poids en grammes", "Gewicht in Gramm", "Peso in grammi"],
+    ["Colheres", "Spoons", "Cucharas", "Cuillères", "Löffel", "Cucchiai"],
+    ["Colheres de sopa", "Tablespoons", "Cucharadas", "Cuillères à soupe", "Esslöffel", "Cucchiai da tavola"],
+    ["Porções", "Servings", "Porciones", "Portions", "Portionen", "Porzioni"],
+    ["Porções estimadas", "Estimated servings", "Porciones estimadas", "Portions estimées", "Geschätzte Portionen", "Porzioni stimate"],
+    ["Resumo da refeição", "Meal summary", "Resumen de la comida", "Résumé du repas", "Mahlzeitübersicht", "Riepilogo pasto"],
+    ["Refeição sugerida", "Suggested meal", "Comida sugerida", "Repas suggéré", "Vorgeschlagene Mahlzeit", "Pasto suggerito"],
+    ["Gordura estimada", "Estimated fat", "Grasa estimada", "Graisse estimée", "Geschätztes Fett", "Grassi stimati"],
+    ["Sugestão do cálculo", "Calculation suggestion", "Sugerencia del cálculo", "Suggestion du calcul", "Berechnungsvorschlag", "Suggerimento del calcolo"],
+    ["Ajuste da dose", "Dose adjustment", "Ajuste de la dosis", "Ajustement de la dose", "Dosisanpassung", "Regolazione dose"],
+    ["Diminuir dose", "Decrease dose", "Disminuir dosis", "Diminuer la dose", "Dosis verringern", "Diminuisci dose"],
+    ["Aumentar dose", "Increase dose", "Aumentar dosis", "Augmenter la dose", "Dosis erhöhen", "Aumenta dose"],
+    ["Dose igual à sugestão", "Dose matches the suggestion", "La dosis coincide con la sugerencia", "La dose correspond à la suggestion", "Dosis entspricht dem Vorschlag", "La dose corrisponde al suggerimento"],
+    ["Enzima", "Enzyme", "Enzima", "Enzyme", "Enzym", "Enzima"],
+    ["Dose total", "Total dose", "Dosis total", "Dose totale", "Gesamtdosis", "Dose totale"],
+    ["Confirmar dose", "Confirm dose", "Confirmar dosis", "Confirmer la dose", "Dosis bestätigen", "Conferma dose"],
+    ["Consulte seu médico antes de alterar sua dose", "Ask your doctor before changing your dose", "Consulta a tu médico antes de cambiar tu dosis", "Consultez votre médecin avant de modifier votre dose", "Frage deinen Arzt, bevor du die Dosis änderst", "Consulta il medico prima di cambiare dose"],
+    ["Gerar PDF", "Generate PDF", "Generar PDF", "Générer le PDF", "PDF erstellen", "Genera PDF"],
+    ["Resumo objetivo para consulta: dados cadastrados, configuração de dose e ajustes manuais feitos no app.", "Objective summary for appointments: registered data, dose settings, and manual dose changes made in the app.", "Resumen objetivo para consulta: datos registrados, configuración de dosis y ajustes manuales hechos en la app.", "Résumé objectif pour consultation : données enregistrées, réglage de dose et ajustements manuels faits dans l’app.", "Sachliche Übersicht für Termine: gespeicherte Daten, Dosiseinstellung und manuelle Anpassungen aus der App.", "Riepilogo obiettivo per la visita: dati registrati, impostazioni dose e modifiche manuali fatte nell’app."],
+    ["Seus dados", "Your data", "Tus datos", "Vos données", "Deine Daten", "I tuoi dati"],
+    ["Peso cadastrado", "Registered weight", "Peso registrado", "Poids enregistré", "Gespeichertes Gewicht", "Peso registrato"],
+    ["País/região", "Country/region", "País/región", "Pays/région", "Land/Region", "Paese/regione"],
+    ["Medicamento", "Medication", "Medicamento", "Médicament", "Medikament", "Farmaco"],
+    ["Potência", "Strength", "Potencia", "Dosage", "Stärke", "Potenza"],
+    ["Não informado", "Not informed", "No informado", "Non renseigné", "Nicht angegeben", "Non indicato"],
+    ["Não informada", "Not informed", "No informada", "Non renseignée", "Nicht angegeben", "Non indicata"],
+    ["Configuração de cálculo", "Calculation settings", "Configuración de cálculo", "Configuration du calcul", "Berechnungseinstellungen", "Impostazioni di calcolo"],
+    ["Base do cálculo", "Calculation basis", "Base del cálculo", "Base du calcul", "Berechnungsgrundlage", "Base del calcolo"],
+    ["Gordura estimada x dose prescrita", "Estimated fat x prescribed dose", "Grasa estimada x dosis prescrita", "Graisse estimée x dose prescrite", "Geschätztes Fett x verordnete Dosis", "Grassi stimati x dose prescritta"],
+    ["Divisor", "Divider", "Divisor", "Diviseur", "Teiler", "Divisore"],
+    ["Unidades de lipase por unidade do medicamento", "Lipase units per medication unit", "Unidades de lipasa por unidad del medicamento", "Unités de lipase par unité de médicament", "Lipase-Einheiten pro Medikamenteneinheit", "Unità di lipasi per unità del farmaco"],
+    ["Arredondamento", "Rounding", "Redondeo", "Arrondi", "Rundung", "Arrotondamento"],
+    ["Conversão para unidades inteiras", "Conversion to whole units", "Conversión a unidades enteras", "Conversion en unités entières", "Umrechnung in ganze Einheiten", "Conversione in unità intere"],
+    ["Ativados", "On", "Activados", "Activés", "Aktiviert", "Attivi"],
+    ["Desativados", "Off", "Desactivados", "Désactivés", "Deaktiviert", "Disattivi"],
+    ["Cálculos confirmados", "Confirmed calculations", "Cálculos confirmados", "Calculs confirmés", "Bestätigte Berechnungen", "Calcoli confermati"],
+    ["Nenhum ainda", "None yet", "Ninguno todavía", "Aucun pour l’instant", "Noch keine", "Nessuno ancora"],
+    ["Mudanças na dose", "Dose changes", "Cambios en la dosis", "Changements de dose", "Dosisänderungen", "Modifiche della dose"],
+    ["Ajustes manuais", "Manual adjustments", "Ajustes manuales", "Ajustements manuels", "Manuelle Anpassungen", "Modifiche manuali"],
+    ["Nenhum ajuste manual", "No manual adjustment", "Ningún ajuste manual", "Aucun ajustement manuel", "Keine manuelle Anpassung", "Nessuna modifica manuale"],
+    ["Dose sugerida média", "Average suggested dose", "Dosis sugerida media", "Dose suggérée moyenne", "Durchschnittlich vorgeschlagene Dosis", "Dose suggerita media"],
+    ["Dose usada média", "Average used dose", "Dosis usada media", "Dose utilisée moyenne", "Durchschnittlich verwendete Dosis", "Dose usata media"],
+    ["Última dose usada", "Last used dose", "Última dosis usada", "Dernière dose utilisée", "Zuletzt verwendete Dosis", "Ultima dose usata"],
+    ["Último cálculo", "Last calculation", "Último cálculo", "Dernier calcul", "Letzte Berechnung", "Ultimo calcolo"],
+    ["Observações", "Notes", "Observaciones", "Observations", "Hinweise", "Osservazioni"],
+    ["Reanálises feitas", "Reanalyses made", "Reanálisis realizados", "Réanalyses effectuées", "Erneute Analysen", "Rianalisi effettuate"],
+    ["Nenhuma", "None", "Ninguna", "Aucune", "Keine", "Nessuna"],
+    ["Correções manuais", "Manual corrections", "Correcciones manuales", "Corrections manuelles", "Manuelle Korrekturen", "Correzioni manuali"],
+    ["Sem registro", "No record", "Sin registro", "Aucun registre", "Kein Eintrag", "Nessun registro"],
+    ["Sem cálculos confirmados", "No confirmed calculations", "Sin cálculos confirmados", "Aucun calcul confirmé", "Keine bestätigten Berechnungen", "Nessun calcolo confermato"],
+    ["Este relatório organiza informações cadastradas no app para facilitar a conversa com profissionais de saúde. Ele não substitui orientação médica.", "This report organizes information registered in the app to make conversations with health professionals easier. It does not replace medical guidance.", "Este informe organiza información registrada en la app para facilitar la conversación con profesionales de salud. No reemplaza la orientación médica.", "Ce rapport organise les informations enregistrées dans l’app pour faciliter l’échange avec les professionnels de santé. Il ne remplace pas un avis médical.", "Dieser Bericht ordnet App-Daten, damit Gespräche mit medizinischem Fachpersonal leichter werden. Er ersetzt keine ärztliche Beratung.", "Questo report organizza le informazioni registrate nell’app per facilitare il dialogo con professionisti sanitari. Non sostituisce il parere medico."],
+    ["Importante", "Important", "Importante", "Important", "Wichtig", "Importante"],
+    ["Esta tela resume os detalhes técnicos do projeto: o que já funciona, o que ainda é simulado e como o PancreAI foi pensado para evoluir.", "This screen summarizes the project’s technical details: what already works, what is still simulated, and how PancreAI was designed to evolve.", "Esta pantalla resume los detalles técnicos del proyecto: lo que ya funciona, lo que aún es simulado y cómo PancreAI fue pensado para evolucionar.", "Cet écran résume les détails techniques du projet : ce qui fonctionne déjà, ce qui est encore simulé et comment PancreAI a été pensé pour évoluer.", "Dieser Bildschirm fasst technische Details zusammen: was schon funktioniert, was noch simuliert ist und wie PancreAI weiterentwickelt werden kann.", "Questa schermata riassume i dettagli tecnici del progetto: cosa funziona già, cosa è ancora simulato e come PancreAI è stato pensato per evolvere."],
+    ["Bastidor técnico", "Technical background", "Detalle técnico", "Détail technique", "Technischer Hintergrund", "Dettaglio tecnico"],
+    ["Como esta versão funciona hoje", "How this version works today", "Cómo funciona esta versión hoy", "Fonctionnement actuel de cette version", "Wie diese Version heute funktioniert", "Come funziona oggi questa versione"],
+    ["O PancreAI que você vê no app representa a experiência que queremos construir. Nesta demonstração, a identificação dos alimentos pela foto ainda é simulada.", "The PancreAI you see in the app represents the experience we want to build. In this demo, food identification from the photo is still simulated.", "El PancreAI que ves en la app representa la experiencia que queremos construir. En esta demostración, la identificación de alimentos por foto aún es simulada.", "Le PancreAI que vous voyez représente l’expérience que nous voulons construire. Dans cette démonstration, l’identification des aliments par photo est encore simulée.", "Das PancreAI in der App zeigt die Erfahrung, die wir bauen wollen. In dieser Demo ist die Erkennung der Lebensmittel per Foto noch simuliert.", "Il PancreAI che vedi nell’app rappresenta l’esperienza che vogliamo costruire. In questa demo, l’identificazione degli alimenti dalla foto è ancora simulata."],
+    ["Depois dessa etapa, o app segue um fluxo funcional: o usuário revisa os alimentos, confirma ingredientes e o cálculo é feito com base nos dados cadastrados.", "After that step, the app follows a functional flow: the user reviews foods, confirms ingredients, and the calculation uses the registered data.", "Después de esa etapa, la app sigue un flujo funcional: el usuario revisa los alimentos, confirma ingredientes y el cálculo se hace con los datos registrados.", "Après cette étape, l’app suit un flux fonctionnel : l’utilisateur vérifie les aliments, confirme les ingrédients et le calcul utilise les données enregistrées.", "Danach folgt die App einem funktionalen Ablauf: Lebensmittel prüfen, Zutaten bestätigen, Berechnung mit gespeicherten Daten.", "Dopo questa fase, l’app segue un flusso funzionale: l’utente controlla gli alimenti, conferma gli ingredienti e il calcolo usa i dati registrati."],
+    ["A parte simulada fica separada do resto do sistema. Assim, no futuro, ela pode ser trocada por uma IA real sem refazer todo o aplicativo.", "The simulated part is kept separate from the rest of the system. In the future, it can be replaced by real AI without rebuilding the whole app.", "La parte simulada queda separada del resto del sistema. Así, en el futuro, puede cambiarse por una IA real sin rehacer toda la app.", "La partie simulée reste séparée du reste du système. À l’avenir, elle pourra être remplacée par une vraie IA sans refaire toute l’application.", "Der simulierte Teil bleibt vom restlichen System getrennt. Später kann er durch echte KI ersetzt werden, ohne die ganze App neu zu bauen.", "La parte simulata resta separata dal resto del sistema. In futuro potrà essere sostituita da una vera IA senza rifare tutta l’app."],
+    ["Revise com atenção", "Review carefully", "Revisa con atención", "Vérifiez attentivement", "Sorgfältig prüfen", "Controlla con attenzione"],
+    ["Foto pode influenciar a estimativa", "The photo may affect the estimate", "La foto puede influir en la estimación", "La photo peut influencer l’estimation", "Das Foto kann die Schätzung beeinflussen", "La foto può influenzare la stima"],
+    ["Ingredientes ocultos podem mudar o resultado", "Hidden ingredients may change the result", "Los ingredientes ocultos pueden cambiar el resultado", "Les ingrédients cachés peuvent changer le résultat", "Versteckte Zutaten können das Ergebnis ändern", "Ingredienti nascosti possono cambiare il risultato"],
+    ["Estimativa alterada manualmente", "Estimate changed manually", "Estimación modificada manualmente", "Estimation modifiée manuellement", "Schätzung manuell geändert", "Stima modificata manualmente"],
+    ["Este resultado é uma estimativa", "This result is an estimate", "Este resultado es una estimación", "Ce résultat est une estimation", "Dieses Ergebnis ist eine Schätzung", "Questo risultato è una stima"],
+    ["Peso não informado", "Weight not informed", "Peso no informado", "Poids non renseigné", "Gewicht nicht angegeben", "Peso non indicato"],
+    ["Dose prescrita ausente", "Prescribed dose missing", "Falta la dosis prescrita", "Dose prescrite absente", "Verordnete Dosis fehlt", "Dose prescritta assente"],
+    ["Medicamento não selecionado", "Medication not selected", "Medicamento no seleccionado", "Médicament non sélectionné", "Medikament nicht ausgewählt", "Farmaco non selezionato"],
+    ["Potência ausente", "Strength missing", "Falta la potencia", "Dosage absent", "Stärke fehlt", "Potenza assente"],
+    ["Estimativa muito alta", "Very high estimate", "Estimación muy alta", "Estimation très élevée", "Sehr hohe Schätzung", "Stima molto alta"],
+    ["Revisar dose", "Review dose", "Revisar dosis", "Vérifier la dose", "Dosis prüfen", "Rivedi dose"],
+    ["Revisar dia", "Review the day", "Revisar el día", "Vérifier la journée", "Tag prüfen", "Rivedi giornata"],
+    ["Revisar gordura", "Review fat", "Revisar grasa", "Vérifier la graisse", "Fett prüfen", "Rivedi grassi"],
+    ["Medicamento personalizado", "Custom medication", "Medicamento personalizado", "Médicament personnalisé", "Benutzerdefiniertes Medikament", "Farmaco personalizzato"],
+    ["Potência a confirmar", "Strength to confirm", "Potencia por confirmar", "Dosage à confirmer", "Stärke zu bestätigen", "Potenza da confermare"],
+    ["Arredondamento alto", "High rounding", "Redondeo alto", "Arrondi élevé", "Hohe Rundung", "Arrotondamento alto"],
+    ["Forma específica", "Specific form", "Forma específica", "Forme spécifique", "Spezifische Form", "Forma specifica"],
+    ["Arroz branco", "White rice", "Arroz blanco", "Riz blanc", "Weißer Reis", "Riso bianco"],
+    ["Arroz integral", "Brown rice", "Arroz integral", "Riz complet", "Vollkornreis", "Riso integrale"],
+    ["Feijão carioca", "Pinto beans", "Frijoles pintos", "Haricots pinto", "Pintobohnen", "Fagioli borlotti"],
+    ["Feijão preto", "Black beans", "Frijoles negros", "Haricots noirs", "Schwarze Bohnen", "Fagioli neri"],
+    ["Peito de frango grelhado", "Grilled chicken breast", "Pechuga de pollo a la parrilla", "Blanc de poulet grillé", "Gegrillte Hähnchenbrust", "Petto di pollo grigliato"],
+    ["Frango desfiado", "Shredded chicken", "Pollo deshebrado", "Poulet effiloché", "Gezupftes Hähnchen", "Pollo sfilacciato"],
+    ["Coxa de frango assada", "Roasted chicken thigh", "Muslo de pollo asado", "Cuisse de poulet rôtie", "Gebratene Hähnchenkeule", "Coscia di pollo arrosto"],
+    ["Bife grelhado", "Grilled steak", "Bistec a la parrilla", "Steak grillé", "Gegrilltes Steak", "Bistecca grigliata"],
+    ["Carne assada", "Roast beef", "Carne asada", "BÅ“uf rôti", "Rinderbraten", "Carne arrosto"],
+    ["Salmão grelhado", "Grilled salmon", "Salmón a la parrilla", "Saumon grillé", "Gegrillter Lachs", "Salmone grigliato"],
+    ["Ovo frito", "Fried egg", "Huevo frito", "Å’uf au plat", "Spiegelei", "Uovo fritto"],
+    ["Ovo cozido", "Boiled egg", "Huevo cocido", "Å’uf dur", "Gekochtes Ei", "Uovo sodo"],
+    ["Ovos mexidos", "Scrambled eggs", "Huevos revueltos", "Å’ufs brouillés", "Rührei", "Uova strapazzate"],
+    ["Salada verde", "Green salad", "Ensalada verde", "Salade verte", "Grüner Salat", "Insalata verde"],
+    ["Brócolis cozido", "Cooked broccoli", "Brócoli cocido", "Brocoli cuit", "Gekochter Brokkoli", "Broccoli cotti"],
+    ["Batata frita", "French fries", "Papas fritas", "Frites", "Pommes frites", "Patatine fritte"],
+    ["Macarrão ao sugo", "Pasta with tomato sauce", "Pasta con salsa de tomate", "Pâtes à la sauce tomate", "Nudeln mit Tomatensauce", "Pasta al sugo"],
+    ["Pão francês", "French roll", "Pan francés", "Petit pain français", "Brötchen", "Pane francese"],
+    ["Manteiga", "Butter", "Mantequilla", "Beurre", "Butter", "Burro"],
+    ["Café com leite", "Coffee with milk", "Café con leche", "Café au lait", "Milchkaffee", "Caffellatte"],
+    ["Suco de laranja", "Orange juice", "Jugo de naranja", "Jus d’orange", "Orangensaft", "Succo d’arancia"],
+    ["Banana", "Banana", "Banana", "Banane", "Banane", "Banana"],
+    ["Maçã", "Apple", "Manzana", "Pomme", "Apfel", "Mela"],
+    ["Coxinha", "Chicken croquette", "Croqueta de pollo", "Croquette de poulet", "Hähnchenkrokette", "Crocchetta di pollo"],
+    ["Pizza de mussarela", "Mozzarella pizza", "Pizza de mozzarella", "Pizza mozzarella", "Mozzarella-Pizza", "Pizza mozzarella"],
+    ["Azeite", "Olive oil", "Aceite de oliva", "Huile d’olive", "Olivenöl", "Olio d’oliva"]
+  ];
+
+
+  phraseRows.push(
+    ["Última atualização: janeiro de 2025", "Last updated: January 2025", "Última actualización: enero de 2025", "Dernière mise à jour : janvier 2025", "Letzte Aktualisierung: Januar 2025", "Ultimo aggiornamento: gennaio 2025"],
+    ["1. Uso do aplicativo", "1. Use of the app", "1. Uso de la aplicación", "1. Utilisation de l’application", "1. Nutzung der App", "1. Uso dell’app"],
+    ["O PancreAI é um protótipo para demonstrar o cálculo de doses de enzimas. Nesta versão, os resultados são simulados e não personalizados.", "PancreAI is a prototype to demonstrate enzyme dose calculation. In this version, results are simulated and not personalized.", "PancreAI es un prototipo para demostrar el cálculo de dosis de enzimas. En esta versión, los resultados son simulados y no personalizados.", "PancreAI est un prototype pour démontrer le calcul des doses d’enzymes. Dans cette version, les résultats sont simulés et non personnalisés.", "PancreAI ist ein Prototyp zur Demonstration der Enzymdosis-Berechnung. In dieser Version sind Ergebnisse simuliert und nicht personalisiert.", "PancreAI è un prototipo per dimostrare il calcolo delle dosi di enzimi. In questa versione, i risultati sono simulati e non personalizzati."],
+    ["2. Dados e privacidade", "2. Data and privacy", "2. Datos y privacidad", "2. Données et confidentialité", "2. Daten und Datenschutz", "2. Dati e privacy"],
+    ["Informações de uso podem ser coletadas para melhoria. Nenhum dado sensível de saúde é armazenado ou compartilhado.", "Usage information may be collected for improvement. No sensitive health data is stored or shared.", "Se pueden recopilar datos de uso para mejoras. Ningún dato sensible de salud se almacena o comparte.", "Des informations d’utilisation peuvent être collectées pour amélioration. Aucune donnée sensible de santé n’est stockée ni partagée.", "Nutzungsinformationen können zur Verbesserung erhoben werden. Es werden keine sensiblen Gesundheitsdaten gespeichert oder geteilt.", "Le informazioni d’uso possono essere raccolte per miglioramenti. Nessun dato sanitario sensibile viene salvato o condiviso."],
+    ["3. Limitações e precisão", "3. Limitations and accuracy", "3. Limitaciones y precisión", "3. Limites et précision", "3. Einschränkungen und Genauigkeit", "3. Limiti e precisione"],
+    ["Os resultados são simulados e não consideram todos os fatores clínicos do usuário. Não devem ser usados para decisões médicas.", "Results are simulated and do not consider all clinical factors of the user. They must not be used for medical decisions.", "Los resultados son simulados y no consideran todos los factores clínicos del usuario. No deben usarse para decisiones médicas.", "Les résultats sont simulés et ne prennent pas en compte tous les facteurs cliniques de l’utilisateur. Ils ne doivent pas être utilisés pour des décisions médicales.", "Die Ergebnisse sind simuliert und berücksichtigen nicht alle klinischen Faktoren des Nutzers. Sie dürfen nicht für medizinische Entscheidungen genutzt werden.", "I risultati sono simulati e non considerano tutti i fattori clinici dell’utente. Non devono essere usati per decisioni mediche."],
+    ["4. Responsabilidade médica", "4. Medical responsibility", "4. Responsabilidad médica", "4. Responsabilité médicale", "4. Medizinische Verantwortung", "4. Responsabilità medica"],
+    ["Este app não substitui orientação médica ou nutricional. Consulte um profissional antes de ajustar doses.", "This app does not replace medical or nutritional guidance. Consult a professional before adjusting doses.", "Esta app no reemplaza la orientación médica o nutricional. Consulta a un profesional antes de ajustar dosis.", "Cette app ne remplace pas un avis médical ou nutritionnel. Consultez un professionnel avant d’ajuster les doses.", "Diese App ersetzt keine medizinische oder ernährungsbezogene Beratung. Konsultiere Fachpersonal, bevor du Dosen anpasst.", "Questa app non sostituisce il parere medico o nutrizionale. Consulta un professionista prima di modificare le dosi."],
+    ["5. Isenção de responsabilidade", "5. Disclaimer", "5. Exención de responsabilidad", "5. Clause de non-responsabilité", "5. Haftungsausschluss", "5. Esclusione di responsabilità"],
+    ["Os desenvolvedores não se responsabilizam por decisões baseadas neste protótipo. O uso é educacional e demonstrativo.", "The developers are not responsible for decisions based on this prototype. Use is educational and demonstrative.", "Los desarrolladores no se responsabilizan por decisiones basadas en este prototipo. El uso es educativo y demostrativo.", "Les développeurs ne sont pas responsables des décisions basées sur ce prototype. L’usage est éducatif et démonstratif.", "Die Entwickler haften nicht für Entscheidungen auf Basis dieses Prototyps. Die Nutzung ist pädagogisch und demonstrativ.", "Gli sviluppatori non sono responsabili per decisioni basate su questo prototipo. L’uso è educativo e dimostrativo."],
+    ["6. Modificações", "6. Changes", "6. Modificaciones", "6. Modifications", "6. Änderungen", "6. Modifiche"],
+    ["Estes termos podem ser atualizados a qualquer momento. Recomendamos revisão periódica desta página.", "These terms may be updated at any time. We recommend reviewing this page periodically.", "Estos términos pueden actualizarse en cualquier momento. Recomendamos revisar esta página periódicamente.", "Ces conditions peuvent être mises à jour à tout moment. Nous recommandons de consulter cette page régulièrement.", "Diese Bedingungen können jederzeit aktualisiert werden. Wir empfehlen, diese Seite regelmäßig zu prüfen.", "Questi termini possono essere aggiornati in qualsiasi momento. Consigliamo di controllare periodicamente questa pagina."],
+    ["7. Contato", "7. Contact", "7. Contacto", "7. Contact", "7. Kontakt", "7. Contatto"],
+    ["Dúvidas ou preocupações: Instagram @pancre.ai", "Questions or concerns: Instagram @pancre.ai", "Dudas o preocupaciones: Instagram @pancre.ai", "Questions ou préoccupations : Instagram @pancre.ai", "Fragen oder Anliegen: Instagram @pancre.ai", "Domande o dubbi: Instagram @pancre.ai"],
+    ["Próxima página", "Next page", "Página siguiente", "Page suivante", "Nächste Seite", "Pagina successiva"],
+    ["Página anterior", "Previous page", "Página anterior", "Page précédente", "Vorherige Seite", "Pagina precedente"],
+    ["Redirecionando para Bastidores do MVP...", "Redirecting to MVP background...", "Redirigiendo a los detalles del MVP...", "Redirection vers les coulisses du MVP...", "Weiterleitung zu den MVP-Hintergründen...", "Reindirizzamento ai dettagli dell’MVP..."],
+    ["Bastidores do MVP", "MVP background", "Detalles del MVP", "Coulisses du MVP", "MVP-Hintergründe", "Dettagli dell’MVP"],
+    ["Mensagem central do MVP", "Central MVP message", "Mensaje central del MVP", "Message central du MVP", "Zentrale MVP-Botschaft", "Messaggio centrale dell’MVP"],
+    ["Contexto técnico do projeto", "Technical project context", "Contexto técnico del proyecto", "Contexte technique du projet", "Technischer Projektkontext", "Contesto tecnico del progetto"],
+    ["Fronteira do mock", "Mock boundary", "Frontera del mock", "Limite du mock", "Mock-Grenze", "Confine del mock"],
+    ["O limite da simulação é claro", "The simulation boundary is clear", "El límite de la simulación está claro", "La limite de la simulation est claire", "Die Grenze der Simulation ist klar", "Il limite della simulazione è chiaro"],
+    ["A simulação existe apenas na etapa de reconhecimento. Depois dela, o app segue um fluxo funcional, revisável e transparente.", "The simulation exists only in the recognition step. After that, the app follows a functional, reviewable, transparent flow.", "La simulación existe solo en la etapa de reconocimiento. Después, la app sigue un flujo funcional, revisable y transparente.", "La simulation existe uniquement à l’étape de reconnaissance. Ensuite, l’app suit un flux fonctionnel, vérifiable et transparent.", "Die Simulation existiert nur im Erkennungsschritt. Danach folgt die App einem funktionalen, prüfbaren und transparenten Ablauf.", "La simulazione esiste solo nella fase di riconoscimento. Dopo, l’app segue un flusso funzionale, verificabile e trasparente."],
+    ["Reconhecimento visual dos alimentos", "Visual food recognition", "Reconocimiento visual de alimentos", "Reconnaissance visuelle des aliments", "Visuelle Lebensmittelerkennung", "Riconoscimento visivo degli alimenti"],
+    ["Estimativa inicial das porções", "Initial portion estimate", "Estimación inicial de porciones", "Estimation initiale des portions", "Erste Portionsschätzung", "Stima iniziale delle porzioni"],
+    ["Detecção de embalagem", "Package detection", "Detección de envase", "Détection d’emballage", "Verpackungserkennung", "Rilevamento confezione"],
+    ["Alimento desconhecido", "Unknown food", "Alimento desconocido", "Aliment inconnu", "Unbekanntes Lebensmittel", "Alimento sconosciuto"],
+    ["Cadastro do paciente", "Patient registration", "Registro del paciente", "Enregistrement du patient", "Patientendaten", "Registrazione paziente"],
+    ["Dose prescrita e potência da cápsula", "Prescribed dose and capsule strength", "Dosis prescrita y potencia de la cápsula", "Dose prescrite et dosage de la gélule", "Verordnete Dosis und Kapselstärke", "Dose prescritta e potenza della capsula"],
+    ["Banco de alimentos", "Food database", "Banco de alimentos", "Base d’aliments", "Lebensmitteldatenbank", "Banca alimenti"],
+    ["Banco de refeições coerentes", "Coherent meal database", "Banco de comidas coherentes", "Base de repas cohérents", "Datenbank plausibler Mahlzeiten", "Banca pasti coerenti"],
+    ["Revisão manual obrigatória", "Required manual review", "Revisión manual obligatoria", "Vérification manuelle obligatoire", "Verpflichtende manuelle Prüfung", "Revisione manuale obbligatoria"],
+    ["Ingredientes ocultos", "Hidden ingredients", "Ingredientes ocultos", "Ingrédients cachés", "Versteckte Zutaten", "Ingredienti nascosti"],
+    ["Cálculo por gordura", "Fat-based calculation", "Cálculo por grasa", "Calcul basé sur la graisse", "Fettbasierte Berechnung", "Calcolo basato sui grassi"],
+    ["Avisos de segurança", "Safety warnings", "Avisos de seguridad", "Avertissements de sécurité", "Sicherheitshinweise", "Avvisi di sicurezza"],
+    ["Resultado explicado", "Explained result", "Resultado explicado", "Résultat expliqué", "Erklärtes Ergebnis", "Risultato spiegato"],
+    ["Histórico local", "Local history", "Historial local", "Historique local", "Lokaler Verlauf", "Cronologia locale"]
+  );
+
+  phraseRows.push(
+    ["A análise inicial tem menor confiança. Confira os alimentos e porções antes de calcular.", "The initial analysis has lower confidence. Check foods and portions before calculating.", "El análisis inicial tiene menor confianza. Revisa alimentos y porciones antes de calcular.", "L’analyse initiale a une confiance plus faible. Vérifiez les aliments et portions avant de calculer.", "Die erste Analyse hat geringere Zuverlässigkeit. Prüfe Lebensmittel und Portionen vor der Berechnung.", "L’analisi iniziale ha affidabilità minore. Controlla alimenti e porzioni prima del calcolo."],
+    ["Iluminação, distância e enquadramento podem afetar a sugestão inicial dos alimentos.", "Lighting, distance, and framing may affect the initial food suggestion.", "Iluminación, distancia y encuadre pueden afectar la sugerencia inicial de alimentos.", "L’éclairage, la distance et le cadrage peuvent affecter la suggestion initiale des aliments.", "Licht, Abstand und Bildausschnitt können den ersten Lebensmittelvorschlag beeinflussen.", "Illuminazione, distanza e inquadratura possono influenzare il suggerimento iniziale degli alimenti."],
+    ["Substitua, edite ou remova este item antes de continuar.", "Replace, edit, or remove this item before continuing.", "Sustituye, edita o elimina este elemento antes de continuar.", "Remplacez, modifiez ou supprimez cet élément avant de continuer.", "Ersetze, bearbeite oder entferne dieses Element, bevor du fortfährst.", "Sostituisci, modifica o rimuovi questo elemento prima di continuare."],
+    ["Nesta versão, o app ainda não lê rótulos. Confira manualmente as informações nutricionais.", "In this version, the app does not read labels yet. Check nutrition information manually.", "En esta versión, la app aún no lee etiquetas. Revisa manualmente la información nutricional.", "Dans cette version, l’app ne lit pas encore les étiquettes. Vérifiez manuellement les informations nutritionnelles.", "In dieser Version liest die App noch keine Etiketten. Prüfe Nährwertangaben manuell.", "In questa versione, l’app non legge ancora le etichette. Controlla manualmente le informazioni nutrizionali."],
+    ["Óleo, azeite, manteiga, molhos e maionese podem aumentar a gordura da refeição.", "Oil, olive oil, butter, sauces, and mayonnaise can increase meal fat.", "Aceite, aceite de oliva, mantequilla, salsas y mayonesa pueden aumentar la grasa de la comida.", "Huile, huile d’olive, beurre, sauces et mayonnaise peuvent augmenter la graisse du repas.", "Öl, Olivenöl, Butter, Saucen und Mayonnaise können das Fett der Mahlzeit erhöhen.", "Olio, olio d’oliva, burro, salse e maionese possono aumentare i grassi del pasto."],
+    ["As alterações feitas pelo usuário serão consideradas no cálculo final.", "User changes will be included in the final calculation.", "Los cambios hechos por el usuario se considerarán en el cálculo final.", "Les modifications de l’utilisateur seront prises en compte dans le calcul final.", "Änderungen des Nutzers werden in der finalen Berechnung berücksichtigt.", "Le modifiche fatte dall’utente saranno considerate nel calcolo finale."],
+    ["O cálculo usa a gordura estimada da refeição, a dose prescrita cadastrada e a potência do medicamento cadastrado. Ele não substitui orientação médica ou nutricional.", "The calculation uses the estimated meal fat, the registered prescribed dose, and the registered medication strength. It does not replace medical or nutritional guidance.", "El cálculo usa la grasa estimada de la comida, la dosis prescrita registrada y la potencia del medicamento registrado. No reemplaza orientación médica o nutricional.", "Le calcul utilise la graisse estimée du repas, la dose prescrite enregistrée et le dosage du médicament enregistré. Il ne remplace pas un avis médical ou nutritionnel.", "Die Berechnung nutzt das geschätzte Fett der Mahlzeit, die gespeicherte verordnete Dosis und die Medikamentenstärke. Sie ersetzt keine medizinische oder ernährungsbezogene Beratung.", "Il calcolo usa i grassi stimati del pasto, la dose prescritta registrata e la potenza del farmaco registrato. Non sostituisce il parere medico o nutrizionale."],
+    ["Esta refeição parece ter mais gordura que a maioria dos registros anteriores. Revise porções e ingredientes adicionados.", "This meal seems to have more fat than most previous records. Review portions and added ingredients.", "Esta comida parece tener más grasa que la mayoría de los registros anteriores. Revisa porciones e ingredientes agregados.", "Ce repas semble plus gras que la plupart des enregistrements précédents. Vérifiez les portions et ingrédients ajoutés.", "Diese Mahlzeit scheint mehr Fett zu enthalten als die meisten früheren Einträge. Prüfe Portionen und hinzugefügte Zutaten.", "Questo pasto sembra avere più grassi della maggior parte dei registri precedenti. Controlla porzioni e ingredienti aggiunti."],
+    ["A quantidade estimada de unidades ficou acima do padrão recente do histórico. Confira se os alimentos foram revisados corretamente.", "The estimated number of units is above your recent history pattern. Check that the foods were reviewed correctly.", "La cantidad estimada de unidades quedó por encima del patrón reciente del historial. Verifica que los alimentos fueron revisados correctamente.", "Le nombre estimé d’unités dépasse votre tendance récente. Vérifiez que les aliments ont été correctement contrôlés.", "Die geschätzte Einheitenzahl liegt über deinem jüngsten Verlaufsmuster. Prüfe, ob die Lebensmittel korrekt kontrolliert wurden.", "La quantità stimata di unità è sopra il tuo andamento recente. Controlla che gli alimenti siano stati verificati correttamente."],
+    ["Alguns dados da refeição foram estimados ou ficaram incertos. Revise o cálculo completo antes de considerar o resultado.", "Some meal data was estimated or remained uncertain. Review the full calculation before considering the result.", "Algunos datos de la comida fueron estimados o quedaron inciertos. Revisa el cálculo completo antes de considerar el resultado.", "Certaines données du repas ont été estimées ou restent incertaines. Vérifiez le calcul complet avant de considérer le résultat.", "Einige Mahlzeitdaten wurden geschätzt oder blieben unsicher. Prüfe die vollständige Berechnung vor der Nutzung.", "Alcuni dati del pasto sono stati stimati o sono incerti. Controlla il calcolo completo prima di considerare il risultato."],
+    ["Cadastre o peso para validar a estimativa por kg.", "Enter weight to validate the estimate per kg.", "Registra el peso para validar la estimación por kg.", "Saisissez le poids pour valider l’estimation par kg.", "Gib das Gewicht ein, um die Schätzung pro kg zu validieren.", "Inserisci il peso per validare la stima per kg."],
+    ["Cadastre a dose em U/g de gordura antes de calcular.", "Enter the dose in U/g of fat before calculating.", "Registra la dosis en U/g de grasa antes de calcular.", "Saisissez la dose en U/g de graisse avant de calculer.", "Gib die Dosis in U/g Fett vor der Berechnung ein.", "Inserisci la dose in U/g di grassi prima del calcolo."],
+    ["Escolha o medicamento enzimático usado na sua prescrição.", "Choose the enzyme medication used in your prescription.", "Elige el medicamento enzimático usado en tu receta.", "Choisissez le médicament enzymatique indiqué dans votre prescription.", "Wähle das Enzymmedikament aus deiner Verordnung.", "Scegli il farmaco enzimatico usato nella prescrizione."],
+    ["Informe as unidades de lipase por unidade do medicamento.", "Enter lipase units per medication unit.", "Informa las unidades de lipasa por unidad del medicamento.", "Indiquez les unités de lipase par unité de médicament.", "Gib Lipase-Einheiten pro Medikamenteneinheit ein.", "Inserisci le unità di lipasi per unità del farmaco."],
+    ["Revise os alimentos antes de calcular.", "Review the foods before calculating.", "Revisa los alimentos antes de calcular.", "Vérifiez les aliments avant de calculer.", "Prüfe die Lebensmittel vor der Berechnung.", "Controlla gli alimenti prima del calcolo."],
+    ["Não confie neste resultado sem orientação profissional.", "Do not rely on this result without professional guidance.", "No confíes en este resultado sin orientación profesional.", "Ne vous fiez pas à ce résultat sans avis professionnel.", "Verlasse dich nicht ohne professionelle Beratung auf dieses Ergebnis.", "Non fare affidamento su questo risultato senza parere professionale."],
+    ["A estimativa ultrapassa 2.500 U de lipase/kg/refeição.", "The estimate exceeds 2,500 U of lipase/kg/meal.", "La estimación supera 2.500 U de lipasa/kg/comida.", "L’estimation dépasse 2 500 U de lipase/kg/repas.", "Die Schätzung überschreitet 2.500 U Lipase/kg/Mahlzeit.", "La stima supera 2.500 U di lipasi/kg/pasto."],
+    ["A estimativa diária pode ultrapassar 10.000 U de lipase/kg/dia.", "The daily estimate may exceed 10,000 U of lipase/kg/day.", "La estimación diaria puede superar 10.000 U de lipasa/kg/día.", "L’estimation quotidienne peut dépasser 10 000 U de lipase/kg/jour.", "Die Tagesschätzung kann 10.000 U Lipase/kg/Tag überschreiten.", "La stima giornaliera può superare 10.000 U di lipasi/kg/giorno."],
+    ["A estimativa ultrapassa 4.000 U de lipase/g de gordura.", "The estimate exceeds 4,000 U of lipase/g of fat.", "La estimación supera 4.000 U de lipasa/g de grasa.", "L’estimation dépasse 4 000 U de lipase/g de graisse.", "Die Schätzung überschreitet 4.000 U Lipase/g Fett.", "La stima supera 4.000 U di lipasi/g di grassi."],
+    ["Confira se a lipase foi cadastrada exatamente como na prescrição.", "Check that lipase was entered exactly as in the prescription.", "Verifica que la lipasa fue registrada exactamente como en la receta.", "Vérifiez que la lipase a été saisie exactement comme sur la prescription.", "Prüfe, ob die Lipase exakt wie in der Verordnung eingetragen wurde.", "Controlla che la lipasi sia stata registrata esattamente come nella prescrizione."],
+    ["Confirme a potência na prescrição ou embalagem.", "Confirm the strength on the prescription or package.", "Confirma la potencia en la receta o el envase.", "Confirmez le dosage sur la prescription ou l’emballage.", "Bestätige die Stärke auf Verordnung oder Verpackung.", "Conferma la potenza sulla prescrizione o confezione."],
+    ["O arredondamento aumentou bastante a lipase entregue.", "Rounding increased delivered lipase substantially.", "El redondeo aumentó bastante la lipasa entregada.", "L’arrondi a fortement augmenté la lipase fournie.", "Die Rundung hat die abgegebene Lipase deutlich erhöht.", "L’arrotondamento ha aumentato molto la lipasi erogata."],
+    ["Esta forma pode exigir orientação específica de uso.", "This form may require specific usage guidance.", "Esta forma puede requerir orientación específica de uso.", "Cette forme peut nécessiter des consignes d’utilisation spécifiques.", "Diese Form kann spezifische Anwendungshinweise erfordern.", "Questa forma può richiedere indicazioni d’uso specifiche."],
+    ["A dose pode variar conforme o tipo de alimento e sua resposta individual. Consulte seu médico para ajustes.", "The dose may vary depending on food type and individual response. Consult your doctor for adjustments.", "La dosis puede variar según el tipo de alimento y tu respuesta individual. Consulta a tu médico para ajustes.", "La dose peut varier selon le type d’aliment et votre réponse individuelle. Consultez votre médecin pour les ajustements.", "Die Dosis kann je nach Lebensmittel und individueller Reaktion variieren. Frage deinen Arzt zu Anpassungen.", "La dose può variare in base al tipo di alimento e alla risposta individuale. Consulta il medico per modifiche."],
+    ["Histórico local", "Local history", "Historial local", "Historique local", "Lokaler Verlauf", "Cronologia locale"]
+  );
+  phraseRows.push(
+    ["Minha refeição", "My meal", "Mi comida", "Mon repas", "Meine Mahlzeit", "Il mio pasto"],
+    ["Fotografe o prato ou use uma refeição salva.", "Take a photo of the plate or use a saved meal.", "Fotografía el plato o usa una comida guardada.", "Photographiez l’assiette ou utilisez un repas enregistré.", "Fotografiere den Teller oder nutze eine gespeicherte Mahlzeit.", "Fotografa il piatto o usa un pasto salvato."],
+    ["Fotografar prato", "Photograph plate", "Fotografiar plato", "Photographier l’assiette", "Teller fotografieren", "Fotografare il piatto"],
+    ["Ações rápidas", "Quick actions", "Acciones rápidas", "Actions rapides", "Schnellaktionen", "Azioni rapide"],
+    ["Usar refeição salva", "Use saved meal", "Usar comida guardada", "Utiliser un repas enregistré", "Gespeicherte Mahlzeit nutzen", "Usa pasto salvato"],
+    ["Refeições de hoje", "Today’s meals", "Comidas de hoy", "Repas du jour", "Heutige Mahlzeiten", "Pasti di oggi"],
+    ["Chamar responsável", "Call caregiver", "Llamar a un responsable", "Appeler un responsable", "Betreuung rufen", "Chiama un responsabile"],
+    ["Refeições", "Meals", "Comidas", "Repas", "Mahlzeiten", "Pasti"],
+    ["Responsável", "Caregiver", "Responsable", "Responsable", "Betreuung", "Responsabile"],
+    ["Área do responsável", "Caregiver area", "Área del responsable", "Espace responsable", "Bereich für Betreuung", "Area del responsabile"],
+    ["Área do Responsável", "Caregiver Area", "Área del responsable", "Espace responsable", "Bereich für Betreuung", "Area del responsabile"],
+    ["Essa área contém dados importantes do tratamento e configurações do cálculo.", "This area contains important treatment data and calculation settings.", "Esta área contiene datos importantes del tratamiento y ajustes del cálculo.", "Cette zone contient des données importantes du traitement et les paramètres du calcul.", "Dieser Bereich enthält wichtige Behandlungsdaten und Berechnungseinstellungen.", "Questa area contiene dati importanti del trattamento e impostazioni del calcolo."],
+    ["Continuar como responsável", "Continue as caregiver", "Continuar como responsable", "Continuer comme responsable", "Als Betreuung fortfahren", "Continua come responsabile"],
+    ["Essa informação precisa ser revisada por um responsável.", "This information needs to be reviewed by a caregiver.", "Esta información debe ser revisada por un responsable.", "Cette information doit être vérifiée par un responsable.", "Diese Information muss von einer Betreuung geprüft werden.", "Questa informazione deve essere verificata da un responsabile."],
+    ["Ir para Área do Responsável", "Go to Caregiver Area", "Ir al Área del responsable", "Aller à l’Espace responsable", "Zum Betreuungsbereich", "Vai all’Area del responsabile"]
+  );
+  phraseRows.push(
+    ["Ativar Modo Infantil?", "Turn on Child Mode?", "¿Activar modo infantil?", "Activer le mode enfant ?", "Kindermodus aktivieren?", "Attivare modalità bambino?"],
+    ["Desativar Modo Infantil?", "Turn off Child Mode?", "¿Desactivar modo infantil?", "Désactiver le mode enfant ?", "Kindermodus deaktivieren?", "Disattivare modalità bambino?"],
+    ["O app vai mostrar apenas o essencial para revisar refeições. Configurações de tratamento, dose, medicamento e histórico completo continuarão disponíveis na Área do Responsável.", "The app will show only what is essential to review meals. Treatment settings, dose, medication, and full history will remain available in the Caregiver Area.", "La app mostrará solo lo esencial para revisar comidas. Los ajustes del tratamiento, dosis, medicamento e historial completo seguirán disponibles en el Área del responsable.", "L’app affichera seulement l’essentiel pour vérifier les repas. Les réglages du traitement, la dose, le médicament et l’historique complet resteront disponibles dans l’Espace responsable.", "Die App zeigt nur das Wesentliche zur Mahlzeitenprüfung. Behandlungseinstellungen, Dosis, Medikament und vollständiger Verlauf bleiben im Betreuungsbereich verfügbar.", "L’app mostrerà solo l’essenziale per controllare i pasti. Impostazioni del trattamento, dose, farmaco e cronologia completa resteranno disponibili nell’Area del responsabile."],
+    ["O app voltará a mostrar a experiência completa.", "The app will show the full experience again.", "La app volverá a mostrar la experiencia completa.", "L’app affichera à nouveau l’expérience complète.", "Die App zeigt wieder die vollständige Erfahrung.", "L’app tornerà a mostrare l’esperienza completa."],
+    ["Ativar", "Turn on", "Activar", "Activer", "Aktivieren", "Attiva"],
+    ["Desativar", "Turn off", "Desactivar", "Désactiver", "Deaktivieren", "Disattiva"],
+    ["Vamos revisar seu prato", "Let’s review your plate", "Revisemos tu plato", "Vérifions votre assiette", "Lass uns deinen Teller prüfen", "Rivediamo il tuo piatto"],
+    ["Confira se os alimentos estão certos. Um responsável pode revisar depois.", "Check that the foods are right. A caregiver can review later.", "Comprueba si los alimentos están correctos. Un responsable puede revisar después.", "Vérifiez que les aliments sont corrects. Un responsable pourra revoir ensuite.", "Prüfe, ob die Lebensmittel stimmen. Eine Betreuung kann später noch einmal prüfen.", "Controlla che gli alimenti siano corretti. Un responsabile può rivedere dopo."],
+    ["Adicionar algo que faltou", "Add something missing", "Añadir algo que falta", "Ajouter ce qui manque", "Fehlendes hinzufügen", "Aggiungi qualcosa che manca"],
+    ["Tudo certo", "All set", "Todo bien", "Tout est bon", "Alles passt", "Tutto a posto"],
+    ["Quantidade:", "Amount:", "Cantidad:", "Quantité :", "Menge:", "Quantità:"],
+    ["Está certo", "Looks right", "Está bien", "C’est correct", "Stimmt", "È corretto"],
+    ["Mudar quantidade", "Change amount", "Cambiar cantidad", "Modifier la quantité", "Menge ändern", "Cambia quantità"],
+    ["Tem algo que não reconhecemos", "Something was not recognized", "Hay algo que no reconocimos", "Quelque chose n’a pas été reconnu", "Etwas wurde nicht erkannt", "Qualcosa non è stato riconosciuto"],
+    ["Peça para um responsável conferir ou substitua pelo alimento correto.", "Ask a caregiver to check or replace it with the right food.", "Pide a un responsable que revise o sustitúyelo por el alimento correcto.", "Demandez à un responsable de vérifier ou remplacez-le par le bon aliment.", "Bitte eine Betreuung um Prüfung oder ersetze es durch das richtige Lebensmittel.", "Chiedi a un responsabile di controllare o sostituiscilo con l’alimento corretto."],
+    ["Substituir", "Replace", "Sustituir", "Remplacer", "Ersetzen", "Sostituisci"]
+  );
+  phraseRows.push(
+    ["Quanto tinha?", "How much was there?", "¿Cuánto había?", "Quelle quantité ?", "Wie viel war es?", "Quanto ce n’era?"],
+    ["Escolha uma quantidade simples. O app converte para gramas por trás.", "Choose a simple amount. The app converts it to grams in the background.", "Elige una cantidad simple. La app la convierte a gramos por detrás.", "Choisissez une quantité simple. L’app la convertit en grammes en arrière-plan.", "Wähle eine einfache Menge. Die App rechnet sie im Hintergrund in Gramm um.", "Scegli una quantità semplice. L’app la converte in grammi in background."],
+    ["Um pouquinho", "A tiny bit", "Un poquito", "Un petit peu", "Ein bisschen", "Un pochino"],
+    ["Pouco", "A little", "Poco", "Peu", "Wenig", "Poco"],
+    ["Médio", "Medium", "Medio", "Moyen", "Mittel", "Medio"],
+    ["Muito", "A lot", "Mucho", "Beaucoup", "Viel", "Molto"],
+    ["Bastante", "Plenty", "Bastante", "Beaucoup", "Ziemlich viel", "Abbastanza"],
+    ["Meio", "Half", "Medio", "Un demi", "Halb", "Mezzo"],
+    ["Um", "One", "Uno", "Un", "Eins", "Uno"],
+    ["Dois", "Two", "Dos", "Deux", "Zwei", "Due"],
+    ["Quantidade atualizada", "Amount updated", "Cantidad actualizada", "Quantité mise à jour", "Menge aktualisiert", "Quantità aggiornata"],
+    ["Quase pronto", "Almost ready", "Casi listo", "Presque prêt", "Fast fertig", "Quasi pronto"],
+    ["Chame um responsável para conferir antes de usar.", "Ask a caregiver to review before using.", "Pide a un responsable que revise antes de usar.", "Demandez à un responsable de vérifier avant d’utiliser.", "Bitte eine Betreuung vor der Nutzung um Prüfung.", "Chiedi a un responsabile di controllare prima di usare."],
+    ["Resultado estimado", "Estimated result", "Resultado estimado", "Résultat estimé", "Geschätztes Ergebnis", "Risultato stimato"],
+    ["Gordura da refeição", "Meal fat", "Grasa de la comida", "Graisses du repas", "Fett der Mahlzeit", "Grassi del pasto"],
+    ["Enzima estimada", "Estimated enzyme", "Enzima estimada", "Enzyme estimée", "Geschätztes Enzym", "Enzima stimato"],
+    ["Um responsável deve conferir este resultado.", "A caregiver should review this result.", "Un responsable debe revisar este resultado.", "Un responsable doit vérifier ce résultat.", "Eine Betreuung sollte dieses Ergebnis prüfen.", "Un responsabile dovrebbe controllare questo risultato."],
+    ["Esse resultado é uma estimativa. Chame um responsável antes de usar.", "This result is an estimate. Ask a caregiver before using it.", "Este resultado es una estimación. Pide a un responsable que revise antes de usarlo.", "Ce résultat est une estimation. Demandez à un responsable avant de l’utiliser.", "Dieses Ergebnis ist eine Schätzung. Bitte vor der Nutzung eine Betreuung fragen.", "Questo risultato è una stima. Chiedi a un responsabile prima di usarlo."],
+    ["Salvar refeição", "Save meal", "Guardar comida", "Enregistrer le repas", "Mahlzeit speichern", "Salva pasto"],
+    ["Ver explicação para responsável", "See caregiver explanation", "Ver explicación para el responsable", "Voir l’explication pour le responsable", "Erklärung für Betreuung anzeigen", "Vedi spiegazione per responsabile"]
+  );
+  phraseRows.push(
+    ["Primeiro, somamos a gordura dos alimentos.", "First, we add up the fat in the foods.", "Primero, sumamos la grasa de los alimentos.", "D’abord, nous additionnons les graisses des aliments.", "Zuerst addieren wir das Fett der Lebensmittel.", "Prima sommiamo i grassi degli alimenti."],
+    ["Depois, usamos a dose cadastrada pelo responsável.", "Then we use the dose entered by the caregiver.", "Después, usamos la dosis registrada por el responsable.", "Ensuite, nous utilisons la dose saisie par le responsable.", "Dann verwenden wir die von der Betreuung eingetragene Dosis.", "Poi usiamo la dose inserita dal responsabile."],
+    ["Por fim, o app calcula quantas unidades da enzima seriam necessárias.", "Finally, the app calculates how many enzyme units may be needed.", "Por último, la app calcula cuántas unidades de enzima podrían necesitarse.", "Enfin, l’app calcule combien d’unités d’enzyme pourraient être nécessaires.", "Am Ende berechnet die App, wie viele Enzymeinheiten nötig sein könnten.", "Infine, l’app calcola quante unità di enzima potrebbero servire."],
+    ["Esse resultado precisa ser conferido por um responsável.", "This result needs to be checked by a caregiver.", "Este resultado debe ser revisado por un responsable.", "Ce résultat doit être vérifié par un responsable.", "Dieses Ergebnis muss von einer Betreuung geprüft werden.", "Questo risultato deve essere controllato da un responsabile."],
+    ["Um resumo simples do dia", "A simple summary of the day", "Un resumen simple del día", "Un résumé simple de la journée", "Eine einfache Tagesübersicht", "Un riepilogo semplice della giornata"],
+    ["Nenhuma refeição hoje", "No meals today", "No hay comidas hoy", "Aucun repas aujourd’hui", "Heute keine Mahlzeiten", "Nessun pasto oggi"],
+    ["Quando você salvar uma refeição, ela aparecerá aqui.", "When you save a meal, it will appear here.", "Cuando guardes una comida, aparecerá aquí.", "Quand vous enregistrez un repas, il apparaît ici.", "Wenn du eine Mahlzeit speicherst, erscheint sie hier.", "Quando salvi un pasto, apparirà qui."],
+    ["Revisado", "Reviewed", "Revisado", "Vérifié", "Geprüft", "Controllato"],
+    ["Ver histórico completo", "View full history", "Ver historial completo", "Voir l’historique complet", "Vollständigen Verlauf anzeigen", "Vedi cronologia completa"],
+    ["Revisão", "Review", "Revisión", "Vérification", "Prüfung", "Revisione"],
+    ["Refeições salvas", "Saved meals", "Comidas guardadas", "Repas enregistrés", "Gespeicherte Mahlzeiten", "Pasti salvati"],
+    ["Nenhuma refeição salva", "No saved meals", "No hay comidas guardadas", "Aucun repas enregistré", "Keine gespeicherten Mahlzeiten", "Nessun pasto salvato"],
+    ["As refeições salvas aparecerão aqui.", "Saved meals will appear here.", "Las comidas guardadas aparecerán aquí.", "Les repas enregistrés apparaîtront ici.", "Gespeicherte Mahlzeiten erscheinen hier.", "I pasti salvati appariranno qui."],
+    ["Refeição salva", "Saved meal", "Comida guardada", "Repas enregistré", "Gespeicherte Mahlzeit", "Pasto salvato"],
+    ["Comi isso", "I ate this", "Comí esto", "J’ai mangé ça", "Das habe ich gegessen", "Ho mangiato questo"],
+    ["Refeição favorita reutilizada", "Favorite meal reused", "Comida favorita reutilizada", "Repas favori réutilisé", "Lieblingsmahlzeit wiederverwendet", "Pasto preferito riutilizzato"]
+  );
+  phraseRows.push(
+    ["Escolha como deseja analisar sua refeição.", "Choose how you want to analyze your meal.", "Elige cómo quieres analizar tu comida.", "Choisissez comment analyser votre repas.", "Wähle, wie du deine Mahlzeit analysieren möchtest.", "Scegli come vuoi analizzare il pasto."]
+  );
+  const keyTranslations = {};
+  const phraseTranslations = {};
+
+  languages.forEach((language) => {
+    keyTranslations[language] = {};
+    phraseTranslations[language] = {};
+  });
+
+  keyRows.forEach((row) => {
+    languages.forEach((language, index) => {
+      keyTranslations[language][row[0]] = row[index + 1];
+    });
+  });
+
+  phraseRows.forEach((row) => {
+    languages.forEach((language, index) => {
+      phraseTranslations[language][normalizeText(row[0])] = row[index + 1];
+    });
+  });
+
+  const externalPhraseTranslators = [];
+
+  const originalText = new WeakMap();
+  const originalAttributes = new WeakMap();
+  const skippedTags = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "SVG", "PATH", "DEFS", "CLIPPATH", "META", "LINK"]);
+  const originalT = api.t.bind(api);
+  const originalSetLanguage = api.setCurrentLanguage.bind(api);
+  const nativePrompt = window.prompt;
+  let applying = false;
+  let pendingRoots = new Set();
+  let observer = null;
+  let queued = false;
+
+  function normalize(languageCode) {
+    return api.normalizeLanguageCode(languageCode || api.getCurrentLanguage());
+  }
+
+  function normalizeText(text) {
+    return String(text ?? "").trim().replace(/\s+/g, " ");
+  }
+
+  function interpolate(value, params = {}) {
+    return Object.keys(params || {}).reduce((text, key) => {
+      return text.replace(new RegExp(`\\{${key}\\}`, "g"), String(params[key]));
+    }, value);
+  }
+
+  function preserveWhitespace(original, translated) {
+    const start = String(original).match(/^\s*/)?.[0] || "";
+    const end = String(original).match(/\s*$/)?.[0] || "";
+    return `${start}${translated}${end}`;
+  }
+
+  api.t = function translateKey(key, params = {}, languageCode) {
+    const lang = normalize(languageCode || api.getCurrentLanguage());
+    const translated = lang !== api.FALLBACK_LANGUAGE ? keyTranslations[lang]?.[key] : null;
+    if (translated) return interpolate(translated, params);
+    const original = originalT(key, params, languageCode);
+    if (original !== key) return original;
+    return interpolate(keyTranslations.en[key] || key, params);
+  };
+
+  function translateDynamic(text, lang) {
+    const words = {
+      en: { capsule: "capsule", capsules: "capsules", unit: "unit", units: "units", fat: "fat", page: "Go to page", activate: "Enable", remove: "Remove", editQty: "Edit quantity of", qty: "Quantity of", grams: "in grams:" },
+      es: { capsule: "cápsula", capsules: "cápsulas", unit: "unidad", units: "unidades", fat: "grasa", page: "Ir a página", activate: "Activar", remove: "Eliminar", editQty: "Editar cantidad de", qty: "Cantidad de", grams: "en gramos:" },
+      fr: { capsule: "gélule", capsules: "gélules", unit: "unité", units: "unités", fat: "graisse", page: "Aller à la page", activate: "Activer", remove: "Supprimer", editQty: "Modifier la quantité de", qty: "Quantité de", grams: "en grammes :" },
+      de: { capsule: "Kapsel", capsules: "Kapseln", unit: "Einheit", units: "Einheiten", fat: "Fett", page: "Gehe zu Seite", activate: "Aktivieren", remove: "Entfernen", editQty: "Menge bearbeiten für", qty: "Menge von", grams: "in Gramm:" },
+      it: { capsule: "capsula", capsules: "capsule", unit: "unità", units: "unità", fat: "grassi", page: "Vai alla pagina", activate: "Attiva", remove: "Rimuovi", editQty: "Modifica quantità di", qty: "Quantità di", grams: "in grammi:" }
+    }[lang];
+    if (!words) return null;
+    const childWords = {
+      en: { quantity: "Amount:", approx: "approx.", howMuchFood: "How much {food} was there?", estimatedUnit: "estimated unit", estimatedUnits: "estimated units", fatOf: "fat" },
+      es: { quantity: "Cantidad:", approx: "aprox.", howMuchFood: "¿Cuánto había de {food}?", estimatedUnit: "unidad estimada", estimatedUnits: "unidades estimadas", fatOf: "grasa" },
+      fr: { quantity: "Quantité :", approx: "env.", howMuchFood: "Quelle quantité de {food} ?", estimatedUnit: "unité estimée", estimatedUnits: "unités estimées", fatOf: "graisse" },
+      de: { quantity: "Menge:", approx: "ca.", howMuchFood: "Wie viel {food} war es?", estimatedUnit: "geschätzte Einheit", estimatedUnits: "geschätzte Einheiten", fatOf: "Fett" },
+      it: { quantity: "Quantità:", approx: "circa", howMuchFood: "Quanto {food} c’era?", estimatedUnit: "unità stimata", estimatedUnits: "unità stimate", fatOf: "grassi" }
+    }[lang];
+
+    let childMatch = text.match(/^Quantidade:\s+(.+)$/i);
+    if (childMatch && childWords) return `${childWords.quantity} ${translatePhrase(childMatch[1], lang)}`;
+
+    childMatch = text.match(/^aprox\.\s+(\d+(?:[,.]\d+)?)\s*g$/i);
+    if (childMatch && childWords) return `${childWords.approx} ${childMatch[1]} g`;
+
+    childMatch = text.match(/^Quanto tinha de\s+(.+)\?$/i);
+    if (childMatch && childWords) return childWords.howMuchFood.replace("{food}", translatePhrase(childMatch[1], lang));
+
+    childMatch = text.match(/^(\d+(?:[,.]\d+)?)\s+unidades?\s+estimadas?$/i);
+    if (childMatch && childWords) return `${childMatch[1]} ${Number(String(childMatch[1]).replace(",", ".")) === 1 ? childWords.estimatedUnit : childWords.estimatedUnits}`;
+
+    childMatch = text.match(/^(\d+(?:[,.]\d+)?)g\s+de\s+gordura\s+•\s+(\d+)\s+unidades?$/i);
+    if (childMatch && childWords) return `${childMatch[1]}g ${childWords.fatOf} • ${childMatch[2]} ${Number(childMatch[2]) === 1 ? childWords.estimatedUnit : childWords.estimatedUnits}`;
+
+    let match = text.match(/^(\d+(?:[,.]\d+)?)\s+cápsulas?$/i);
+    if (match) return `${match[1]} ${Number(String(match[1]).replace(",", ".")) === 1 ? words.capsule : words.capsules}`;
+
+    match = text.match(/^(\d+(?:[,.]\d+)?)\s+unidades?$/i);
+    if (match) return `${match[1]} ${Number(String(match[1]).replace(",", ".")) === 1 ? words.unit : words.units}`;
+
+    match = text.match(/^(\d+(?:[,.]\d+)?)g\s+gordura\s*\/\s*100g$/i);
+    if (match) return `${match[1]}g ${words.fat} / 100g`;
+
+    match = text.match(/^Ir para página\s+(\d+)$/i);
+    if (match) return `${words.page} ${match[1]}`;
+
+    match = text.match(/^Ativar\s+(.+)$/i);
+    if (match) return `${words.activate} ${translatePhrase(match[1], lang)}`;
+
+    match = text.match(/^Remover\s+(.+)$/i);
+    if (match) return `${words.remove} ${translatePhrase(match[1], lang)}`;
+
+    match = text.match(/^Editar quantidade de\s+(.+)\s+em gramas:$/i);
+    if (match) return `${words.editQty} ${translatePhrase(match[1], lang)} ${words.grams}`;
+
+    match = text.match(/^Quantidade de\s+(.+)\s+em gramas:$/i);
+    if (match) return `${words.qty} ${translatePhrase(match[1], lang)} ${words.grams}`;
+
+    match = text.match(/^(.+):\s+(\d+)g para (\d+)g$/i);
+    if (match) return `${translatePhrase(match[1], lang)}: ${match[2]}g → ${match[3]}g`;
+
+    return null;
+  }
+
+  function translateExternalPhrase(original, key, lang) {
+    for (const translator of externalPhraseTranslators) {
+      try {
+        const translated = translator(original, lang, key);
+        if (translated) return translated;
+      } catch (error) {
+        console.warn("PancreAI translation extension failed", error);
+      }
+    }
+    return null;
+  }
+
+  function translatePhrase(value, languageCode) {
+    const lang = normalize(languageCode || api.getCurrentLanguage());
+    if (lang === api.FALLBACK_LANGUAGE) return value;
+    const original = String(value ?? "");
+    const key = normalizeText(original);
+    if (!key) return original;
+    const external = translateExternalPhrase(original, key, lang);
+    const translated = phraseTranslations[lang]?.[key] || phraseTranslations.en[key] || external || translateDynamic(key, lang);
+    return translated ? preserveWhitespace(original, translated) : original;
+  }
+
+  function shouldSkipTextNode(node) {
+    const parent = node.parentElement;
+    if (!parent) return true;
+    if (skippedTags.has(parent.tagName)) return true;
+    return Boolean(parent.closest("[data-i18n-skip]"));
+  }
+
+  function translateTextNode(node) {
+    if (shouldSkipTextNode(node)) return;
+    if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+    const source = originalText.get(node);
+    const translated = translatePhrase(source);
+    if (node.nodeValue !== translated) node.nodeValue = translated;
+  }
+
+  function attributeStore(element) {
+    let store = originalAttributes.get(element);
+    if (!store) {
+      store = {};
+      originalAttributes.set(element, store);
+    }
+    return store;
+  }
+
+  function translateAttributes(element) {
+    if (!element || skippedTags.has(element.tagName) || element.closest?.("[data-i18n-skip]")) return;
+    const store = attributeStore(element);
+    ["placeholder", "title", "aria-label", "alt"].forEach((attribute) => {
+      if (!element.hasAttribute(attribute)) return;
+      if (!Object.prototype.hasOwnProperty.call(store, attribute)) store[attribute] = element.getAttribute(attribute);
+      element.setAttribute(attribute, translatePhrase(store[attribute]));
+    });
+  }
+
+  function applyTranslations(root = document) {
+    if (applying) return;
+    applying = true;
+    try {
+      const target = root.nodeType === Node.ELEMENT_NODE || root.nodeType === Node.DOCUMENT_NODE ? root : document;
+      if (target.nodeType === Node.ELEMENT_NODE) translateAttributes(target);
+      const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (shouldSkipTextNode(node)) return NodeFilter.FILTER_REJECT;
+          return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      let node = walker.nextNode();
+      while (node) {
+        translateTextNode(node);
+        node = walker.nextNode();
+      }
+      target.querySelectorAll?.("[placeholder], [title], [aria-label], img[alt]").forEach(translateAttributes);
+    } finally {
+      applying = false;
+    }
+  }
+
+  function toApplyRoot(node) {
+    if (!node) return null;
+    if (node.nodeType === Node.DOCUMENT_NODE) return document;
+    if (node.nodeType === Node.TEXT_NODE) return node.parentElement || null;
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    if (skippedTags.has(node.tagName) || node.closest?.("[data-i18n-skip]")) return null;
+    return node;
+  }
+
+  function compactRoots(roots) {
+    const clean = roots.filter((root) => root === document || root.isConnected);
+    if (clean.includes(document) || clean.length > 24) return [document];
+    return clean.filter((root, index) => {
+      return !clean.some((other, otherIndex) => {
+        return otherIndex !== index && other !== document && other.contains?.(root);
+      });
+    });
+  }
+
+  function queueApply(root = document) {
+    const target = toApplyRoot(root);
+    if (target) pendingRoots.add(target);
+    if (applying || queued) return;
+    queued = true;
+    window.setTimeout(() => {
+      queued = false;
+      const roots = compactRoots(Array.from(pendingRoots));
+      pendingRoots = new Set();
+      roots.forEach((pendingRoot) => applyTranslations(pendingRoot));
+    }, 30);
+  }
+
+  function rememberMutationSources(mutations) {
+    mutations.forEach((mutation) => {
+      if (mutation.type === "characterData" && mutation.target?.nodeType === Node.TEXT_NODE) {
+        originalText.set(mutation.target, mutation.target.nodeValue);
+      }
+
+      if (mutation.type === "attributes" && mutation.target) {
+        const store = attributeStore(mutation.target);
+        store[mutation.attributeName] = mutation.target.getAttribute(mutation.attributeName);
+      }
+    });
+  }
+
+  function startObserver() {
+    if (observer || !document.body) return;
+    observer = new MutationObserver((mutations) => {
+      if (applying) return;
+      rememberMutationSources(mutations);
+      mutations.forEach((mutation) => {
+        if (mutation.type === "characterData") {
+          queueApply(mutation.target);
+          return;
+        }
+
+        if (mutation.type === "attributes") {
+          queueApply(mutation.target);
+          return;
+        }
+
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => queueApply(node));
+        }
+      });
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["placeholder", "title", "aria-label", "alt"]
+    });
+  }
+
+  api.setCurrentLanguage = function setCurrentLanguageAndTranslate(languageCode, countryCode) {
+    const result = originalSetLanguage(languageCode, countryCode);
+    applyTranslations(document);
+    window.dispatchEvent(new CustomEvent("pancreai:languagechange", { detail: result }));
+    return result;
+  };
+
+  api.translatePhrase = translatePhrase;
+  api.registerPhraseTranslator = function registerPhraseTranslator(translator) {
+    if (typeof translator !== "function" || externalPhraseTranslators.includes(translator)) return externalPhraseTranslators.length;
+    externalPhraseTranslators.push(translator);
+    applyTranslations(document);
+    return externalPhraseTranslators.length;
+  };
+  api.apply = applyTranslations;
+  api.__fullTranslationLayer = true;
+
+  if (typeof nativePrompt === "function" && !window.__pancreaiTranslatedPrompt) {
+    window.prompt = function translatedPrompt(message, defaultValue) {
+      return nativePrompt.call(window, translatePhrase(message), defaultValue);
+    };
+    window.__pancreaiTranslatedPrompt = true;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations(document);
+      startObserver();
+    });
+  } else {
+    applyTranslations(document);
+    startObserver();
+  }
+})();
+
+
+
+
+
+
+
+

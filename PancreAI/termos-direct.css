@@ -1,0 +1,17 @@
+/* Terms pages change directly. No page-level motion is allowed here. */
+.screen--terms,
+.screen--terms.is-entering-next,
+.screen--terms.is-entering-prev,
+.screen--terms.is-exiting-next,
+.screen--terms.is-exiting-prev {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.screen--terms.hidden,
+.screen--terms[hidden] {
+  display: none !important;
+}

@@ -1,0 +1,31 @@
+/* The opening brand must be visible immediately, before any script runs. */
+.app[data-scene="splash"] .scene--splash {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+.app[data-scene="splash"] .splash-mark__base {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  animation: none !important;
+}
+
+.app[data-scene="splash"] .splash-mark__layer--back,
+.app[data-scene="splash"] .splash-mark__layer--front {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.app[data-scene="splash"] .splash-mark__shine {
+  opacity: 0.56 !important;
+  transform: rotate(-34deg) !important;
+  animation: none !important;
+}
+
+.app[data-scene="splash"] .splash-wordmark {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}

@@ -1,0 +1,67 @@
+/* Runtime polish shared by every screen. Visual styles remain page-specific. */
+html,
+body,
+.app,
+.screen,
+.scene,
+.terms-content,
+.historico-content,
+.detail-content,
+.profile-content,
+.settings-content,
+.home-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.app::-webkit-scrollbar,
+.screen::-webkit-scrollbar,
+.scene::-webkit-scrollbar,
+.terms-content::-webkit-scrollbar,
+.historico-content::-webkit-scrollbar,
+.detail-content::-webkit-scrollbar,
+.profile-content::-webkit-scrollbar,
+.settings-content::-webkit-scrollbar,
+.home-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
+/* Screen changes are immediate; motion is reserved for interactive controls. */
+.app > .screen,
+.app > .scene,
+.screen--terms,
+.ui-enter {
+  transition: none !important;
+}
+
+.ui-enter {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.screen--terms.is-entering-next,
+.screen--terms.is-entering-prev,
+.screen--terms.is-exiting-next,
+.screen--terms.is-exiting-prev {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-mark__base,
+  .splash-mark__back,
+  .splash-mark__front,
+  .splash-wordmark {
+    animation: none !important;
+  }
+}

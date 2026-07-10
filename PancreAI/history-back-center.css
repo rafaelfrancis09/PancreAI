@@ -1,0 +1,13 @@
+.screen--detail .topbar .back-btn::before { display: none !important; }
+.screen--detail .topbar .back-btn { display: grid !important; place-items: center !important; }
+.screen--detail .topbar .back-btn > svg {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  display: block !important;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

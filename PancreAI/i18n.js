@@ -1,0 +1,570 @@
+(function () {
+  const SELECTED_LANGUAGE_KEY = "pancreai_selected_language";
+  const LANGUAGE_SETTINGS_KEY = "pancreai_language_settings";
+  const FALLBACK_LANGUAGE = "pt-BR";
+
+  const LANGUAGE_ALIASES = {
+    pt: "pt-BR",
+    "pt-BR": "pt-BR",
+    en: "en",
+    "en-GB": "en",
+    "en-US": "en",
+    es: "es",
+    "es-ES": "es",
+    fr: "fr",
+    "fr-FR": "fr",
+    de: "de",
+    "de-DE": "de",
+    it: "it",
+    "it-IT": "it"
+  };
+
+  const AVAILABLE_LANGUAGES = [
+    { code: "pt-BR", countryCode: "BR", label: "Português", nativeLabel: "Português", short: "BR" },
+    { code: "en", countryCode: "GB", label: "English", nativeLabel: "English", short: "GB" },
+    { code: "es", countryCode: "ES", label: "Español", nativeLabel: "Español", short: "ES" },
+    { code: "fr", countryCode: "FR", label: "Français", nativeLabel: "Français", short: "FR" },
+    { code: "de", countryCode: "DE", label: "Deutsch", nativeLabel: "Deutsch", short: "DE" },
+    { code: "it", countryCode: "IT", label: "Italiano", nativeLabel: "Italiano", short: "IT" }
+  ];
+
+  const COMING_SOON_LANGUAGES = [
+    { code: "ru-RU", countryCode: "RU", label: "Русский", short: "RU" },
+    { code: "pl-PL", countryCode: "PL", label: "Polski", short: "PL" },
+    { code: "tr-TR", countryCode: "TR", label: "Türkçe", short: "TR" },
+    { code: "nl-NL", countryCode: "NL", label: "Nederlands", short: "NL" },
+    { code: "ar-SA", countryCode: "SA", label: "العربية", short: "SA", dir: "rtl" },
+    { code: "zh-CN", countryCode: "CN", label: "中文", short: "CN" },
+    { code: "hi-IN", countryCode: "IN", label: "हिन्दी", short: "IN" },
+    { code: "bn-BD", countryCode: "BD", label: "বাংলা", short: "BD" },
+    { code: "ja-JP", countryCode: "JP", label: "日本語", short: "JP" },
+    { code: "ko-KR", countryCode: "KR", label: "한국어", short: "KR" },
+    { code: "el-GR", countryCode: "GR", label: "Ελληνικά", short: "GR" },
+    { code: "sv-SE", countryCode: "SE", label: "Svenska", short: "SE" },
+    { code: "no-NO", countryCode: "NO", label: "Norsk", short: "NO" },
+    { code: "da-DK", countryCode: "DK", label: "Dansk", short: "DK" },
+    { code: "fi-FI", countryCode: "FI", label: "Suomi", short: "FI" },
+    { code: "cs-CZ", countryCode: "CZ", label: "Čeština", short: "CZ" },
+    { code: "ro-RO", countryCode: "RO", label: "Română", short: "RO" },
+    { code: "uk-UA", countryCode: "UA", label: "Українська", short: "UA" },
+    { code: "he-IL", countryCode: "IL", label: "עברית", short: "IL", dir: "rtl" }
+  ];
+
+  const LOCALES = {
+    "pt-BR": "pt-BR",
+    en: "en-GB",
+    es: "es-ES",
+    fr: "fr-FR",
+    de: "de-DE",
+    it: "it-IT"
+  };
+
+  const translations = {
+    "pt-BR": {
+      "common.continue": "Continuar",
+      "common.back": "Voltar",
+      "common.save": "Salvar",
+      "common.cancel": "Cancelar",
+      "common.confirm": "Confirmar",
+      "common.edit": "Editar",
+      "common.remove": "Remover",
+      "common.add": "Adicionar",
+      "common.next": "Próximo",
+      "common.finish": "Concluir",
+      "common.close": "Fechar",
+      "common.review": "Revisar",
+      "common.warning": "Aviso",
+      "common.error": "Erro",
+      "common.info": "Informação",
+      "common.comingSoon": "Em breve",
+      "common.availableNow": "Disponível agora",
+      "nav.home": "Home",
+      "nav.history": "Histórico",
+      "nav.profile": "Perfil",
+      "nav.favorites": "Favoritos",
+      "nav.settings": "Configurações",
+      "nav.terms": "Termos de uso",
+      "nav.language": "Idioma",
+      "language.title": "Escolha seu idioma",
+      "language.description": "O PancreAI está sendo preparado para suporte multilíngue. Escolha um dos idiomas disponíveis para continuar.",
+      "language.availableTitle": "Disponíveis agora",
+      "language.futureTitle": "Idiomas futuros",
+      "language.futureDescription": "Estamos preparando o PancreAI para alcançar mais pessoas. Estes idiomas serão liberados em próximas versões.",
+      "language.availableDescription": "Interface disponível nesta versão",
+      "language.continue": "Continuar",
+      "language.toastFuture": "Este idioma será adicionado futuramente.",
+      "intro.welcomeTitle": "Bem-vindo ao PancreAI",
+      "intro.welcomeText": "Um app para estimar enzimas com mais clareza, segurança e confirmação manual antes do cálculo.",
+      "intro.reviewTitle": "Você fotografa, revisa e confirma",
+      "intro.reviewText": "O PancreAI nunca calcula sozinho. Primeiro a refeição é analisada, depois você confere tudo com calma.",
+      "intro.setupTitle": "Primeiro, configure seu tratamento",
+      "intro.setupText": "Peso, dose prescrita e enzima pancreática ficam salvos e serão usados automaticamente nos próximos cálculos.",
+      "treatment.title": "Meu Tratamento",
+      "treatment.intro": "Esses dados serão usados nos cálculos e ficam salvos localmente no seu dispositivo. Escolha apenas o tratamento que já foi prescrito.",
+      "treatment.country": "País ou região do tratamento",
+      "treatment.countryHelp": "Isso ajuda o app a mostrar opções mais prováveis de medicamento. A disponibilidade pode variar.",
+      "treatment.weight": "Peso do paciente",
+      "treatment.prescribedDose": "Dose prescrita",
+      "treatment.prescribedDoseHelp": "Unidades de lipase por grama de gordura.",
+      "treatment.medication": "Medicamento enzimático prescrito",
+      "treatment.medicationHelp": "Escolha apenas o medicamento que já foi prescrito.",
+      "treatment.lipasePerUnit": "Unidades de lipase por cápsula/comprimido/unidade",
+      "treatment.customMedication": "Meu medicamento não está na lista",
+      "treatment.customHelp": "Cadastre apenas valores que aparecem na sua prescrição, embalagem ou bula.",
+      "treatment.form": "Forma do medicamento",
+      "treatment.unitName": "Nome da unidade",
+      "treatment.prescriptionNote": "Observação da prescrição",
+      "treatment.save": "Salvar tratamento",
+      "treatment.saved": "Tratamento salvo.",
+      "treatment.noSubstitution": "O PancreAI não recomenda troca de medicamento.",
+      "treatment.onlyPrescription": "Altere esta opcao apenas se ela corresponder a sua prescricao. Medicamentos enzimaticos podem ter potencias e formas diferentes.",
+      "treatment.manualPower": "Informe manualmente a potencia que aparece na sua prescricao ou embalagem.",
+      "treatment.confirmPower": "Confira se a potencia em lipase foi digitada exatamente como aparece na prescricao ou embalagem.",
+      "treatment.completeRequired": "Preencha peso e dose prescrita para continuar.",
+      "treatment.selectMedication": "Selecione uma opção verificada ou use \"Meu medicamento não está na lista\" para cadastrar manualmente.",
+      "treatment.manualNameRequired": "Informe o nome do medicamento manual.",
+      "treatment.savedSuccess": "Tratamento salvo com sucesso.",
+      "home.welcome": "Bem-vindo!",
+      "home.ready": "Pronto para analisar sua refeição?",
+      "home.analyzeMeal": "Analisar refeição",
+      "home.howItWorks": "Como funciona",
+      "home.howItWorksText": "Tire uma foto da sua refeição ou escolha da galeria. O app estima a gordura e sugere a quantidade de unidades enzimáticas.",
+      "home.shortcuts": "Atalhos",
+      "analysis.confirmTitle": "Confirmar análise",
+      "analysis.detectedFoods": "Alimentos detectados",
+      "analysis.reviewBeforeCalculate": "Revise os alimentos antes de calcular.",
+      "analysis.addFood": "Adicionar alimento",
+      "analysis.confirm": "Confirmar análise",
+      "analysis.reanalyze": "Reanalisar foto",
+      "result.title": "Resultado",
+      "result.summary": "Resumo",
+      "result.totalFat": "Gordura total",
+      "result.fat": "Gordura",
+      "result.protein": "Proteína",
+      "result.carbs": "Carboidratos",
+      "result.prescribedDose": "Dose prescrita",
+      "result.medication": "Medicamento",
+      "result.power": "Potência",
+      "result.requiredLipase": "Lipase necessária",
+      "result.calculation": "Cálculo",
+      "result.estimatedUnits": "Unidades sugeridas",
+      "result.unitsInUse": "Unidades em uso",
+      "result.deliveredLipase": "Lipase entregue",
+      "result.fullCalculation": "Ver calculo completo",
+      "result.saveFavorite": "Salvar refeição favorita",
+      "result.favoriteSaved": "Refeição salva nos favoritos",
+      "result.favoriteSavedToast": "Refeição salva",
+      "result.adjustDose": "Ajustar dose",
+      "result.adjustedDoseNote": "Dose ajustada manualmente em relação à sugestão de {dose}.",
+      "result.unusual": "Encontramos um resultado incomum. Revise os alimentos antes de utilizar este cálculo.",
+      "result.estimatedNote": "Este resultado e uma estimativa baseada nos dados cadastrados e nao substitui orientacao profissional.",
+      "profile.subtitle": "Configurações e preferências",
+      "profile.preferences": "Preferencias",
+      "profile.notifications": "Notificações",
+      "profile.security": "Segurança",
+      "profile.about": "Sobre",
+      "profile.childMode": "Modo infantil",
+      "profile.medicalAlerts": "Avisos médicos",
+      "profile.mealReminders": "Lembretes de refeições",
+      "profile.photoTutorial": "Tutorial de fotos",
+      "profile.medicalReport": "Relatório médico",
+      "profile.aboutFlow": "Sobre e funcionamento",
+      "profile.favoriteMeals": "Refeições favoritas"
+    },
+    en: {
+      "common.continue": "Continue",
+      "common.back": "Back",
+      "common.save": "Save",
+      "common.cancel": "Cancel",
+      "common.confirm": "Confirm",
+      "common.edit": "Edit",
+      "common.remove": "Remove",
+      "common.add": "Add",
+      "common.next": "Next",
+      "common.finish": "Finish",
+      "common.close": "Close",
+      "common.review": "Review",
+      "common.warning": "Warning",
+      "common.error": "Error",
+      "common.info": "Information",
+      "common.comingSoon": "Coming soon",
+      "common.availableNow": "Available now",
+      "nav.home": "Home",
+      "nav.history": "History",
+      "nav.profile": "Profile",
+      "nav.favorites": "Favorites",
+      "nav.settings": "Settings",
+      "nav.terms": "Terms of use",
+      "nav.language": "Language",
+      "language.title": "Choose your language",
+      "language.description": "PancreAI is being prepared for multilingual support. Choose one of the available languages to continue.",
+      "language.availableTitle": "Available now",
+      "language.futureTitle": "Future languages",
+      "language.futureDescription": "We are preparing PancreAI to reach more people. These languages will be released in future versions.",
+      "language.availableDescription": "Interface available in this version",
+      "language.continue": "Continue",
+      "language.toastFuture": "This language will be added in the future.",
+      "treatment.title": "My Treatment",
+      "treatment.intro": "These details are used in calculations and stay saved locally on your device. Choose only the treatment already prescribed.",
+      "treatment.country": "Treatment country or region",
+      "treatment.countryHelp": "This helps the app show more likely medication options. Availability may vary.",
+      "treatment.weight": "Patient weight",
+      "treatment.prescribedDose": "Prescribed dose",
+      "treatment.prescribedDoseHelp": "Lipase units per gram of fat.",
+      "treatment.medication": "Prescribed enzyme medication",
+      "treatment.medicationHelp": "Choose only the medication that has already been prescribed.",
+      "treatment.lipasePerUnit": "Lipase units per capsule/tablet/unit",
+      "treatment.customMedication": "My medication is not listed",
+      "treatment.customHelp": "Enter only values shown on your prescription, package, or leaflet.",
+      "treatment.form": "Medication form",
+      "treatment.unitName": "Unit name",
+      "treatment.prescriptionNote": "Prescription note",
+      "treatment.save": "Save treatment",
+      "treatment.saved": "Treatment saved.",
+      "treatment.noSubstitution": "PancreAI does not recommend changing medication.",
+      "treatment.manualPower": "Enter the strength shown on your prescription or package.",
+      "treatment.confirmPower": "Check that the lipase strength was entered exactly as shown on the prescription or package.",
+      "treatment.completeRequired": "Enter weight and prescribed dose to continue.",
+      "treatment.selectMedication": "Select a verified option or use \"My medication is not listed\" to enter it manually.",
+      "treatment.manualNameRequired": "Enter the manual medication name.",
+      "treatment.savedSuccess": "Treatment saved successfully.",
+      "home.welcome": "Welcome!",
+      "home.ready": "Ready to analyze your meal?",
+      "home.analyzeMeal": "Analyze meal",
+      "home.howItWorks": "How it works",
+      "home.howItWorksText": "Take a photo of your meal or choose one from the gallery. The app estimates fat and suggests enzyme units.",
+      "home.shortcuts": "Shortcuts",
+      "analysis.confirmTitle": "Confirm analysis",
+      "analysis.detectedFoods": "Detected foods",
+      "analysis.reviewBeforeCalculate": "Review foods before calculating.",
+      "analysis.addFood": "Add food",
+      "analysis.confirm": "Confirm analysis",
+      "analysis.reanalyze": "Analyze again",
+      "result.title": "Result",
+      "result.summary": "Summary",
+      "result.totalFat": "Total fat",
+      "result.fat": "Fat",
+      "result.protein": "Protein",
+      "result.carbs": "Carbs",
+      "result.prescribedDose": "Prescribed dose",
+      "result.medication": "Medication",
+      "result.power": "Strength",
+      "result.requiredLipase": "Required lipase",
+      "result.calculation": "Calculation",
+      "result.estimatedUnits": "Suggested units",
+      "result.unitsInUse": "Units in use",
+      "result.deliveredLipase": "Delivered lipase",
+      "result.fullCalculation": "View full calculation",
+      "result.saveFavorite": "Save favorite meal",
+      "result.favoriteSaved": "Meal saved to favorites",
+      "result.favoriteSavedToast": "Meal saved",
+      "result.adjustDose": "Adjust dose",
+      "result.adjustedDoseNote": "Dose manually adjusted from the suggestion of {dose}.",
+      "result.unusual": "We found an unusual result. Review the foods before using this calculation.",
+      "result.estimatedNote": "This result is an estimate based on the registered data and does not replace professional guidance.",
+      "profile.subtitle": "Settings and preferences",
+      "profile.preferences": "Preferences",
+      "profile.notifications": "Notifications",
+      "profile.security": "Safety",
+      "profile.about": "About",
+      "profile.childMode": "Child mode",
+      "profile.medicalAlerts": "Medical warnings",
+      "profile.mealReminders": "Meal reminders",
+      "profile.photoTutorial": "Photo tutorial",
+      "profile.medicalReport": "Medical report",
+      "profile.aboutFlow": "About and how it works",
+      "profile.favoriteMeals": "Favorite meals"
+    },
+    es: {
+      "common.continue": "Continuar",
+      "common.back": "Volver",
+      "common.save": "Guardar",
+      "common.cancel": "Cancelar",
+      "common.confirm": "Confirmar",
+      "common.edit": "Editar",
+      "common.remove": "Eliminar",
+      "common.add": "Agregar",
+      "common.next": "Siguiente",
+      "common.finish": "Finalizar",
+      "common.close": "Cerrar",
+      "common.warning": "Aviso",
+      "common.error": "Error",
+      "common.availableNow": "Disponible ahora",
+      "common.comingSoon": "Pronto",
+      "nav.home": "Inicio",
+      "nav.history": "Historial",
+      "nav.profile": "Perfil",
+      "nav.terms": "Terminos de uso",
+      "nav.language": "Idioma",
+      "language.title": "Elige tu idioma",
+      "language.description": "PancreAI se esta preparando para soporte multilingue. Elige uno de los idiomas disponibles para continuar.",
+      "language.availableTitle": "Disponibles ahora",
+      "language.futureTitle": "Idiomas futuros",
+      "language.futureDescription": "Estamos preparando PancreAI para llegar a mas personas. Estos idiomas se liberaran en proximas versiones.",
+      "language.availableDescription": "Interfaz disponible en esta version",
+      "language.continue": "Continuar",
+      "language.toastFuture": "Este idioma se agregara en el futuro.",
+      "treatment.title": "Mi tratamiento",
+      "treatment.country": "Pais o region del tratamiento",
+      "treatment.countryHelp": "Esto ayuda a la app a mostrar opciones de medicamento mas probables. La disponibilidad puede variar.",
+      "treatment.weight": "Peso del paciente",
+      "treatment.prescribedDose": "Dosis prescrita",
+      "treatment.prescribedDoseHelp": "Unidades de lipasa por gramo de grasa.",
+      "treatment.medication": "Medicamento enzimático prescrito",
+      "treatment.medicationHelp": "Elige solo el medicamento que ya fue prescrito.",
+      "treatment.lipasePerUnit": "Unidades de lipasa por capsula/comprimido/unidad",
+      "treatment.customMedication": "Mi medicamento no esta en la lista",
+      "treatment.customHelp": "Introduce solo valores que aparezcan en tu prescripcion, envase o prospecto.",
+      "treatment.save": "Guardar tratamiento",
+      "treatment.savedSuccess": "Tratamiento guardado correctamente.",
+      "home.welcome": "Bienvenido!",
+      "home.ready": "Listo para analizar tu comida?",
+      "home.analyzeMeal": "Analizar comida",
+      "home.howItWorks": "Como funciona",
+      "analysis.confirmTitle": "Confirmar analisis",
+      "result.title": "Resultado",
+      "profile.subtitle": "Configuracion y preferencias",
+      "profile.preferences": "Preferencias"
+    },
+    fr: {
+      "common.continue": "Continuer",
+      "common.back": "Retour",
+      "common.save": "Enregistrer",
+      "common.cancel": "Annuler",
+      "common.confirm": "Confirmer",
+      "common.edit": "Modifier",
+      "common.remove": "Supprimer",
+      "common.add": "Ajouter",
+      "common.next": "Suivant",
+      "common.finish": "Terminer",
+      "common.close": "Fermer",
+      "common.warning": "Avertissement",
+      "common.error": "Erreur",
+      "common.availableNow": "Disponible maintenant",
+      "common.comingSoon": "Bientot",
+      "nav.home": "Accueil",
+      "nav.history": "Historique",
+      "nav.profile": "Profil",
+      "nav.terms": "Conditions d'utilisation",
+      "nav.language": "Langue",
+      "language.title": "Choisissez votre langue",
+      "language.description": "PancreAI se prepare au support multilingue. Choisissez une langue disponible pour continuer.",
+      "language.availableTitle": "Disponibles maintenant",
+      "language.futureTitle": "Langues futures",
+      "language.futureDescription": "Nous preparons PancreAI pour atteindre plus de personnes. Ces langues seront publiees dans de prochaines versions.",
+      "language.availableDescription": "Interface disponible dans cette version",
+      "language.continue": "Continuer",
+      "language.toastFuture": "Cette langue sera ajoutee ulterieurement.",
+      "treatment.title": "Mon traitement",
+      "treatment.country": "Pays ou region du traitement",
+      "treatment.countryHelp": "Cela aide l'app a afficher les options de medicament les plus probables. La disponibilite peut varier.",
+      "treatment.weight": "Poids du patient",
+      "treatment.prescribedDose": "Dose prescrite",
+      "treatment.prescribedDoseHelp": "Unites de lipase par gramme de graisse.",
+      "treatment.medication": "Medicament enzymatique prescrit",
+      "treatment.medicationHelp": "Choisissez uniquement le medicament deja prescrit.",
+      "treatment.lipasePerUnit": "Unites de lipase par gelule/comprime/unite",
+      "treatment.customMedication": "Mon medicament n'est pas dans la liste",
+      "treatment.customHelp": "Saisissez uniquement les valeurs indiquees sur votre prescription, l'emballage ou la notice.",
+      "treatment.save": "Enregistrer le traitement",
+      "treatment.savedSuccess": "Traitement enregistre.",
+      "home.welcome": "Bienvenue!",
+      "home.ready": "Pret a analyser votre repas?",
+      "home.analyzeMeal": "Analyser le repas",
+      "analysis.confirmTitle": "Confirmer l'analyse",
+      "result.title": "Resultat"
+    },
+    de: {
+      "common.continue": "Weiter",
+      "common.back": "Zuruck",
+      "common.save": "Speichern",
+      "common.cancel": "Abbrechen",
+      "common.confirm": "Bestatigen",
+      "common.edit": "Bearbeiten",
+      "common.remove": "Entfernen",
+      "common.add": "Hinzufugen",
+      "common.next": "Weiter",
+      "common.finish": "Fertig",
+      "common.close": "Schliessen",
+      "common.warning": "Warnung",
+      "common.error": "Fehler",
+      "common.availableNow": "Jetzt verfugbar",
+      "common.comingSoon": "Demnachst",
+      "nav.home": "Home",
+      "nav.history": "Verlauf",
+      "nav.profile": "Profil",
+      "nav.terms": "Nutzungsbedingungen",
+      "nav.language": "Sprache",
+      "language.title": "Sprache auswahlen",
+      "language.description": "PancreAI wird fur mehrsprachige Nutzung vorbereitet. Wahlen Sie eine verfugbare Sprache aus.",
+      "language.availableTitle": "Jetzt verfugbar",
+      "language.futureTitle": "Zukunftige Sprachen",
+      "language.futureDescription": "Wir bereiten PancreAI darauf vor, mehr Menschen zu erreichen. Diese Sprachen erscheinen in spateren Versionen.",
+      "language.availableDescription": "Oberflache in dieser Version verfugbar",
+      "language.continue": "Weiter",
+      "language.toastFuture": "Diese Sprache wird kunftig hinzugefugt.",
+      "treatment.title": "Meine Behandlung",
+      "treatment.country": "Land oder Region der Behandlung",
+      "treatment.countryHelp": "Dies hilft der App, wahrscheinlichere Medikamentenoptionen anzuzeigen. Die Verfugbarkeit kann variieren.",
+      "treatment.weight": "Gewicht des Patienten",
+      "treatment.prescribedDose": "Verordnete Dosis",
+      "treatment.prescribedDoseHelp": "Lipase-Einheiten pro Gramm Fett.",
+      "treatment.medication": "Verordnetes Enzymmedikament",
+      "treatment.medicationHelp": "Wahlen Sie nur das Medikament aus, das bereits verordnet wurde.",
+      "treatment.lipasePerUnit": "Lipase-Einheiten pro Kapsel/Tablette/Einheit",
+      "treatment.customMedication": "Mein Medikament ist nicht aufgefuhrt",
+      "treatment.customHelp": "Geben Sie nur Werte ein, die auf Ihrer Verordnung, Verpackung oder Packungsbeilage stehen.",
+      "treatment.save": "Behandlung speichern",
+      "treatment.savedSuccess": "Behandlung gespeichert.",
+      "home.welcome": "Willkommen!",
+      "home.ready": "Bereit, Ihre Mahlzeit zu analysieren?",
+      "home.analyzeMeal": "Mahlzeit analysieren",
+      "analysis.confirmTitle": "Analyse bestatigen",
+      "result.title": "Ergebnis"
+    },
+    it: {
+      "common.continue": "Continua",
+      "common.back": "Indietro",
+      "common.save": "Salva",
+      "common.cancel": "Annulla",
+      "common.confirm": "Conferma",
+      "common.edit": "Modifica",
+      "common.remove": "Rimuovi",
+      "common.add": "Aggiungi",
+      "common.next": "Avanti",
+      "common.finish": "Fine",
+      "common.close": "Chiudi",
+      "common.warning": "Avviso",
+      "common.error": "Errore",
+      "common.availableNow": "Disponibile ora",
+      "common.comingSoon": "Prossimamente",
+      "nav.home": "Home",
+      "nav.history": "Cronologia",
+      "nav.profile": "Profilo",
+      "nav.terms": "Termini d'uso",
+      "nav.language": "Lingua",
+      "language.title": "Scegli la lingua",
+      "language.description": "PancreAI si sta preparando al supporto multilingue. Scegli una delle lingue disponibili per continuare.",
+      "language.availableTitle": "Disponibili ora",
+      "language.futureTitle": "Lingue future",
+      "language.futureDescription": "Stiamo preparando PancreAI per raggiungere piu persone. Queste lingue saranno rilasciate nelle prossime versioni.",
+      "language.availableDescription": "Interfaccia disponibile in questa versione",
+      "language.continue": "Continua",
+      "language.toastFuture": "Questa lingua sara aggiunta in futuro.",
+      "treatment.title": "Il mio trattamento",
+      "treatment.country": "Paese o regione del trattamento",
+      "treatment.countryHelp": "Questo aiuta l'app a mostrare le opzioni di farmaco piu probabili. La disponibilita puo variare.",
+      "treatment.weight": "Peso del paziente",
+      "treatment.prescribedDose": "Dose prescritta",
+      "treatment.prescribedDoseHelp": "Unita di lipasi per grammo di grassi.",
+      "treatment.medication": "Farmaco enzimatico prescritto",
+      "treatment.medicationHelp": "Scegli solo il farmaco che e gia stato prescritto.",
+      "treatment.lipasePerUnit": "Unita di lipasi per capsula/compressa/unita",
+      "treatment.customMedication": "Il mio farmaco non e nell'elenco",
+      "treatment.customHelp": "Inserisci solo valori presenti nella prescrizione, confezione o foglietto illustrativo.",
+      "treatment.save": "Salva trattamento",
+      "treatment.savedSuccess": "Trattamento salvato.",
+      "home.welcome": "Benvenuto!",
+      "home.ready": "Pronto ad analizzare il pasto?",
+      "home.analyzeMeal": "Analizza pasto",
+      "analysis.confirmTitle": "Conferma analisi",
+      "result.title": "Risultato"
+    }
+  };
+
+  function readJson(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  function normalizeLanguageCode(languageCode) {
+    return LANGUAGE_ALIASES[languageCode] || LANGUAGE_ALIASES[String(languageCode || "").split("-")[0]] || FALLBACK_LANGUAGE;
+  }
+
+  function getCurrentLanguage() {
+    const settings = readJson(LANGUAGE_SETTINGS_KEY, null);
+    return normalizeLanguageCode(settings?.languageCode || localStorage.getItem(SELECTED_LANGUAGE_KEY) || FALLBACK_LANGUAGE);
+  }
+
+  function setCurrentLanguage(languageCode, countryCode) {
+    const normalized = normalizeLanguageCode(languageCode);
+    const language = AVAILABLE_LANGUAGES.find((item) => item.code === normalized) || AVAILABLE_LANGUAGES[0];
+    const payload = {
+      languageCode: normalized,
+      countryCode: countryCode || language.countryCode,
+      selectedAt: new Date().toISOString()
+    };
+    localStorage.setItem(SELECTED_LANGUAGE_KEY, normalized);
+    localStorage.setItem(LANGUAGE_SETTINGS_KEY, JSON.stringify(payload));
+    document.documentElement.lang = LOCALES[normalized] || "pt-BR";
+    return payload;
+  }
+
+  function t(key, params = {}, languageCode) {
+    const language = normalizeLanguageCode(languageCode || getCurrentLanguage());
+    const value = translations[language]?.[key] ?? translations[FALLBACK_LANGUAGE]?.[key] ?? key;
+    return Object.keys(params).reduce((text, paramKey) => {
+      return text.replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(params[paramKey]));
+    }, value);
+  }
+
+  function getAvailableLanguages() {
+    return AVAILABLE_LANGUAGES.map((language) => ({
+      ...language,
+      status: "available",
+      description: t("language.availableDescription", {}, language.code)
+    }));
+  }
+
+  function getComingSoonLanguages() {
+    return COMING_SOON_LANGUAGES.map((language) => ({
+      ...language,
+      status: "coming-soon"
+    }));
+  }
+
+  function locale() {
+    return LOCALES[getCurrentLanguage()] || "pt-BR";
+  }
+
+  function formatNumber(value, options = {}) {
+    const numeric = Number(value || 0);
+    try {
+      return new Intl.NumberFormat(locale(), options).format(numeric);
+    } catch (error) {
+      return numeric.toLocaleString("pt-BR", options);
+    }
+  }
+
+  function formatUnits(value) {
+    return `${formatNumber(value, { maximumFractionDigits: 0 })} U`;
+  }
+
+  function formatFat(value) {
+    return `${formatNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 1 })} g`;
+  }
+
+  function formatLipaseUnits(value) {
+    return formatUnits(value);
+  }
+
+  window.PancreAII18n = {
+    FALLBACK_LANGUAGE,
+    normalizeLanguageCode,
+    getCurrentLanguage,
+    setCurrentLanguage,
+    t,
+    getAvailableLanguages,
+    getComingSoonLanguages,
+    formatNumber,
+    formatUnits,
+    formatFat,
+    formatLipaseUnits
+  };
+
+  document.documentElement.lang = LOCALES[getCurrentLanguage()] || "pt-BR";
+})();

@@ -1,0 +1,9 @@
+.scene--language,
+.language-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 44%, #f3f6f9 76%, #eef2f6 100%) !important;
+}
+
+.language-section--future {
+  position: relative;
+  background: linear-gradient(180deg, rgba(251, 252, 253, 0) 0%, rgba(244, 247, 250, 0.78) 18%, #f1f4f8 100%) !important;
+}

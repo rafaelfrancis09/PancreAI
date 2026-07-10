@@ -1,0 +1,74 @@
+/* Lightweight interaction feedback only; no full-screen page transitions. */
+button,
+.profile-row,
+.meal-item,
+.favorite-card,
+.reminder-card,
+.unidade-option,
+.medication-card,
+.search-result {
+  transition: transform 140ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease !important;
+}
+button:active,
+.profile-row:active,
+.meal-item:active,
+.favorite-card:active,
+.reminder-card:active,
+.unidade-option:active,
+.medication-card:active,
+.search-result:active {
+  transform: scale(0.985);
+}
+.bottom-nav__item .app-icon,
+.profile-row__icon .app-icon,
+.sheet-btn__icon .app-icon {
+  transition: transform 150ms ease !important;
+}
+.bottom-nav__item:active .app-icon,
+.profile-row:active .profile-row__icon .app-icon,
+.sheet-btn:active .sheet-btn__icon .app-icon {
+  transform: scale(0.9);
+}
+.app[data-view="sheet"] .screen--sheet .sheet {
+  animation: paSheetRise 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.app[data-view="gallery"] .gallery-grid,
+.app[data-view="confirm"] .result-page,
+.app[data-view="result"] .result-page {
+  animation: paContentSoftIn 180ms ease both;
+}
+.profile-modal.is-open .profile-modal__card,
+.modal:not([hidden]) .modal__card {
+  animation: paDialogSoftIn 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes paSheetRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes paContentSoftIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes paDialogSoftIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .profile-row,
+  .meal-item,
+  .favorite-card,
+  .reminder-card,
+  .unidade-option,
+  .medication-card,
+  .search-result,
+  .app[data-view="sheet"] .screen--sheet .sheet,
+  .app[data-view="gallery"] .gallery-grid,
+  .app[data-view="confirm"] .result-page,
+  .app[data-view="result"] .result-page,
+  .profile-modal.is-open .profile-modal__card,
+  .modal:not([hidden]) .modal__card {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,266 @@
+:root {
+  --bg: #f7fbf6;
+  --surface: #ffffff;
+  --text: #243b2b;
+  --muted: #8da394;
+  --green: #4fb27a;
+  --green-dark: #44996d;
+  --green-soft: #e3f3e8;
+  --shadow: 0 18px 42px rgba(49, 84, 58, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(180deg, #f3f8f1 0%, #f8fcf7 100%);
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(82, 181, 125, 0.07), transparent 28%), var(--bg);
+}
+
+.screen--adjust {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 16px 16px 18px;
+  background: var(--surface);
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.topbar h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f6f3;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.topbar__spacer {
+  width: 36px;
+  height: 36px;
+}
+
+.meal-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fbfcfb;
+  box-shadow: inset 0 0 0 1px rgba(82, 181, 125, 0.06);
+}
+
+.meal-summary__image {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: var(--shadow);
+}
+
+.meal-summary h2 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.meal-summary p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.suggestion-pill {
+  align-self: center;
+  margin-top: 20px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: #4e9d72;
+  font-size: 12px;
+}
+
+.suggestion-pill strong {
+  margin-left: 4px;
+}
+
+.dose-stepper {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 68px 1fr 68px;
+  align-items: center;
+  gap: 16px;
+}
+
+.dose-stepper__control {
+  width: 68px;
+  height: 68px;
+  border: 0;
+  border-radius: 18px;
+  background: #f4f6f4;
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.dose-stepper__control--primary {
+  background: var(--green);
+  color: #ffffff;
+}
+
+.dose-stepper__control:disabled {
+  opacity: 0.4;
+}
+
+.dose-stepper__value {
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+}
+
+.dose-stepper__value strong {
+  font-size: 58px;
+  color: var(--text);
+  letter-spacing: -0.06em;
+}
+
+.dose-stepper__value span {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dose-delta {
+  margin: 12px 0 0;
+  text-align: center;
+  color: #f5a623;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+.dose-details {
+  margin-top: 24px;
+  display: grid;
+  gap: 6px;
+}
+
+.dose-details__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(144, 173, 149, 0.12);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dose-details__row strong {
+  color: var(--text);
+}
+
+.dose-note {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f8faf8;
+  color: #8aa18f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.confirm-btn,
+.secondary-btn {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  margin-top: 14px;
+  font-weight: 700;
+}
+
+.confirm-btn {
+  margin-top: auto;
+  background: linear-gradient(180deg, #58b982 0%, #4ea36f 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 34px rgba(78, 163, 111, 0.2);
+}
+
+.secondary-btn {
+  background: #f7f8f7;
+  color: var(--text);
+}
+
+.footer-note {
+  margin: 12px 0 0;
+  text-align: center;
+  color: #90a196;
+  font-size: 10px;
+}
+
+@media (max-width: 430px) {
+  .screen--adjust {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    padding: 18px 16px 16px;
+  }
+
+  .dose-stepper {
+    grid-template-columns: 62px 1fr 62px;
+    gap: 12px;
+  }
+
+  .dose-stepper__control {
+    width: 62px;
+    height: 62px;
+  }
+
+  .dose-stepper__value strong {
+    font-size: 52px;
+  }
+}
+
+html[data-child-mode="true"] .dose-stepper__value strong,
+html[data-child-mode="true"] .confirm-btn,
+html[data-child-mode="true"] .secondary-btn {
+  font-size: 18px;
+}

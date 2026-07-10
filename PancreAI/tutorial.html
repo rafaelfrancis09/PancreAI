@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PancreAI - Tutorial</title>
+    <link rel="stylesheet" href="tutorial.css?v=20260709-unify1" />
+    <link rel="stylesheet" href="pancreai-theme.css?v=20260710-animations1" />
+    <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
+    <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
+    <link rel="stylesheet" href="pancreai-stability.css?v=20260710-stable1" />
+    <link rel="stylesheet" href="tutorial-child-normal.css?v=20260710-normal1" />
+  </head>
+  <body>
+    <main class="app tutorial-app">
+      <section class="tutorial-screen" aria-label="Tutorial de foto ideal">
+        <header class="tutorial-topbar">
+          <button class="top-back-btn" id="profileBackBtn" type="button" aria-label="Voltar para o perfil">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="tutorial-carousel" id="carousel" aria-live="polite">
+          <div class="tutorial-track" id="tutorialTrack">
+            <article class="tutorial-slide" aria-label="1 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration tutorial-illustration--camera" viewBox="0 0 320 300" role="img" aria-label="Câmera apontada para baixo sobre o prato">
+                  <ellipse class="shadow" cx="160" cy="222" rx="66" ry="17" />
+                  <path class="cone" d="M120 112h80l28 96H92z" />
+                  <rect class="camera-body" x="128" y="58" width="64" height="42" rx="12" />
+                  <circle class="camera-lens" cx="160" cy="79" r="8" />
+                  <path class="arrow-dash" d="M160 108v43" />
+                  <path class="arrow-head" d="M149 139l11 13 11-13" />
+                  <ellipse class="plate-rim" cx="160" cy="180" rx="78" ry="33" />
+                  <ellipse class="plate-inner" cx="160" cy="180" rx="54" ry="22" />
+                  <circle class="food-circle" cx="140" cy="176" r="10" />
+                  <circle class="food-circle" cx="159" cy="185" r="9" />
+                  <circle class="food-circle" cx="178" cy="176" r="10" />
+                  <circle class="status-circle good" cx="160" cy="250" r="18" />
+                  <path class="status-icon good" d="M151 250l7 7 13-16" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Fotografe o prato de cima</h1>
+                <p>Mantenha o celular acima da refeição para facilitar a identificação.</p>
+              </div>
+            </article>
+
+            <article class="tutorial-slide" aria-label="2 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration" viewBox="0 0 320 300" role="img" aria-label="Comparação entre prato inteiro e prato cortado">
+                  <defs>
+                    <clipPath id="tutorialFrameGood">
+                      <rect x="58" y="78" width="96" height="138" rx="14" />
+                    </clipPath>
+                    <clipPath id="tutorialFrameBad">
+                      <rect x="190" y="78" width="96" height="138" rx="14" />
+                    </clipPath>
+                  </defs>
+                  <rect class="phone-card phone-card--good" x="58" y="78" width="96" height="138" rx="14" />
+                  <g clip-path="url(#tutorialFrameGood)">
+                    <circle class="plate-outline" cx="106" cy="147" r="35" />
+                    <circle class="plate-soft" cx="106" cy="147" r="25" />
+                  </g>
+                  <circle class="status-circle good" cx="106" cy="248" r="17" />
+                  <path class="status-icon good" d="M98 248l7 7 13-16" />
+
+                  <rect class="phone-card phone-card--bad" x="190" y="78" width="96" height="138" rx="14" />
+                  <g clip-path="url(#tutorialFrameBad)">
+                    <circle class="plate-outline" cx="286" cy="147" r="35" />
+                    <circle class="plate-soft" cx="286" cy="147" r="25" />
+                  </g>
+                  <path class="frame-edge" d="M286 88v118" />
+                  <circle class="status-circle bad" cx="238" cy="248" r="17" />
+                  <path class="status-icon bad" d="M231 241l14 14M245 241l-14 14" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Enquadre toda a refeição</h1>
+                <p>Todos os alimentos precisam aparecer completamente.</p>
+              </div>
+            </article>
+
+            <article class="tutorial-slide" aria-label="3 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration" viewBox="0 0 320 300" role="img" aria-label="Comparação de boa iluminação e ambiente escuro">
+                  <rect class="phone-card phone-card--sun" x="56" y="78" width="96" height="138" rx="14" />
+                  <circle class="sun-core" cx="104" cy="116" r="18" />
+                  <path class="sun-ray" d="M104 86v14M104 132v14M74 116h14M120 116h14M83 95l10 10M125 95l-10 10M83 137l10-10M125 137l-10-10" />
+                  <circle class="plate-outline" cx="104" cy="168" r="27" />
+                  <circle class="plate-soft" cx="104" cy="168" r="18" />
+                  <circle class="status-circle good" cx="104" cy="248" r="17" />
+                  <path class="status-icon good" d="M96 248l7 7 13-16" />
+
+                  <rect class="phone-card phone-card--dark" x="190" y="78" width="96" height="138" rx="14" />
+                  <path class="moon" d="M236 101c-15 6-15 27 1 33 7 2 15 0 20-5-17 1-26-19-14-31-2 1-5 2-7 3z" />
+                  <circle class="dark-plate" cx="238" cy="168" r="30" />
+                  <circle class="dark-plate inner" cx="238" cy="168" r="20" />
+                  <circle class="status-circle bad" cx="238" cy="248" r="17" />
+                  <path class="status-icon bad" d="M231 241l14 14M245 241l-14 14" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Utilize boa iluminação</h1>
+                <p>Ambientes claros ajudam na identificação dos alimentos.</p>
+              </div>
+            </article>
+
+            <article class="tutorial-slide" aria-label="4 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration" viewBox="0 0 320 300" role="img" aria-label="Comparação entre celular firme e celular tremido">
+                  <rect class="phone-card phone-card--good slim" x="70" y="88" width="72" height="130" rx="12" />
+                  <circle class="plate-outline small" cx="106" cy="153" r="24" />
+                  <circle class="plate-soft small" cx="106" cy="153" r="15" />
+                  <circle class="status-circle good" cx="106" cy="250" r="17" />
+                  <path class="status-icon good" d="M98 250l7 7 13-16" />
+
+                  <path class="motion-line" d="M190 118h10M190 154h10M190 190h10" />
+                  <rect class="ghost-phone" x="200" y="88" width="72" height="130" rx="12" />
+                  <rect class="phone-card phone-card--bad slim" x="216" y="88" width="72" height="130" rx="12" />
+                  <circle class="plate-outline small" cx="252" cy="153" r="24" />
+                  <circle class="status-circle bad" cx="252" cy="250" r="17" />
+                  <path class="status-icon bad" d="M245 243l14 14M259 243l-14 14" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Evite mover o celular</h1>
+                <p>Espere alguns segundos antes de fotografar.</p>
+              </div>
+            </article>
+
+            <article class="tutorial-slide" aria-label="5 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration" viewBox="0 0 320 300" role="img" aria-label="Objetos removidos deixando apenas alimentos visíveis">
+                  <rect class="phone-card phone-card--bad" x="56" y="88" width="98" height="138" rx="14" />
+                  <path class="table-line" d="M56 188h98" />
+                  <rect class="bottle" x="72" y="139" width="16" height="42" rx="5" />
+                  <path class="object-line" d="M118 205l28-15 9 16-28 15z" />
+                  <path class="object-line" d="M134 142v46M142 142v46" />
+                  <circle class="plate-outline" cx="105" cy="176" r="24" />
+                  <circle class="status-circle bad" cx="105" cy="250" r="17" />
+                  <path class="status-icon bad" d="M98 243l14 14M112 243l-14 14" />
+
+                  <rect class="phone-card phone-card--good" x="190" y="88" width="98" height="138" rx="14" />
+                  <path class="table-line" d="M190 188h98" />
+                  <ellipse class="plate-rim mini" cx="239" cy="188" rx="38" ry="11" />
+                  <circle class="food-circle clean" cx="239" cy="166" r="23" />
+                  <circle class="food-center" cx="239" cy="166" r="12" />
+                  <circle class="status-circle good" cx="239" cy="250" r="17" />
+                  <path class="status-icon good" d="M231 250l7 7 13-16" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Retire embalagens e objetos</h1>
+                <p>Deixe apenas os alimentos visíveis.</p>
+              </div>
+            </article>
+
+            <article class="tutorial-slide" aria-label="6 de 6">
+              <div class="illustration-wrap">
+                <svg class="tutorial-illustration tutorial-illustration--flow" viewBox="0 0 320 300" role="img" aria-label="Fluxo de foto, revisão e resultado">
+                  <rect class="flow-box" x="56" y="126" width="54" height="64" rx="8" />
+                  <circle class="flow-circle" cx="83" cy="158" r="13" />
+                  <path class="flow-arrow" d="M128 158h34" />
+                  <path class="flow-arrow-head" d="M153 148l11 10-11 10" />
+                  <rect class="flow-box good" x="178" y="126" width="66" height="64" rx="8" />
+                  <path class="flow-check" d="M196 158l12 12 23-27" />
+                  <path class="flow-arrow" d="M260 158h34" />
+                  <path class="flow-arrow-head" d="M285 148l11 10-11 10" />
+                  <rect class="flow-box" x="310" y="126" width="54" height="64" rx="8" transform="translate(-44 0)" />
+                  <path class="flow-list" d="M280 150h26M280 168h18" />
+                </svg>
+              </div>
+              <div class="slide-copy">
+                <h1>Revise antes de calcular</h1>
+                <p>Sempre confirme os alimentos encontrados antes do cálculo.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <footer class="tutorial-footer" id="tutorialFooter">
+          <div class="tutorial-dots" id="tutorialDots" aria-label="Progresso do tutorial"></div>
+          <div class="tutorial-actions">
+            <button class="nav-btn nav-btn--back" id="prevBtn" type="button">Voltar</button>
+            <button class="nav-btn nav-btn--next" id="nextBtn" type="button">Próximo</button>
+          </div>
+        </footer>
+      </section>
+    </main>
+    <script src="i18n.js?v=20260709-fulli18n2"></script>
+    <script src="i18n-full.js?v=20260710-performance1"></script>
+    <script src="progress-dots.js?v=20260710-dots3"></script>
+    <script src="app-core.js?v=20260709-child1"></script>
+    <script src="tutorial.js?v=20260710-dots3"></script>
+  </body>
+</html>

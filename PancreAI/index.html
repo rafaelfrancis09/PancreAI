@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PancreAI</title>
+    <link rel="stylesheet" href="styles.css?v=20260709-country1" />
+    <link rel="stylesheet" href="pancreai-theme.css?v=20260710-animations1" />
+    <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
+    <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
+    <link rel="stylesheet" href="pancreai-stability.css?v=20260710-stable1" />
+    <link rel="stylesheet" href="onboarding-motion.css?v=20260710-motion3" />
+    <link rel="stylesheet" href="language-align.css?v=20260710-align1" />
+    <link rel="stylesheet" href="language-gradient.css?v=20260710-gradient1" />
+  </head>
+  <body>
+    <main class="app" id="app" data-scene="splash">
+      <section class="scene scene--splash" aria-label="Tela de abertura">
+        <div class="splash-stage">
+          <div class="splash-mark" aria-hidden="true">
+            <span class="splash-mark__base"></span>
+            <span class="splash-mark__layer splash-mark__layer--back"></span>
+            <span class="splash-mark__layer splash-mark__layer--front"></span>
+            <span class="splash-mark__shine"></span>
+          </div>
+          <span class="splash-wordmark" aria-label="PancreAI">Pancre<span>AI</span></span>
+        </div>
+      </section>
+
+      <section class="scene scene--brand" aria-label="Tela de marca">
+        <div class="brand-stage">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="brand-mark__base"></span>
+            <span class="brand-mark__back"></span>
+            <span class="brand-mark__front"></span>
+          </div>
+          <span class="brand-name">Pancre<span>AI</span></span>
+        </div>
+      </section>
+
+      <section class="scene scene--language" aria-label="Escolha seu idioma">
+        <article class="language-panel">
+          <div class="language-illustration" aria-hidden="true">
+            <div class="language-orbit">
+              <span class="language-bubble language-bubble--hello">Hello</span>
+              <span class="language-bubble language-bubble--ola">Olá</span>
+              <span class="language-bubble language-bubble--ciao">Ciao</span>
+              <span class="language-bubble language-bubble--hola">Hola</span>
+              <div class="language-symbol">
+                <svg class="language-globe__icon" viewBox="0 0 64 64" aria-hidden="true">
+                  <g class="language-globe__spin">
+                    <circle cx="32" cy="32" r="18"></circle>
+                    <path d="M14 32h36"></path>
+                    <path d="M32 14c6 7 6 29 0 36"></path>
+                    <path d="M32 14c-6 7-6 29 0 36"></path>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <header class="language-header">
+            <h1>Escolha seu idioma</h1>
+            <p>O PancreAI está sendo preparado para suporte multilíngue. Nesta versão, o app está disponível em português. Outros idiomas serão adicionados futuramente.</p>
+          </header>
+
+          <section class="language-section" aria-labelledby="availableLanguageTitle">
+            <div class="language-section__top">
+              <h2 id="availableLanguageTitle">Disponível agora</h2>
+            </div>
+            <div class="available-language-grid" id="availableLanguageGrid"></div>
+          </section>
+
+          <section class="language-section language-section--future" aria-labelledby="futureLanguagesTitle">
+            <div class="language-section__top">
+              <h2 id="futureLanguagesTitle">Idiomas futuros</h2>
+              <p>Estamos preparando o PancreAI para alcançar mais pessoas. Estes idiomas serão liberados em próximas versões.</p>
+            </div>
+            <div class="future-language-grid" id="futureLanguageGrid"></div>
+          </section>
+
+          <button class="language-continue" id="languageContinueBtn" type="button">Continuar em português</button>
+        </article>
+        <div class="language-toast" id="languageToast" role="status" aria-live="polite">Este idioma será adicionado futuramente.</div>
+      </section>
+
+      <section class="scene scene--intro scene--intro-1 scene--onboarding" aria-label="Boas-vindas">
+        <article class="card card--intro card--intro-1">
+          <div class="card__visual" aria-hidden="true">
+            <div class="plate-glow"></div>
+            <div class="plate-fallback" aria-hidden="true"></div>
+            <img class="plate plate--dish" src="assets/prato.png" alt="" />
+          </div>
+
+          <div class="card__copy">
+            <h1>Bem-vindo ao PancreAI</h1>
+            <p>Um app para estimar enzimas com mais clareza, segurança e confirmação manual antes do cálculo.</p>
+          </div>
+
+          <div class="pager" aria-hidden="true">
+            <span class="pager__dot pager__dot--active"></span>
+            <span class="pager__dot"></span>
+            <span class="pager__dot"></span>
+          </div>
+
+          <button class="cta cta--next" type="button">Próximo</button>
+        </article>
+      </section>
+
+      <section class="scene scene--intro scene--intro-2 scene--onboarding" aria-label="Explicação do fluxo">
+        <article class="card card--intro card--intro-2">
+          <div class="card__visual card__visual--device" aria-hidden="true">
+            <div class="device-glow"></div>
+            <img class="scene-image scene-image--device" src="assets/celular.png" alt="" />
+          </div>
+
+          <div class="card__copy">
+            <h1>Você fotografa, revisa e confirma</h1>
+            <p>O PancreAI nunca calcula sozinho. Primeiro a refeição é analisada, depois você confere tudo com calma.</p>
+          </div>
+
+          <div class="pager" aria-hidden="true">
+            <span class="pager__dot"></span>
+            <span class="pager__dot pager__dot--active"></span>
+            <span class="pager__dot"></span>
+          </div>
+
+          <button class="cta cta--next" type="button">Próximo</button>
+        </article>
+      </section>
+
+      <section class="scene scene--intro scene--intro-3 scene--onboarding" aria-label="Configuração inicial">
+        <article class="card card--intro card--intro-3">
+          <div class="card__visual card__visual--shield" aria-hidden="true">
+            <div class="shield-glow"></div>
+            <img class="scene-image scene-image--control" src="assets/controle.png" alt="" />
+          </div>
+
+          <div class="card__copy">
+            <h1>Primeiro, configure seus dados</h1>
+            <p>Peso, dose prescrita e enzima pancreática ficam salvos e serão usados automaticamente nos próximos cálculos.</p>
+          </div>
+
+          <div class="pager" aria-hidden="true">
+            <span class="pager__dot"></span>
+            <span class="pager__dot"></span>
+            <span class="pager__dot pager__dot--active"></span>
+          </div>
+
+          <button class="cta cta--next" type="button">Continuar</button>
+        </article>
+      </section>
+    </main>
+    <script src="i18n.js?v=20260709-fulli18n2"></script>
+    <script src="i18n-full.js?v=20260710-performance1"></script>
+    <script src="progress-dots.js?v=20260710-dots3"></script>
+
+    <script src="src/data/countryDatabase.js?v=20260709-country1"></script>
+    <script src="src/ui/FlagIcon.js?v=20260709-country1"></script>
+    <script src="script.js?v=20260710-motion1"></script>
+  </body>
+</html>

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PancreAI - Home</title>
+    <link rel="stylesheet" href="home.css?v=20260710-capture2" />
+    <link rel="stylesheet" href="pancreai-theme.css?v=20260710-capture4" />
+    <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
+    <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
+    <link rel="stylesheet" href="pancreai-stability.css?v=20260710-stable1" />
+    <link rel="stylesheet" href="gallery-pager.css?v=20260710-gallery2" />
+    <link rel="stylesheet" href="child-mode-performance.css?v=20260710-child1" />
+    <link rel="stylesheet" href="child-visual-polish.css?v=20260710-child2" />
+  </head>
+  <body>
+    <main class="app" id="app" data-view="home">
+
+      <section class="screen screen--home" aria-label="Home">
+        <header class="home-header">
+          <div class="home-greeting">
+            <span class="brand-mark brand-mark--header" aria-hidden="true">
+              <span class="brand-mark__back"></span>
+              <span class="brand-mark__front"></span>
+            </span>
+            <div>
+              <h1>Bem-vindo!</h1>
+              <p>Pronto para analisar sua refeição?</p>
+            </div>
+          </div>
+        </header>
+
+        <button class="analyze-card" id="analyzeBtn" type="button">
+          <span class="analyze-card__icon analyze-card__icon--camera" data-pa-icon="camera" aria-hidden="true"></span>
+          <span class="analyze-card__label">Analisar refeição</span>
+        </button>
+
+        <article class="info-card">
+          <div class="info-card__title">
+            <span data-pa-icon="sparkles" aria-hidden="true"></span>
+            <h2>Como funciona</h2>
+          </div>
+          <p>Tire uma foto da sua refeição ou escolha da galeria. O app estima a gordura e sugere a quantidade de unidades enzimáticas.</p>
+        </article>
+
+        <article class="info-card">
+          <div class="info-card__title">
+            <span data-pa-icon="book" aria-hidden="true"></span>
+            <h2>Atalhos</h2>
+          </div>
+          <div class="inline-actions">
+            <button class="info-chip" id="favoritesBtn" type="button">Favoritas</button>
+            <button class="info-chip" id="tutorialBtn" type="button">Tutorial</button>
+            <button class="info-chip" id="reportBtn" type="button">Relatório</button>
+          </div>
+        </article>
+
+        <nav class="bottom-nav" aria-label="Navegação principal">
+          <button class="bottom-nav__item" id="historyBtn" type="button">
+            <span data-pa-icon="history" aria-hidden="true"></span>
+            <small>Histórico</small>
+          </button>
+          <button class="bottom-nav__item bottom-nav__item--active" aria-current="page" type="button">
+            <span data-pa-icon="home" aria-hidden="true"></span>
+            <small>Home</small>
+          </button>
+          <button class="bottom-nav__item" id="profileBtn" type="button">
+            <span data-pa-icon="profile" aria-hidden="true"></span>
+            <small>Perfil</small>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen screen--sheet" aria-label="Adicionar refeição">
+        <button class="overlay overlay--dark" id="overlayClose" type="button" aria-label="Fechar"></button>
+        <div class="sheet sheet--choice">
+          <span class="sheet__handle" aria-hidden="true"></span>
+          <h2 id="mealSourceTitle">Adicionar refeição</h2>
+          <p class="sheet__lead" id="mealSourceLead">Escolha como deseja analisar sua refeição.</p>
+          <div class="sheet__actions">
+            <button class="sheet-btn" id="cameraBtn" type="button">
+              <span class="sheet-btn__icon" data-pa-icon="camera" aria-hidden="true"></span>
+              <strong>Tirar foto</strong>
+            </button>
+            <button class="sheet-btn" id="galleryBtn" type="button">
+              <span class="sheet-btn__icon" data-pa-icon="photoGood" aria-hidden="true"></span>
+              <strong>Escolher da galeria</strong>
+            </button>
+          </div>
+          <button class="sheet__cancel" id="cancelBtn" type="button">Cancelar</button>
+        </div>
+      </section>
+
+      <section class="screen screen--camera" aria-label="C&acirc;mera">
+        <div class="camera-shell" data-camera-state="ready">
+          <div class="camera-shell__top">
+            <button class="camera-shell__close" id="cameraCloseBtn" type="button" aria-label="Voltar"></button>
+            <h2>C&acirc;mera</h2>
+            <span aria-hidden="true"></span>
+          </div>
+          <p class="camera-status" id="cameraStatus">Posicione o prato no centro</p>
+          <div class="camera-view">
+            <img class="camera-live-image" id="cameraLiveImage" src="assets/prato.png" alt="" aria-hidden="true" />
+            <span class="camera-ambient" aria-hidden="true"></span>
+            <span class="camera-frame" aria-hidden="true"><span class="camera-scan"></span></span>
+            <span class="camera-focus" aria-hidden="true"></span>
+          </div>
+          <div class="camera-actions">
+            <button class="camera-action camera-action--ghost" id="cameraCancelBtn" type="button">Voltar</button>
+            <button class="camera-action camera-action--capture" id="captureBtn" type="button" aria-label="Capturar foto"><span class="camera-action__inner"></span></button>
+            <button class="camera-action camera-action--ghost" id="cameraSwitchBtn" type="button">Galeria</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--gallery" aria-label="Escolher foto">
+        <div class="gallery-shell">
+          <header class="capture-header">
+            <button class="capture-header__back" id="galleryBackBtn" type="button" aria-label="Voltar"></button>
+            <div>
+              <h2>Escolher foto</h2>
+              <p>Selecione uma imagem para analisar</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+          <div class="gallery-stage">
+            <button class="gallery-page-btn gallery-page-btn--prev" id="galleryPrevBtn" type="button" aria-label="Ver fotos anteriores" disabled>
+              <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+            <div class="gallery-grid" id="galleryGrid" role="list"></div>
+            <button class="gallery-page-btn gallery-page-btn--next" id="galleryNextBtn" type="button" aria-label="Ver pr&oacute;ximas fotos">
+              <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </div>
+          <div class="gallery-pagination" id="galleryPagination" aria-label="P&aacute;ginas da galeria"></div>
+        </div>
+      </section>
+
+      <section class="screen screen--preview" aria-label="Pr&eacute;via da foto">
+        <div class="preview-shell">
+          <header class="capture-header">
+            <button class="capture-header__back" id="previewBackBtn" type="button" aria-label="Voltar"></button>
+            <div>
+              <h2>Pr&eacute;via da foto</h2>
+              <p>Confira antes de analisar</p>
+            </div>
+            <span aria-hidden="true"></span>
+          </header>
+          <div class="capture-preview-card" id="capturePreviewCard">
+            <img id="capturePreview" src="assets/prato.png" alt="Foto da refei&ccedil;&atilde;o escolhida" />
+          </div>
+          <article class="image-error-card" id="imageErrorCard" hidden>
+            <span data-pa-icon="warning" aria-hidden="true"></span>
+            <h3>N&atilde;o foi poss&iacute;vel carregar esta imagem.</h3>
+            <div class="image-error-card__actions">
+              <button class="secondary-btn" id="imageRetryBtn" type="button">Tentar novamente</button>
+              <button class="secondary-btn" id="imageErrorBackBtn" type="button">Voltar</button>
+            </div>
+          </article>
+          <div class="preview-actions" id="previewActions">
+            <button class="confirm-btn" id="usePhotoBtn" type="button">Usar foto</button>
+            <button class="secondary-btn" id="retryPhotoBtn" type="button">Tentar novamente</button>
+          </div>
+        </div>
+      </section>
+      <section class="screen screen--analyzing" aria-label="Analisando refeição">
+        <div class="analysis">
+          <div class="analysis__ring">
+            <div class="analysis__plate" data-pa-icon="sparkles" aria-hidden="true"></div>
+          </div>
+          <h2 id="analysisTitle">Analisando refeição...</h2>
+          <p id="analysisMessage">Detectando alimentos...</p>
+          <div class="progress-bar"><span id="progressFill"></span></div>
+          <div class="analysis-error-actions" id="analysisErrorActions" hidden>
+            <button class="confirm-btn" id="analysisRetryBtn" type="button">Tentar novamente</button>
+            <button class="secondary-btn" id="analysisBackBtn" type="button">Voltar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen screen--confirm" aria-label="Confirmar análise">
+        <div class="result-page">
+          <div class="result-page__top">
+            <span class="result-success" data-pa-icon="success" aria-hidden="true"></span>
+            <h2>Confirmar análise</h2>
+          </div>
+
+          <img class="confirm-preview" id="confirmPreview" src="assets/prato.png" alt="Prévia da refeição" />
+
+          <article class="summary-card">
+            <div class="summary-card__header">
+              <h3>Alimentos detectados</h3>
+              <span class="confidence-badge" id="confidenceBadge">0%</span>
+            </div>
+            <div class="confidence-bar"><span id="confidenceBar"></span></div>
+            <small id="confidenceHint">Revise os alimentos antes de calcular.</small>
+          </article>
+
+          <div class="medical-warning-list" id="analysisWarnings" hidden></div>
+          <article class="summary-card summary-card--alert" id="qualityAlert" hidden></article>
+          <article class="summary-card summary-card--alert" id="packagingCard" hidden></article>
+          <article class="summary-card summary-card--dashed" id="unknownFoodCard" hidden></article>
+
+          <div class="food-list" id="confirmFoodList"></div>
+          <article class="summary-card" id="hiddenFatsCard" hidden>
+            <h3>Ingredientes ocultos</h3>
+            <p class="summary-card__hint">Marque apenas o que estava na refei&ccedil;&atilde;o.</p>
+            <div id="hiddenFatsPanel"></div>
+          </article>
+          <article class="summary-card" id="learningCard" hidden>
+            <h3>Sugestão do app</h3>
+            <p id="learningMessage"></p>
+            <div class="inline-actions">
+              <button class="info-chip info-chip--solid" id="applyLearningBtn" type="button">Aplicar</button>
+              <button class="info-chip" id="dismissLearningBtn" type="button">Ignorar</button>
+            </div>
+          </article>
+          <div class="medical-warning-list" id="reviewWarnings" hidden></div>
+
+          <button class="secondary-btn" id="addFoodBtn" type="button">Adicionar alimento</button>
+          <button class="confirm-btn" id="confirmAnalysisBtn" type="button">Confirmar análise</button>
+          <button class="secondary-btn" id="reanalyzeBtn" type="button">Reanalisar foto</button>
+        </div>
+      </section>
+
+      <section class="screen screen--result" aria-label="Resultado">
+        <div class="result-page">
+          <div class="result-page__top">
+            <span class="result-success" data-pa-icon="success" aria-hidden="true"></span>
+            <h2>Resultado</h2>
+          </div>
+          <article class="summary-card child-only" id="childReviewPrompt" hidden>
+            <h3>Quase pronto</h3>
+            <p>Chame um responsável para conferir antes de usar.</p>
+          </article>
+
+          <article class="meal-card">
+            <img class="meal-card__image" id="mealPreview" src="assets/prato.png" alt="Refeição analisada" />
+            <div class="meal-card__content">
+              <h3 id="resultMealTitle">Refeição analisada</h3>
+              <div class="meal-tags" id="resultTags"></div>
+            </div>
+          </article>
+
+          <section class="nutrition" aria-label="Resumo nutricional">
+            <h3>Resumo</h3>
+            <div class="nutrition__row"><span>Gordura</span><strong id="resultFat">0g</strong></div>
+            <div class="nutrition__row"><span>Proteína</span><strong id="resultProtein">0g</strong></div>
+            <div class="nutrition__row"><span>Carboidratos</span><strong id="resultCarbs">0g</strong></div>
+          </section>
+
+          <section class="capsule-card" id="doseCard" aria-label="Dose estimada">
+            <span class="capsule-card__badge" data-pa-icon="lipase" aria-hidden="true"></span>
+            <div>
+              <h3 id="resultDoseValue">0 unidades</h3>
+              <p id="resultDoseCapsule">Medicamento cadastrado</p>
+              <small id="resultDoseNote">Estimativa baseada no seu perfil.</small>
+            </div>
+          </section>
+
+          <p class="result-note" id="estimateText"></p>
+          <div class="medical-warning-list" id="resultWarnings" hidden></div>
+
+          <button class="secondary-btn" id="explainBtn" type="button">Ver cálculo completo</button>
+          <button class="secondary-btn" id="favoriteBtn" type="button">Salvar refeição favorita</button>
+          <button class="secondary-btn" id="adjustBtn" type="button">Ajustar dose</button>
+          <button class="confirm-btn" id="confirmBtn" type="button">Concluir</button>
+        </div>
+      </section>
+
+      <section class="screen screen--modal" id="foodSearchModal" aria-hidden="true" data-open="false" aria-label="Pesquisar alimento">
+        <button class="overlay overlay--dark" type="button" id="foodSearchClose" aria-label="Fechar pesquisa"></button>
+        <div class="sheet sheet--modal">
+          <span class="sheet__handle" aria-hidden="true"></span>
+          <h2>Adicionar alimento</h2>
+          <input class="search-input" id="foodSearchInput" type="search" placeholder="Pesquisar alimento" />
+          <div class="search-results" id="foodSearchResults"></div>
+        </div>
+      </section>
+
+
+      <section class="screen screen--modal" id="portionModal" aria-hidden="true" data-open="false" aria-label="Mudar quantidade">
+        <button class="overlay overlay--dark" type="button" id="portionClose" aria-label="Fechar quantidade"></button>
+        <div class="sheet sheet--modal sheet--portion">
+          <span class="sheet__handle" aria-hidden="true"></span>
+          <h2 id="portionTitle">Quanto tinha?</h2>
+          <p class="portion-help">Escolha uma quantidade simples. O app converte para gramas por trás.</p>
+          <div class="portion-options" id="portionOptions"></div>
+        </div>
+      </section>
+
+      <section class="screen screen--modal" id="explainModal" aria-hidden="true" data-open="false" aria-label="Como o cálculo foi feito">
+        <button class="overlay overlay--dark" type="button" id="explainClose" aria-label="Fechar cálculo"></button>
+        <div class="sheet sheet--modal">
+          <span class="sheet__handle" aria-hidden="true"></span>
+          <h2>Como o cálculo foi feito</h2>
+          <div class="explain-content" id="explainContent"></div>
+        </div>
+      </section>
+    </main>
+    <script src="i18n.js?v=20260709-fulli18n2"></script>
+    <script src="i18n-full.js?v=20260710-performance1"></script>
+    <script src="food-i18n.js?v=20260710-foodi18n2"></script>
+    <script src="src/data/countryDatabase.js?v=20260709-treatment1"></script>
+    <script src="src/ui/FlagIcon.js?v=20260709-treatment1"></script>
+    <script src="src/data/medicationSources.js?v=20260709-treatment1"></script>
+    <script src="src/data/medicationDatabase.js?v=20260709-treatment1"></script>
+    <script src="src/data/countryMedicationMap.js?v=20260709-treatment1"></script>
+    <script src="src/services/medicationRegionService.js?v=20260709-treatment1"></script>
+    <script src="src/services/treatmentService.js?v=20260709-treatment1"></script>
+    <script src="app-core.js?v=20260709-child1"></script>
+    <script src="meal-database.js"></script>
+    <script src="src/utils/ids.js"></script>
+    <script src="src/utils/formatters.js"></script>
+    <script src="src/data/nutritionDatabase.js"></script>
+    <script src="src/data/mealDatabase.js"></script>
+    <script src="src/services/hiddenIngredientsService.js"></script>
+    <script src="src/services/doseCalculator.js?v=20260709-treatment1"></script>
+    <script src="src/services/safetyValidator.js?v=20260709-treatment1"></script>
+    <script src="src/services/confidenceService.js"></script>
+    <script src="src/services/historyService.js"></script>
+    <script src="src/services/medicalWarningsService.js"></script>
+    <script src="src/services/simulatedCaptureService.js?v=20260710-capture1"></script>
+    <script src="src/services/recognition/mealRecognitionProvider.js"></script>
+    <script src="src/services/recognition/mockMealRecognitionProvider.js"></script>
+    <script src="src/app.js?v=20260708-accent1"></script>
+    <script src="simulated-analysis.js?v=20260709-treatment1"></script>
+    <script src="app-icons.js"></script>
+    <script src="ui-polish.js"></script>
+    <script src="home.js?v=20260710-confirm1"></script>
+  </body>
+</html>
+
+
+
+

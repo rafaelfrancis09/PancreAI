@@ -1,0 +1,52 @@
+/* Stable, local feedback. Avoid global transforms and repeated entry animations. */
+.profile-row,
+.meal-item,
+.sheet-btn,
+.favorite-card,
+.reminder-card,
+.unidade-option,
+.medication-card,
+.search-result,
+.info-chip,
+.bottom-nav__item {
+  transition: transform 120ms ease, border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease !important;
+}
+
+.profile-row:active,
+.meal-item:active,
+.sheet-btn:active,
+.favorite-card:active,
+.reminder-card:active,
+.unidade-option:active,
+.medication-card:active,
+.search-result:active,
+.info-chip:active,
+.bottom-nav__item:active {
+  transform: scale(0.99) !important;
+}
+
+.app[data-view="sheet"] .screen--sheet .sheet {
+  animation: paStableSheetRise 210ms cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+@keyframes paStableSheetRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-row,
+  .meal-item,
+  .sheet-btn,
+  .favorite-card,
+  .reminder-card,
+  .unidade-option,
+  .medication-card,
+  .search-result,
+  .info-chip,
+  .bottom-nav__item,
+  .app[data-view="sheet"] .screen--sheet .sheet {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

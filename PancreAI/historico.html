@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PancreAI - Histórico</title>
+    <link rel="stylesheet" href="historico.css?v=20260709-child1" />
+    <link rel="stylesheet" href="pancreai-theme.css?v=20260710-animations1" />
+    <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
+    <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
+    <link rel="stylesheet" href="pancreai-stability.css?v=20260710-stable1" />
+    <link rel="stylesheet" href="historico-refined.css?v=20260710-history2" />
+    <link rel="stylesheet" href="history-contrast.css?v=20260710-contrast1" />
+    <link rel="stylesheet" href="history-back-center.css?v=20260710-back1" />
+  </head>
+  <body>
+    <main class="app" id="app">
+      <section class="screen screen--historico" aria-label="Histórico">
+        <header class="historico-header">
+          <div class="brand-mark brand-mark--history" aria-hidden="true">
+            <span class="brand-mark__back"></span>
+            <span class="brand-mark__front"></span>
+          </div>
+          <div>
+            <h1>Histórico</h1>
+            <p>Suas refeições anteriores</p>
+          </div>
+        </header>
+
+        <div class="historico-empty" id="emptyState">
+          <div class="empty-icon" data-pa-icon="food" aria-hidden="true">
+            <svg class="app-icon app-icon--empty" viewBox="0 0 24 24"><path d="M8 3v18"></path><path d="M5 3v6c0 1.7 1.3 3 3 3s3-1.3 3-3V3"></path><path d="M16 3c1.7 0 3 1.3 3 3v15"></path><path d="M16 12h3"></path></svg>
+          </div>
+          <h2>Nenhuma refeição analisada</h2>
+          <p>Quando você analisar sua primeira refeição, ela aparecerá aqui</p>
+          <button class="analyze-first-btn" id="analyzeFirstBtn" type="button">Analisar primeira refeição</button>
+        </div>
+
+        <div class="historico-content" id="contentState" hidden>
+          <div class="history-list" id="historyList"></div>
+        </div>
+
+        <nav class="bottom-nav" aria-label="Navegação inferior">
+          <button class="bottom-nav__item bottom-nav__item--active" aria-current="page" type="button" data-pa-icon="history">
+            <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path><path d="M12 7v5l3 2"></path></svg>
+            <small>Histórico</small>
+          </button>
+          <button class="bottom-nav__item" id="homeNav" type="button" data-pa-icon="home">
+            <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1v-9.5Z"></path></svg>
+            <small>Home</small>
+          </button>
+          <button class="bottom-nav__item" id="profileNav" type="button" data-pa-icon="profile">
+            <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
+            <small>Perfil</small>
+          </button>
+        </nav>
+      </section>
+
+      <section class="screen screen--detail hidden" id="detailScreen" aria-label="Detalhes da refeição">
+        <header class="topbar">
+          <button class="back-btn" id="backFromDetailBtn" type="button" aria-label="Voltar"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+          <h1>Detalhes</h1>
+          <span aria-hidden="true"></span>
+        </header>
+
+        <div class="detail-content" id="detailContent"></div>
+      </section>
+    </main>
+    <script src="i18n.js?v=20260709-fulli18n2"></script>
+    <script src="i18n-full.js?v=20260710-performance1"></script>
+    <script src="food-i18n.js?v=20260710-foodi18n2"></script>
+    <script src="app-core.js?v=20260709-child1"></script>
+    <script src="app-icons.js"></script>
+    <script src="historico.js?v=20260710-history1"></script>
+  </body>
+</html>
+

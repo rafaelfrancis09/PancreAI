@@ -1,0 +1,41 @@
+html[data-child-mode="true"] .camera-live-image {
+  opacity: 0.14 !important;
+  filter: blur(15px) brightness(0.55) saturate(0.58) !important;
+  transform: scale(1.08) !important;
+}
+html[data-child-mode="true"] .camera-shell.has-captured-image .camera-live-image {
+  opacity: 0.78 !important;
+  filter: blur(2px) brightness(0.72) saturate(0.82) !important;
+  transform: scale(1.02) !important;
+}
+html[data-child-mode="true"] .camera-ambient {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(55, 116, 82, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(3, 10, 6, 0.3), rgba(3, 10, 6, 0.64)) !important;
+}
+html[data-child-mode="true"] .camera-view::before {
+  background: radial-gradient(ellipse at center, rgba(6, 17, 10, 0.12) 0 38%, rgba(3, 10, 6, 0.62) 72% 100%) !important;
+}
+
+html[data-child-mode="true"] .food-item--confirmed {
+  border-color: rgba(77, 188, 131, 0.36) !important;
+  background: linear-gradient(180deg, #ffffff, #f4fbf7) !important;
+  animation: paFoodConfirmed 190ms ease both;
+}
+.food-item__confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: #16845d;
+  font-size: 12px;
+  font-weight: 750;
+}
+.food-item__confirmed .app-icon {
+  width: 18px;
+  height: 18px;
+}
+@keyframes paFoodConfirmed {
+  0% { transform: scale(0.99); }
+  100% { transform: scale(1); }
+}

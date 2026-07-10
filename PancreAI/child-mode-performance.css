@@ -1,0 +1,110 @@
+/* Child mode favors immediate, low-cost feedback over decorative motion. */
+html[data-child-mode="true"] .app > .screen,
+html[data-child-mode="true"] .screen--camera,
+html[data-child-mode="true"] .screen--preview,
+html[data-child-mode="true"] .camera-live-image,
+html[data-child-mode="true"] .camera-frame,
+html[data-child-mode="true"] #cameraStatus,
+html[data-child-mode="true"] .gallery-item,
+html[data-child-mode="true"] .gallery-item img,
+html[data-child-mode="true"] .progress-fill,
+html[data-child-mode="true"] .ui-enter {
+  transition: none !important;
+}
+
+html[data-child-mode="true"] .camera-scan,
+html[data-child-mode="true"] .camera-focus,
+html[data-child-mode="true"] .camera-action--capture::after,
+html[data-child-mode="true"] .analysis__ring::before,
+html[data-child-mode="true"] .analysis__ring::after {
+  animation: none !important;
+}
+
+html[data-child-mode="true"] .camera-scan,
+html[data-child-mode="true"] .camera-focus {
+  display: none !important;
+}
+
+html[data-child-mode="true"] .camera-live-image {
+  filter: none !important;
+  transform: none !important;
+}
+
+html[data-child-mode="true"] .camera-shell:not(.has-captured-image) .camera-live-image {
+  opacity: 0.1 !important;
+}
+
+html[data-child-mode="true"] .camera-shell.has-captured-image .camera-live-image {
+  opacity: 0.9 !important;
+}
+
+html[data-child-mode="true"] .camera-view,
+html[data-child-mode="true"] .camera-action--ghost,
+html[data-child-mode="true"] .bottom-nav {
+  backdrop-filter: none !important;
+}
+
+html[data-child-mode="true"] .camera-view {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Side labels never determine the position of the shutter button. */
+html[data-child-mode="true"] .camera-actions {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 112px;
+  padding: 10px 18px 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 104px !important;
+}
+
+html[data-child-mode="true"] .camera-action--ghost {
+  width: min(176px, calc(50% - 52px)) !important;
+  min-width: 0 !important;
+  flex: 1 1 0;
+}
+
+html[data-child-mode="true"] .camera-action--capture {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 82px !important;
+  height: 82px !important;
+  min-width: 82px !important;
+  min-height: 82px !important;
+  margin: 0 !important;
+  transform: translate(-50%, -50%) !important;
+  transition: transform 100ms ease !important;
+}
+
+html[data-child-mode="true"] .camera-action--capture:active,
+html[data-child-mode="true"] .camera-shell.is-capturing .camera-action--capture {
+  transform: translate(-50%, -50%) scale(0.95) !important;
+}
+
+html[data-child-mode="true"] .camera-action__inner {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+html[data-child-mode="true"] .camera-shell.is-capturing .camera-view::after {
+  animation-duration: 260ms !important;
+}
+
+html[data-child-mode="true"] button:active {
+  transition-duration: 80ms !important;
+}
+
+@media (max-width: 370px) {
+  html[data-child-mode="true"] .camera-actions {
+    gap: 94px !important;
+    padding-right: 12px !important;
+    padding-left: 12px !important;
+  }
+
+  html[data-child-mode="true"] .camera-action--ghost {
+    font-size: 13px !important;
+  }
+}

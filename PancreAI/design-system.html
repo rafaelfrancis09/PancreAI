@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PancreAI Design System</title>
+    <link rel="stylesheet" href="design-system.css" />
+    <link rel="stylesheet" href="pancreai-theme.css?v=20260710-animations1" />
+    <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
+    <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
+    <link rel="stylesheet" href="pancreai-stability.css?v=20260710-stable1" />
+  </head>
+  <body>
+    <svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true" focusable="false">
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1Z"></path></symbol>
+      <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h2.4l1.4-2h4.4l1.4 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"></path><circle cx="12" cy="12.5" r="3.5"></circle></symbol>
+      <symbol id="icon-scan" viewBox="0 0 24 24"><path d="M7 4H5a1 1 0 0 0-1 1v2"></path><path d="M17 4h2a1 1 0 0 1 1 1v2"></path><path d="M20 17v2a1 1 0 0 1-1 1h-2"></path><path d="M4 17v2a1 1 0 0 0 1 1h2"></path><path d="M7 12h10"></path></symbol>
+      <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path><path d="M12 7v5l3 2"></path></symbol>
+      <symbol id="icon-heart" viewBox="0 0 24 24"><path d="m12 20-1.4-1.2C5.4 14.2 2 11.1 2 7.3A4.3 4.3 0 0 1 6.3 3c1.9 0 3 .9 3.7 2 .7-1.1 1.8-2 3.7-2A4.3 4.3 0 0 1 18 7.3c0 3.8-3.4 6.9-8.6 11.5L12 20Z"></path></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1 0 2.8l-.1.1a2 2 0 0 1-2.8 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-.2a1 1 0 0 0-.7-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 0 1-2.8 0l-.1-.1a2 2 0 0 1 0-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h.2a1 1 0 0 0 .9-.7 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 0 1 0-2.8l.1-.1a2 2 0 0 1 2.8 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v.2a1 1 0 0 0 .7.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 0 1 2.8 0l.1.1a2 2 0 0 1 0 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-.2a1 1 0 0 0-.4 1.9"></path></symbol>
+      <symbol id="icon-profile" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 20a7 7 0 0 1 14 0"></path></symbol>
+      <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v16H6.5A2.5 2.5 0 0 0 4 22V6.5Z"></path><path d="M20 20H6.5A2.5 2.5 0 0 0 4 22"></path><path d="M8 8h7"></path><path d="M8 12h7"></path></symbol>
+      <symbol id="icon-child" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"></circle><path d="M7 20v-2a5 5 0 0 1 10 0v2"></path><path d="M9 12 8 17"></path><path d="M15 12l1 5"></path></symbol>
+      <symbol id="icon-weight" viewBox="0 0 24 24"><path d="M6 6h12l2 12H4L6 6Z"></path><path d="M9.5 9a2.5 2.5 0 0 1 5 0"></path><path d="M12 9v4"></path></symbol>
+      <symbol id="icon-lipase" viewBox="0 0 24 24"><path d="M12 3c4 3.1 6 5.7 6 9.1A6 6 0 1 1 6 12.1C6 8.7 8 6.1 12 3Z"></path><path d="M12 9c1.2 1 1.8 2 1.8 3.1A1.8 1.8 0 0 1 10.2 12c0-1.1.6-2.1 1.8-3Z"></path></symbol>
+      <symbol id="icon-creon" viewBox="0 0 24 24"><path d="M8 6h8a3 3 0 0 1 0 6H8a3 3 0 0 1 0-6Z"></path><path d="M8 12h8a3 3 0 0 1 0 6H8a3 3 0 0 1 0-6Z"></path></symbol>
+      <symbol id="icon-capsule" viewBox="0 0 24 24"><path d="m8.5 6.5 9 9"></path><path d="M8.5 17.5a4.2 4.2 0 0 1 0-6l3-3a4.2 4.2 0 0 1 6 6l-3 3a4.2 4.2 0 0 1-6 0Z"></path></symbol>
+      <symbol id="icon-calculator" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"></rect><path d="M9 8h6"></path><path d="M9 12h2"></path><path d="M13 12h2"></path><path d="M9 16h2"></path><path d="M13 16h2"></path></symbol>
+      <symbol id="icon-food" viewBox="0 0 24 24"><path d="M8 3v18"></path><path d="M5 3v6c0 1.7 1.3 3 3 3s3-1.3 3-3V3"></path><path d="M16 3c1.7 0 3 1.3 3 3v15"></path><path d="M16 12h3"></path></symbol>
+      <symbol id="icon-add" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></symbol>
+      <symbol id="icon-remove" viewBox="0 0 24 24"><path d="M5 12h14"></path></symbol>
+      <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 20 4.5-1 9-9-3.5-3.5-9 9L4 20Z"></path><path d="m13.5 6.5 3.5 3.5"></path></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-4-4"></path></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"></path></symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24"><path d="M6 6l12 12"></path><path d="M18 6 6 18"></path></symbol>
+      <symbol id="icon-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5Z"></path><path d="M9 4v5h6V4"></path><path d="M9 20v-6h6v6"></path></symbol>
+      <symbol id="icon-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.1"></path><path d="m8.6 13.3 6.8 4.1"></path></symbol>
+      <symbol id="icon-pdf" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path><path d="M14 3v5h5"></path><path d="M8 15h8"></path><path d="M8 11h5"></path></symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 4v10"></path><path d="m8 10 4 4 4-4"></path><path d="M4 20h16"></path></symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 20V10"></path><path d="m16 14-4-4-4 4"></path><path d="M4 4h16"></path></symbol>
+      <symbol id="icon-sync" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.3-6.3L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.3 6.3L3 16"></path><path d="M3 21v-5h5"></path></symbol>
+      <symbol id="icon-export" viewBox="0 0 24 24"><path d="M12 3v10"></path><path d="m8 7 4-4 4 4"></path><path d="M5 14v5h14v-5"></path></symbol>
+      <symbol id="icon-import" viewBox="0 0 24 24"><path d="M12 21V11"></path><path d="m16 17-4 4-4-4"></path><path d="M5 10V5h14v5"></path></symbol>
+      <symbol id="icon-stats" viewBox="0 0 24 24"><path d="M5 20V9"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 19h16"></path><path d="m6 15 4-4 3 2 5-6"></path></symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><path d="M12 7h.01"></path></symbol>
+      <symbol id="icon-warning" viewBox="0 0 24 24"><path d="M12 4 3 20h18L12 4Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></symbol>
+      <symbol id="icon-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M15 9 9 15"></path><path d="m9 9 6 6"></path></symbol>
+      <symbol id="icon-success" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.6 2.6L16 9"></path></symbol>
+      <symbol id="icon-photo-bad" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="m8 15 2-2 2 2 3-4 3 4"></path><path d="M9 9h.01"></path><path d="M4 4l16 16"></path></symbol>
+      <symbol id="icon-photo-good" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="m8 15 2-2 2 2 3-4 3 4"></path><path d="M9 9h.01"></path></symbol>
+      <symbol id="icon-ai" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="3"></rect><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><path d="m4.9 4.9 2.1 2.1"></path><path d="m17 17 2.1 2.1"></path><path d="m19.1 4.9-2.1 2.1"></path><path d="m7 17-2.1 2.1"></path></symbol>
+      <symbol id="icon-confidence" viewBox="0 0 24 24"><path d="M4 16 9 11l3 3 8-8"></path><path d="M20 10V4h-6"></path></symbol>
+      <symbol id="icon-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"></path><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"></path></symbol>
+      <symbol id="icon-oil" viewBox="0 0 24 24"><path d="M12 3c3.2 3 5 5.5 5 8.6A5 5 0 1 1 7 11.6C7 8.5 8.8 6 12 3Z"></path></symbol>
+      <symbol id="icon-calories" viewBox="0 0 24 24"><path d="m13 2-5 8h4l-1 12 5-8h-4l1-12Z"></path></symbol>
+      <symbol id="icon-protein" viewBox="0 0 24 24"><path d="M7 18c0-5 10-5 10-10a4 4 0 1 0-8 0"></path><path d="M7 18a4 4 0 1 0 8 0"></path></symbol>
+      <symbol id="icon-carbs" viewBox="0 0 24 24"><path d="M5 14c0-5 3-9 7-11 4 2 7 6 7 11a7 7 0 1 1-14 0Z"></path></symbol>
+      <symbol id="icon-fat" viewBox="0 0 24 24"><path d="M12 3c2.8 2.8 5 5.4 5 8.9A5 5 0 1 1 7 11.9C7 8.4 9.2 5.8 12 3Z"></path><path d="M9 14c1 .7 1.8 1 3 1s2-.3 3-1"></path></symbol>
+      <symbol id="icon-report" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path><path d="M14 3v5h5"></path><path d="M9 17h6"></path><path d="M9 13h6"></path><path d="M9 9h2"></path></symbol>
+      <symbol id="icon-security" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.7 8.8 7 10 4.3-1.2 7-5.4 7-10V6l-7-3Z"></path><path d="m9.5 12 1.8 1.8L14.8 10"></path></symbol>
+      <symbol id="icon-reanalyze" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.6"></path><path d="M3 5v5h5"></path><path d="M12 8v4l3 2"></path></symbol>
+      <symbol id="icon-date" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M4 10h16"></path></symbol>
+      <symbol id="icon-time" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></symbol>
+      <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M4 6h16"></path><path d="M7 12h10"></path><path d="M10 18h4"></path></symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></symbol>
+      <symbol id="icon-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></symbol>
+    </svg>
+
+    <main class="ds-page">
+      <div class="ds-shell">
+        <section class="ds-hero">
+          <div class="ds-hero__grid">
+            <div>
+              <div class="ds-hero__eyebrow">
+                <svg class="ds-icon"><use href="#icon-ai"></use></svg>
+                PancreAI Mobile Design System
+              </div>
+              <h1>Saude, confianca e tecnologia em uma linguagem visual unica.</h1>
+              <p>
+                Sistema visual premium para o PancreAI, com tokens reutilizaveis, componentes mobile, icones semanticos,
+                telas de referencia, indicadores clinicos, microinteracoes leves e uma versao adaptada para modo infantil.
+              </p>
+              <div class="ds-hero__pills">
+                <span class="ds-pill"><svg class="ds-icon"><use href="#icon-security"></use></svg>Seguranca e clareza</span>
+                <span class="ds-pill"><svg class="ds-icon"><use href="#icon-db"></use></svg>Dados nutricionais estruturados</span>
+                <span class="ds-pill"><svg class="ds-icon"><use href="#icon-confidence"></use></svg>IA supervisionada pelo usuario</span>
+              </div>
+            </div>
+            <aside class="ds-summary-card">
+              <div class="ds-summary-card__top">
+                <span class="ds-summary-card__title">Resultado premium</span>
+                <span class="ds-badge ds-badge--success">Seguro</span>
+              </div>
+              <p class="ds-summary-card__dose">3 capsulas</p>
+              <p class="ds-summary-card__subtitle">Card de resultado pensado para decisao rapida, leitura simples e revisao segura.</p>
+              <div class="ds-summary-card__metrics">
+                <div class="ds-summary-metric"><span>Gordura</span><strong>18.4 g</strong></div>
+                <div class="ds-summary-metric"><span>Lipase</span><strong>33.120 U</strong></div>
+                <div class="ds-summary-metric"><span>Confianca</span><strong>94%</strong></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Fundacao do sistema</h2>
+              <p class="ds-section__subtitle">Paleta clara com azul suave, azul petroleo, verde calmo e laranja reservado para avisos. Tipografia de alto contraste, sombras discretas e raios amplos para linguagem mobile premium.</p>
+            </div>
+          </div>
+          <div class="ds-card-grid">
+            <article class="ds-card">
+              <h3>Tokens visuais</h3>
+              <div class="ds-chip-row">
+                <span class="ds-chip ds-chip--active">Branco cirurgico</span>
+                <span class="ds-chip">Azul suave</span>
+                <span class="ds-chip">Petroleo</span>
+                <span class="ds-chip">Verde seguro</span>
+              </div>
+              <div class="ds-divider"></div>
+              <p class="ds-card__copy">Raios de 16 a 24px, espacamento amplo, gradientes discretos e microcontrastres para leitura em ambiente clinico ou cotidiano.</p>
+            </article>
+            <article class="ds-card">
+              <h3>Hierarquia</h3>
+              <p class="ds-card__copy">Titulos densos, subtitulos claros e grupos em cards modulares. A interface sempre explica o estado, a confianca da analise e o proximo passo.</p>
+            </article>
+            <article class="ds-card ds-card--safety">
+              <h3>Principio de produto</h3>
+              <p class="ds-card__copy">A experiencia reforca que o usuario confirma alimentos, quantidades e ingredientes ocultos antes de receber a recomendacao final.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Botoes, inputs e seletores</h2>
+              <p class="ds-section__subtitle">Componentes reutilizaveis para fluxos de onboarding, analise, revisao de alimentos e configuracoes.</p>
+            </div>
+          </div>
+          <div class="ds-button-row">
+            <button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#icon-check"></use></svg>Botao primario</button>
+            <button class="ds-btn ds-btn--secondary"><svg class="ds-icon"><use href="#icon-edit"></use></svg>Botao secundario</button>
+            <button class="ds-btn ds-btn--danger"><svg class="ds-icon"><use href="#icon-remove"></use></svg>Botao de perigo</button>
+            <button class="ds-btn ds-btn--confirm"><svg class="ds-icon"><use href="#icon-success"></use></svg>Botao de confirmacao</button>
+            <button class="ds-btn ds-btn--primary ds-btn--floating" aria-label="Botao flutuante"><svg class="ds-icon"><use href="#icon-add"></use></svg></button>
+          </div>
+          <div class="ds-divider"></div>
+          <div class="ds-input-grid">
+            <div class="ds-field">
+              <label for="nomeRefeicao">Campo de texto</label>
+              <input class="ds-input" id="nomeRefeicao" type="text" value="Arroz, feijao e frango" />
+            </div>
+            <div class="ds-field">
+              <label for="pesoPaciente">Campo numerico</label>
+              <input class="ds-input" id="pesoPaciente" type="number" value="52" />
+            </div>
+            <div class="ds-field">
+              <label for="capsula">Dropdown moderno</label>
+              <select class="ds-select" id="capsula">
+                <option>Creon 10.000</option>
+                <option selected>Creon 25.000</option>
+                <option>Creon 36.000</option>
+              </select>
+            </div>
+            <div class="ds-field">
+              <label for="observacao">Campo expandido</label>
+              <textarea class="ds-textarea" id="observacao">Usuario consegue revisar, ajustar dose e confirmar o resultado antes de finalizar.</textarea>
+            </div>
+          </div>
+          <div class="ds-divider"></div>
+          <div class="ds-control-row">
+            <label class="ds-switch" aria-label="Switch">
+              <input type="checkbox" checked />
+              <span class="ds-switch__track"></span>
+            </label>
+            <label class="ds-checkbox"><input type="checkbox" checked /><span class="ds-checkbox__mark"></span>Checkbox</label>
+            <label class="ds-radio"><input type="radio" checked name="seguranca" /><span class="ds-radio__mark"></span>Radio button</label>
+            <label class="ds-radio"><input type="radio" name="seguranca" /><span class="ds-radio__mark"></span>Alternativa</label>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Progresso, confianca e estados</h2>
+              <p class="ds-section__subtitle">Indicadores de qualidade da foto, confianca da IA, progresso da analise e anel de status para dashboards e resultados.</p>
+            </div>
+          </div>
+          <div class="ds-progress-grid">
+            <article class="ds-progress-card">
+              <h3>Barra de progresso</h3>
+              <div class="ds-progress"><div class="ds-progress__fill" style="width:78%"></div></div>
+              <div class="ds-progress-meta"><span>Analise em andamento</span><strong>78%</strong></div>
+            </article>
+            <article class="ds-progress-card">
+              <h3>Barra de confianca</h3>
+              <div class="ds-confidence"><div class="ds-confidence__fill" style="width:92%"></div></div>
+              <div class="ds-progress-meta"><span>Confianca da IA</span><strong>92%</strong></div>
+            </article>
+            <article class="ds-progress-card">
+              <h3>Progress ring</h3>
+              <div class="ds-ring" style="--value:84">84<small>seguro</small></div>
+            </article>
+          </div>
+          <div class="ds-chip-row" style="margin-top:18px">
+            <span class="ds-badge ds-badge--success"><svg class="ds-icon"><use href="#icon-photo-good"></use></svg>Foto excelente</span>
+            <span class="ds-badge ds-badge--info"><svg class="ds-icon"><use href="#icon-photo-good"></use></svg>Foto boa</span>
+            <span class="ds-badge ds-badge--warning"><svg class="ds-icon"><use href="#icon-warning"></use></svg>Pouca iluminacao</span>
+            <span class="ds-badge ds-badge--warning"><svg class="ds-icon"><use href="#icon-warning"></use></svg>Imagem tremida</span>
+            <span class="ds-badge ds-badge--warning"><svg class="ds-icon"><use href="#icon-warning"></use></svg>Prato cortado</span>
+            <span class="ds-badge ds-badge--danger"><svg class="ds-icon"><use href="#icon-error"></use></svg>Alimento desconhecido</span>
+            <span class="ds-badge ds-badge--info"><svg class="ds-icon"><use href="#icon-db"></use></svg>Embalagem detectada</span>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Badges, chips, alertas e feedback</h2>
+              <p class="ds-section__subtitle">Blocos para estados clinicos, orientacoes, confirmacoes e mensagens temporarias de sistema.</p>
+            </div>
+          </div>
+          <div class="ds-badge-row">
+            <span class="ds-badge ds-badge--info">Simulado</span>
+            <span class="ds-badge ds-badge--success">Resultado seguro</span>
+            <span class="ds-badge ds-badge--warning">Acima do limite</span>
+            <span class="ds-badge ds-badge--danger">Revisao necessaria</span>
+          </div>
+          <div class="ds-chip-row" style="margin-top:16px">
+            <span class="ds-chip ds-chip--active">Almoco</span>
+            <span class="ds-chip">Sem lactose</span>
+            <span class="ds-chip">Historico</span>
+            <span class="ds-chip">Creon 25.000</span>
+            <span class="ds-chip">Foto validada</span>
+          </div>
+          <div class="ds-divider"></div>
+          <div class="ds-alert-grid">
+            <article class="ds-alert ds-alert--info">
+              <div class="ds-alert__icon"><svg class="ds-icon"><use href="#icon-info"></use></svg></div>
+              <div><h3>Info</h3><p>O banco nutricional sera consultado apos a identificacao dos alimentos.</p></div>
+            </article>
+            <article class="ds-alert ds-alert--success">
+              <div class="ds-alert__icon"><svg class="ds-icon"><use href="#icon-success"></use></svg></div>
+              <div><h3>Sucesso</h3><p>Analise confirmada com todos os alimentos revisados pelo usuario.</p></div>
+            </article>
+            <article class="ds-alert ds-alert--warning">
+              <div class="ds-alert__icon"><svg class="ds-icon"><use href="#icon-warning"></use></svg></div>
+              <div><h3>Aviso</h3><p>A foto esta com reflexo. O usuario pode reanalisar antes do calculo.</p></div>
+            </article>
+            <article class="ds-alert ds-alert--danger">
+              <div class="ds-alert__icon"><svg class="ds-icon"><use href="#icon-error"></use></svg></div>
+              <div><h3>Erro</h3><p>Alimento nao reconhecido. Adicione manualmente ou remova antes de continuar.</p></div>
+            </article>
+          </div>
+          <div class="ds-divider"></div>
+          <div class="ds-feedback-grid">
+            <div class="ds-feedback-stack">
+              <div class="ds-toast"><svg class="ds-icon"><use href="#icon-success"></use></svg><div><strong>Toast</strong><div class="ds-helper">Refeicao salva nos favoritos.</div></div></div>
+              <div class="ds-toast"><svg class="ds-icon"><use href="#icon-info"></use></svg><div><strong>Toast</strong><div class="ds-helper">Dados sincronizados com sucesso.</div></div></div>
+              <div class="ds-snackbar"><svg class="ds-icon"><use href="#icon-warning"></use></svg><div><strong>Snackbar:</strong> Revise a gordura oculta antes da recomendacao final.</div></div>
+            </div>
+            <div class="ds-skeleton-card">
+              <h3>Skeleton loading</h3>
+              <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px">
+                <div class="ds-skeleton-circle"></div>
+                <div style="flex:1;display:grid;gap:10px">
+                  <div class="ds-skeleton ds-skeleton--medium"></div>
+                  <div class="ds-skeleton ds-skeleton--short"></div>
+                </div>
+              </div>
+              <div style="display:grid;gap:10px">
+                <div class="ds-skeleton ds-skeleton--long"></div>
+                <div class="ds-skeleton ds-skeleton--medium"></div>
+                <div class="ds-skeleton ds-skeleton--long"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:22px">
+                <div class="ds-loader"></div>
+                <div>
+                  <strong>Indicador de carregamento</strong>
+                  <div class="ds-empty-note">Usado para camera, leitura nutricional e exportacao de relatorio.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Cards reutilizaveis</h2>
+              <p class="ds-section__subtitle">Biblioteca de cards para refeicoes, alimentos, historico, favoritos, relatorios, tutorial, configuracao, estatisticas, resultado, calculo, seguranca e confianca.</p>
+            </div>
+          </div>
+          <div class="ds-card-grid">
+            <article class="ds-card ds-card--meal">
+              <div class="ds-card__row">
+                <div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-food"></use></svg></div>
+                <div><h3 class="ds-card__title">Card de refeicao</h3><div class="ds-card__meta">Arroz, feijao, frango e salada</div></div>
+              </div>
+              <p class="ds-card__copy">Mostra nome, horario, qualidade da foto e principais indicadores da analise.</p>
+              <div class="ds-card__stats"><div><span>Gordura</span><strong>18.4 g</strong></div><div><span>Capsulas</span><strong>3</strong></div></div>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-add"></use></svg></div><div><h3 class="ds-card__title">Card de alimento</h3><div class="ds-card__meta">Frango grelhado • 120 g</div></div></div>
+              <p class="ds-card__copy">Ideal para lista de itens confirmados, com acoes de editar e remover.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-history"></use></svg></div><div><h3 class="ds-card__title">Card de historico</h3><div class="ds-card__meta">08/07/2026 • 12:35</div></div></div>
+              <p class="ds-card__copy">Leitura rapida com miniatura, titulo, gordura e dose utilizada.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-heart"></use></svg></div><div><h3 class="ds-card__title">Card de favorito</h3><div class="ds-card__meta">Refeicao frequente</div></div></div>
+              <p class="ds-card__copy">Destaca combinacoes recorrentes para agilizar novas analises.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-report"></use></svg></div><div><h3 class="ds-card__title">Card de relatorio</h3><div class="ds-card__meta">Resumo semanal e exportacao</div></div></div>
+              <p class="ds-card__copy">Agrupa periodo, media de gordura, media de capsulas e CTA de PDF.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-book"></use></svg></div><div><h3 class="ds-card__title">Card de tutorial</h3><div class="ds-card__meta">Como tirar fotos melhores</div></div></div>
+              <p class="ds-card__copy">Formato educacional enxuto com ilustracao e checklist simples.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-settings"></use></svg></div><div><h3 class="ds-card__title">Card de configuracao</h3><div class="ds-card__meta">Dose prescrita, capsula e unidade</div></div></div>
+              <p class="ds-card__copy">Organiza dados fixos do usuario com alto contraste e controle rapido.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-stats"></use></svg></div><div><h3 class="ds-card__title">Card de estatisticas</h3><div class="ds-card__meta">Tendencias clinicas</div></div></div>
+              <p class="ds-card__copy">Exibe medias, frequencia e distribuicoes em linguagem amigavel.</p>
+            </article>
+            <article class="ds-card ds-card--result">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-calculator"></use></svg></div><div><h3 class="ds-card__title">Card de resultado</h3><div class="ds-card__meta">Sintese final do calculo</div></div></div>
+              <p class="ds-card__copy">Foca em gordura total, lipase necessaria, dose e status de seguranca.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-db"></use></svg></div><div><h3 class="ds-card__title">Card de calculo</h3><div class="ds-card__meta">Nutrientes por alimento</div></div></div>
+              <p class="ds-card__copy">Suporta timeline detalhada da conta para transparencia total.</p>
+            </article>
+            <article class="ds-card ds-card--safety">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-security"></use></svg></div><div><h3 class="ds-card__title">Card de seguranca</h3><div class="ds-card__meta">Usuario no controle</div></div></div>
+              <p class="ds-card__copy">Explica confirmacao manual, ingredientes ocultos e revisao final.</p>
+            </article>
+            <article class="ds-card ds-card--warning">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-warning"></use></svg></div><div><h3 class="ds-card__title">Card de alerta</h3><div class="ds-card__meta">Aviso clinico ou operacional</div></div></div>
+              <p class="ds-card__copy">Usado para foto ruim, resultado fora do padrao ou campos pendentes.</p>
+            </article>
+            <article class="ds-card ds-card--confidence">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-confidence"></use></svg></div><div><h3 class="ds-card__title">Card de confianca da IA</h3><div class="ds-card__meta">92% de confianca</div></div></div>
+              <p class="ds-card__copy">Traduz tecnicidade em uma barra clara, com contexto humano.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-photo-bad"></use></svg></div><div><h3 class="ds-card__title">Card de qualidade da foto</h3><div class="ds-card__meta">Pouca iluminacao</div></div></div>
+              <p class="ds-card__copy">Mostra exatamente o problema detectado e oferece reanalise.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-error"></use></svg></div><div><h3 class="ds-card__title">Card de alimento desconhecido</h3><div class="ds-card__meta">Requer intervencao</div></div></div>
+              <p class="ds-card__copy">Permite substituir, editar ou remover o item nao reconhecido.</p>
+            </article>
+            <article class="ds-card">
+              <div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-db"></use></svg></div><div><h3 class="ds-card__title">Card de embalagem detectada</h3><div class="ds-card__meta">Produto industrializado</div></div></div>
+              <p class="ds-card__copy">Prepara a interface para leitura futura de tabela nutricional.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Modal, bottom sheet e card expansivel</h2>
+              <p class="ds-section__subtitle">Estruturas para explicacoes tecnicas, selecao de alimentos e detalhes sob demanda.</p>
+            </div>
+          </div>
+          <div class="ds-feedback-grid">
+            <div class="ds-modal-backdrop">
+              <div class="ds-modal">
+                <div class="ds-modal__header">
+                  <div>
+                    <h3>Como o calculo foi feito</h3>
+                    <p>Timeline do calculo com rastreabilidade.</p>
+                  </div>
+                  <button class="ds-close" type="button"><svg class="ds-icon"><use href="#icon-close"></use></svg></button>
+                </div>
+                <div class="ds-timeline">
+                  <div class="ds-timeline__item"><p class="ds-timeline__title">1. Alimentos confirmados</p><p class="ds-timeline__copy">Arroz, feijao, frango e azeite oculto revisados pelo usuario.</p></div>
+                  <div class="ds-timeline__item"><p class="ds-timeline__title">2. Consulta nutricional</p><p class="ds-timeline__copy">Banco nutricional calcula gordura, proteina, carboidratos e calorias.</p></div>
+                  <div class="ds-timeline__item"><p class="ds-timeline__title">3. Dose final</p><p class="ds-timeline__copy">Gordura total multiplicada pela dose prescrita para gerar a recomendacao.</p></div>
+                </div>
+              </div>
+            </div>
+            <div class="ds-modal-backdrop">
+              <div class="ds-sheet">
+                <div class="ds-sheet__handle"></div>
+                <div class="ds-sheet__header">
+                  <div>
+                    <h3>Adicionar alimento</h3>
+                    <p>Busca rapida com contexto visual e nutricional.</p>
+                  </div>
+                  <button class="ds-close" type="button"><svg class="ds-icon"><use href="#icon-close"></use></svg></button>
+                </div>
+                <div class="ds-field" style="margin-bottom:14px">
+                  <label for="buscaAlimento">Pesquisar</label>
+                  <input class="ds-input" id="buscaAlimento" type="text" value="frango" />
+                </div>
+                <div class="ds-mini-row"><div><strong>Frango grelhado</strong><div class="ds-mini-row__meta">31 g proteina / 100 g</div></div><span class="ds-badge ds-badge--success">Adicionar</span></div>
+                <div class="ds-mini-row" style="margin-top:10px"><div><strong>Frango desfiado</strong><div class="ds-mini-row__meta">27 g proteina / 100 g</div></div><span class="ds-badge ds-badge--info">Adicionar</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ds-divider"></div>
+          <details class="ds-expandable" open>
+            <summary><span>Cards expansiveis para detalhes clinicos ou explicacoes de IA</span><span>⌄</span></summary>
+            <div class="ds-expandable__body">
+              Use esse padrao para exibir ingredientes ocultos, justificativas de seguranca, interpretacao da qualidade da foto e notas do relatorio medico sem poluir a tela principal.
+            </div>
+          </details>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Biblioteca de icones</h2>
+              <p class="ds-section__subtitle">Colecao semantica para navegacao, IA, nutrientes, seguranca, edicao e relatorios. Os icones podem ser reutilizados por simbolos SVG em todas as telas.</p>
+            </div>
+          </div>
+          <div class="ds-icon-grid">
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-home"></use></svg></div><span>Home</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-camera"></use></svg></div><span>Camera</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-scan"></use></svg></div><span>Analisar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-history"></use></svg></div><span>Historico</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-heart"></use></svg></div><span>Favoritos</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-settings"></use></svg></div><span>Configuracoes</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-profile"></use></svg></div><span>Perfil</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-book"></use></svg></div><span>Tutorial</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-child"></use></svg></div><span>Modo infantil</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-weight"></use></svg></div><span>Peso</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-lipase"></use></svg></div><span>Lipase</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-creon"></use></svg></div><span>Creon</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-capsule"></use></svg></div><span>Capsulas</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-calculator"></use></svg></div><span>Calculadora</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-food"></use></svg></div><span>Alimentos</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-add"></use></svg></div><span>Adicionar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-remove"></use></svg></div><span>Remover</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-edit"></use></svg></div><span>Editar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-search"></use></svg></div><span>Pesquisar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-check"></use></svg></div><span>Confirmar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-close"></use></svg></div><span>Cancelar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-save"></use></svg></div><span>Salvar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-share"></use></svg></div><span>Compartilhar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-pdf"></use></svg></div><span>Gerar PDF</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-download"></use></svg></div><span>Download</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-upload"></use></svg></div><span>Upload</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-sync"></use></svg></div><span>Sincronizar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-export"></use></svg></div><span>Exportar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-import"></use></svg></div><span>Importar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-stats"></use></svg></div><span>Estatisticas</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-chart"></use></svg></div><span>Graficos</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-info"></use></svg></div><span>Informacoes</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-warning"></use></svg></div><span>Aviso</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-error"></use></svg></div><span>Erro</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-success"></use></svg></div><span>Sucesso</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-photo-bad"></use></svg></div><span>Foto ruim</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-photo-good"></use></svg></div><span>Foto boa</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-ai"></use></svg></div><span>IA</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-confidence"></use></svg></div><span>Confianca</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-db"></use></svg></div><span>Banco nutricional</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-oil"></use></svg></div><span>Oleo e azeite</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-oil"></use></svg></div><span>Manteiga e molho</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-oil"></use></svg></div><span>Maionese</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-calories"></use></svg></div><span>Calorias</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-protein"></use></svg></div><span>Proteina</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-carbs"></use></svg></div><span>Carboidratos</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-fat"></use></svg></div><span>Gordura</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-report"></use></svg></div><span>Relatorio</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-security"></use></svg></div><span>Seguranca</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-reanalyze"></use></svg></div><span>Reanalisar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-heart"></use></svg></div><span>Favoritar</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-date"></use></svg></div><span>Data</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-time"></use></svg></div><span>Hora</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-filter"></use></svg></div><span>Filtro</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-search"></use></svg></div><span>Pesquisa</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-menu"></use></svg></div><span>Menu</span></div>
+            <div class="ds-icon-tile"><div class="ds-icon-wrap"><svg class="ds-icon"><use href="#icon-back"></use></svg></div><span>Voltar</span></div>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Telas mobile de referencia</h2>
+              <p class="ds-section__subtitle">Miniaturas conceituais para splash, boas-vindas, cadastro inicial, tutorial, home, captura, preview, analise, confirmacao, adicao de alimento, ingredientes ocultos, resultado, historico, favoritos, relatorio, configuracoes e modo infantil.</p>
+            </div>
+          </div>
+          <div class="ds-screen-grid">
+            <article class="ds-screen"><h3>Splash screen</h3><div class="ds-screen__phone"><div class="ds-screen__body" style="height:100%;place-content:center"><div class="ds-icon-wrap" style="width:92px;height:92px;margin:0 auto"><svg class="ds-icon" style="width:42px;height:42px"><use href="#icon-ai"></use></svg></div><div style="text-align:center"><p class="ds-screen__title">PancreAI</p><p class="ds-screen__subtitle">Saude + IA + revisao segura</p></div></div></div></article>
+            <article class="ds-screen"><h3>Boas-vindas</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Bem-vindo</p><p class="ds-screen__subtitle">Fluxo simples e confiavel</p></div><div class="ds-screen__body"><div class="ds-mini-photo"></div><div class="ds-mini-card"><strong>Fotografe, revise e confirme</strong><p>O usuario mantem o controle do calculo em todas as etapas.</p></div><button class="ds-btn ds-btn--primary">Continuar</button></div></div></article>
+            <article class="ds-screen"><h3>Cadastro inicial</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Configuracao inicial</p><p class="ds-screen__subtitle">Peso, dose e capsula</p></div><div class="ds-screen__body"><input class="ds-input" value="52 kg" /><input class="ds-input" value="1800 U/g" /><select class="ds-select"><option>Creon 25.000</option></select><button class="ds-btn ds-btn--confirm">Salvar dados</button></div></div></article>
+            <article class="ds-screen"><h3>Tutorial</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Tutorial de fotos</p><p class="ds-screen__subtitle">Melhor enquadramento</p></div><div class="ds-screen__body"><div class="ds-mini-photo"></div><div class="ds-mini-panel"><strong>Luz natural e prato inteiro</strong><p>Evite reflexos, tremor e cortes no enquadramento.</p></div></div></div></article>
+            <article class="ds-screen"><h3>Home</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Boa tarde</p><p class="ds-screen__subtitle">Pronto para analisar?</p></div><div class="ds-screen__body"><div class="ds-mini-card ds-mini-card--hero"><strong>Analisar refeicao</strong><p>Fluxo principal com CTA de alta prioridade.</p></div><div class="ds-mini-panel"><strong>Como funciona</strong><p>Foto, confirmacao, calculo e resultado.</p></div><div class="ds-mini-nav"><span>Historico</span><span class="is-active">Home</span><span>Perfil</span></div></div></div></article>
+            <article class="ds-screen"><h3>Captura da foto</h3><div class="ds-screen__phone" style="background:linear-gradient(180deg,#10202e,#09141d)"><div class="ds-screen__top"><p class="ds-screen__title" style="color:#fff">Captura</p><p class="ds-screen__subtitle" style="color:rgba(255,255,255,0.72)">Posicione a refeicao</p></div><div class="ds-screen__body"><div class="ds-mini-photo" style="min-height:220px;background:linear-gradient(135deg,#16293a,#1b4d5f)"></div><div class="ds-control-row" style="justify-content:space-between"><button class="ds-btn ds-btn--secondary">Galeria</button><button class="ds-btn ds-btn--primary ds-btn--floating"><svg class="ds-icon"><use href="#icon-camera"></use></svg></button><button class="ds-btn ds-btn--secondary">Cancelar</button></div></div></div></article>
+            <article class="ds-screen"><h3>Pre-visualizacao</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Pre-visualizacao</p><p class="ds-screen__subtitle">Antes de analisar</p></div><div class="ds-screen__body"><div class="ds-mini-photo"></div><div class="ds-control-row"><button class="ds-btn ds-btn--secondary">Refazer</button><button class="ds-btn ds-btn--primary">Analisar</button></div></div></div></article>
+            <article class="ds-screen"><h3>Analisando refeicao</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Analisando</p><p class="ds-screen__subtitle">Estimando porcoes</p></div><div class="ds-screen__body"><div class="ds-loader" style="margin:20px auto"></div><div class="ds-progress"><div class="ds-progress__fill" style="width:64%"></div></div><div class="ds-mini-panel"><strong>Consultando banco nutricional</strong><p>Buscando gordura, proteina, carboidratos e calorias.</p></div></div></div></article>
+            <article class="ds-screen"><h3>Confirmacao da analise</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Confirmar analise</p><p class="ds-screen__subtitle">Confianca 92%</p></div><div class="ds-screen__body"><div class="ds-mini-photo"></div><div class="ds-mini-row"><div><strong>Arroz branco</strong><div class="ds-mini-row__meta">140 g</div></div><span class="ds-badge ds-badge--info">Editar</span></div><div class="ds-mini-row"><div><strong>Frango grelhado</strong><div class="ds-mini-row__meta">120 g</div></div><span class="ds-badge ds-badge--warning">Remover</span></div><button class="ds-btn ds-btn--primary">Confirmar analise</button></div></div></article>
+            <article class="ds-screen"><h3>Adicionar alimento</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Adicionar alimento</p><p class="ds-screen__subtitle">Busca inteligente</p></div><div class="ds-screen__body"><input class="ds-input" value="frango" /><div class="ds-mini-row"><div><strong>Frango desfiado</strong><div class="ds-mini-row__meta">170 kcal / 100 g</div></div><span class="ds-badge ds-badge--success">Adicionar</span></div><div class="ds-mini-row"><div><strong>Frango grelhado</strong><div class="ds-mini-row__meta">165 kcal / 100 g</div></div><span class="ds-badge ds-badge--info">Adicionar</span></div></div></div></article>
+            <article class="ds-screen"><h3>Ingredientes ocultos</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Ingredientes ocultos</p><p class="ds-screen__subtitle">Oleo, azeite e molhos</p></div><div class="ds-screen__body"><label class="ds-checkbox"><input type="checkbox" checked /><span class="ds-checkbox__mark"></span>Azeite</label><label class="ds-checkbox"><input type="checkbox" /><span class="ds-checkbox__mark"></span>Molho</label><label class="ds-checkbox"><input type="checkbox" /><span class="ds-checkbox__mark"></span>Maionese</label><button class="ds-btn ds-btn--confirm">Aplicar</button></div></div></article>
+            <article class="ds-screen"><h3>Resultado</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Resultado</p><p class="ds-screen__subtitle">Recomendacao segura</p></div><div class="ds-screen__body"><div class="ds-mini-card ds-mini-card--hero"><strong>3 capsulas</strong><p>Creon 25.000</p></div><div class="ds-mini-stats"><div><span>Gordura</span><strong>18 g</strong></div><div><span>Lipase</span><strong>33k</strong></div><div><span>Status</span><strong>OK</strong></div></div><button class="ds-btn ds-btn--secondary">Ver calculo completo</button></div></div></article>
+            <article class="ds-screen"><h3>Historico</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Historico</p><p class="ds-screen__subtitle">Ultimas refeicoes</p></div><div class="ds-screen__body"><div class="ds-mini-row"><div><strong>Taco de carne</strong><div class="ds-mini-row__meta">08/07 • 12:35</div></div><span class="ds-badge ds-badge--info">24.8 g</span></div><div class="ds-mini-row"><div><strong>Caldo verde</strong><div class="ds-mini-row__meta">08/07 • 19:22</div></div><span class="ds-badge ds-badge--success">2 caps</span></div><div class="ds-mini-nav"><span class="is-active">Historico</span><span>Home</span><span>Perfil</span></div></div></div></article>
+            <article class="ds-screen"><h3>Favoritos</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Favoritos</p><p class="ds-screen__subtitle">Refeicoes recorrentes</p></div><div class="ds-screen__body"><div class="ds-mini-card"><strong>Arroz, feijao e frango</strong><p>Salvar para repeticoes frequentes.</p></div><div class="ds-mini-card"><strong>Tapioca com queijo</strong><p>Rotina de cafe da manha.</p></div></div></div></article>
+            <article class="ds-screen"><h3>Relatorio medico</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Relatorio</p><p class="ds-screen__subtitle">Resumo exportavel</p></div><div class="ds-screen__body"><div class="ds-mini-stats"><div><span>Media gordura</span><strong>16 g</strong></div><div><span>Media caps</span><strong>2.7</strong></div><div><span>Refeicoes</span><strong>21</strong></div></div><div class="ds-mini-panel"><strong>Gerar PDF</strong><p>Compartilhamento com equipe de saude.</p></div></div></div></article>
+            <article class="ds-screen"><h3>Configuracoes</h3><div class="ds-screen__phone"><div class="ds-screen__top"><p class="ds-screen__title">Configuracoes</p><p class="ds-screen__subtitle">Preferencias e seguranca</p></div><div class="ds-screen__body"><div class="ds-mini-row"><div><strong>Configuracao inicial</strong></div><span>›</span></div><div class="ds-mini-row"><div><strong>Modo infantil</strong></div><label class="ds-switch"><input type="checkbox" checked /><span class="ds-switch__track"></span></label></div><div class="ds-mini-row"><div><strong>Sobre o app</strong></div><span>›</span></div></div></div></article>
+            <article class="ds-screen"><h3>Modo infantil</h3><div class="ds-screen__phone" style="background:linear-gradient(180deg,#fffdf8,#f6fbff)"><div class="ds-screen__top"><p class="ds-screen__title">Modo infantil</p><p class="ds-screen__subtitle">Mais lúdico e acessivel</p></div><div class="ds-screen__body"><div class="ds-mini-photo" style="background:linear-gradient(135deg,#9cc8ff,#87df9b 65%,#ffd9a3)"></div><button class="ds-btn ds-btn--primary" style="min-height:68px;font-size:18px">Analisar refeicao</button><div class="ds-mini-panel"><strong>Passo a passo simples</strong><p>Pouco texto, icones maiores e reforco visual amigavel.</p></div></div></div></article>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Graficos e analise de uso</h2>
+              <p class="ds-section__subtitle">Componentes para consumo semanal, consumo mensal, medias de gordura e capsulas, alimentos mais consumidos e distribuicao de macronutrientes.</p>
+            </div>
+          </div>
+          <div class="ds-graph-grid">
+            <article class="ds-graph-card">
+              <h3>Consumo semanal</h3>
+              <p>Volume de gordura estimada ao longo dos dias.</p>
+              <div class="ds-bars">
+                <div class="ds-bar-col"><div class="ds-bar" style="height:48%"></div><span>Seg</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--green" style="height:62%"></div><span>Ter</span></div>
+                <div class="ds-bar-col"><div class="ds-bar" style="height:38%"></div><span>Qua</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--petrol" style="height:80%"></div><span>Qui</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--green" style="height:58%"></div><span>Sex</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--warning" style="height:72%"></div><span>Sab</span></div>
+                <div class="ds-bar-col"><div class="ds-bar" style="height:44%"></div><span>Dom</span></div>
+              </div>
+            </article>
+            <article class="ds-graph-card">
+              <h3>Consumo mensal</h3>
+              <p>Tendencia de uso ao longo de quatro semanas.</p>
+              <div class="ds-bars--thin">
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--petrol" style="height:42%"></div><span>S1</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--green" style="height:66%"></div><span>S2</span></div>
+                <div class="ds-bar-col"><div class="ds-bar" style="height:54%"></div><span>S3</span></div>
+                <div class="ds-bar-col"><div class="ds-bar ds-bar--warning" style="height:78%"></div><span>S4</span></div>
+              </div>
+            </article>
+            <article class="ds-graph-card">
+              <h3>Distribuicao de macronutrientes</h3>
+              <div class="ds-donut"></div>
+              <div class="ds-legend">
+                <div class="ds-legend__item"><div><span class="ds-legend__swatch" style="background:#4ea9e6"></span>Carboidratos</div><strong>28%</strong></div>
+                <div class="ds-legend__item"><div><span class="ds-legend__swatch" style="background:#72cfb0"></span>Proteinas</div><strong>24%</strong></div>
+                <div class="ds-legend__item"><div><span class="ds-legend__swatch" style="background:#143f5c"></span>Gorduras</div><strong>26%</strong></div>
+                <div class="ds-legend__item"><div><span class="ds-legend__swatch" style="background:#f3a45e"></span>Outros</div><strong>22%</strong></div>
+              </div>
+            </article>
+            <article class="ds-graph-card">
+              <h3>Indicadores de acompanhamento</h3>
+              <div class="ds-mini-stats" style="margin-top:18px">
+                <div><span>Media gordura</span><strong>17.8 g</strong></div>
+                <div><span>Media capsulas</span><strong>2.9</strong></div>
+                <div><span>Refeicoes</span><strong>64</strong></div>
+              </div>
+              <div class="ds-divider"></div>
+              <div class="ds-mini-panel"><strong>Alimentos mais consumidos</strong><p>Arroz branco, frango grelhado, feijao carioca, tapioca e banana.</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="ds-section">
+          <div class="ds-section__header">
+            <div>
+              <h2 class="ds-section__title">Card de resultado + modal completo</h2>
+              <p class="ds-section__subtitle">Modelo principal para apresentar gordura total, lipase necessaria, capsulas e status de seguranca, com CTA para abrir a conta detalhada.</p>
+            </div>
+          </div>
+          <div class="ds-result-panel">
+            <div class="ds-card__row">
+              <div>
+                <h3 class="ds-card__title">Resultado final da refeicao</h3>
+                <p class="ds-card__copy">Leitura objetiva para decisao rapida, sem perder rastreabilidade.</p>
+              </div>
+              <span class="ds-badge ds-badge--success">Seguro</span>
+            </div>
+            <div class="ds-result-panel__grid">
+              <div class="ds-result-stat"><span>Gordura total</span><strong>18.4 g</strong></div>
+              <div class="ds-result-stat"><span>Lipase necessaria</span><strong>33.120 U</strong></div>
+              <div class="ds-result-stat"><span>Capsulas</span><strong>3</strong></div>
+              <div class="ds-result-stat"><span>Status</span><strong>OK</strong></div>
+            </div>
+            <div class="ds-result-actions">
+              <button class="ds-btn ds-btn--primary" data-open-modal="calcTimeline"><svg class="ds-icon"><use href="#icon-calculator"></use></svg>Ver calculo completo</button>
+              <button class="ds-btn ds-btn--secondary"><svg class="ds-icon"><use href="#icon-share"></use></svg>Compartilhar</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="ds-child-mode" id="childModeDemo" data-child="false">
+          <div class="ds-toggle-row">
+            <div>
+              <h2 class="ds-section__title" style="margin:0">Modo infantil</h2>
+              <p class="ds-section__subtitle" style="margin-top:8px">Variacao com icones maiores, cores mais alegres, tipografia ampliada e linguagem visual mais amigavel.</p>
+            </div>
+            <button class="ds-btn ds-btn--secondary" id="toggleChildMode" type="button">Ativar versao infantil</button>
+          </div>
+          <div class="ds-child-mode__hero">
+            <div>
+              <div class="ds-button-row">
+                <button class="ds-btn ds-btn--primary"><svg class="ds-icon"><use href="#icon-camera"></use></svg>Fotografar</button>
+                <button class="ds-btn ds-btn--secondary"><svg class="ds-icon"><use href="#icon-food"></use></svg>Adicionar alimento</button>
+              </div>
+              <div class="ds-divider"></div>
+              <div class="ds-card-grid">
+                <article class="ds-card"><div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-success"></use></svg></div><div><h3 class="ds-card__title">Passo simples</h3><div class="ds-card__meta">Pouco texto e mensagens diretas</div></div></div></article>
+                <article class="ds-card"><div class="ds-card__row"><div class="ds-card__icon"><svg class="ds-icon"><use href="#icon-child"></use></svg></div><div><h3 class="ds-card__title">Visual amigavel</h3><div class="ds-card__meta">Mais acolhedor para criancas e familias</div></div></div></article>
+              </div>
+            </div>
+            <div class="ds-child-mode__figure"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="ds-modal-backdrop" id="calcTimeline" style="display:none;position:fixed;inset:0;padding:24px;z-index:20">
+      <div class="ds-modal" style="margin-top:6vh">
+        <div class="ds-modal__header">
+          <div>
+            <h3>Timeline visual do calculo</h3>
+            <p>Modal de referencia para o resultado final.</p>
+          </div>
+          <button class="ds-close" type="button" data-close-modal="calcTimeline"><svg class="ds-icon"><use href="#icon-close"></use></svg></button>
+        </div>
+        <div class="ds-timeline">
+          <div class="ds-timeline__item"><p class="ds-timeline__title">Foto recebida</p><p class="ds-timeline__copy">A refeicao foi analisada e classificada como foto boa.</p></div>
+          <div class="ds-timeline__item"><p class="ds-timeline__title">Itens identificados</p><p class="ds-timeline__copy">Arroz branco 140 g, feijao 100 g, frango grelhado 120 g e azeite 10 g.</p></div>
+          <div class="ds-timeline__item"><p class="ds-timeline__title">Consulta nutricional</p><p class="ds-timeline__copy">Soma de gordura, proteina, carboidratos e calorias de cada item.</p></div>
+          <div class="ds-timeline__item"><p class="ds-timeline__title">Calculo de lipase</p><p class="ds-timeline__copy">18.4 g x 1800 U/g = 33.120 U.</p></div>
+          <div class="ds-timeline__item"><p class="ds-timeline__title">Recomendacao final</p><p class="ds-timeline__copy">3 capsulas de Creon 25.000 com status seguro e revisao habilitada.</p></div>
+        </div>
+      </div>
+    </div>
+    <script src="i18n.js?v=20260709-fulli18n2"></script>
+    <script src="i18n-full.js?v=20260710-performance1"></script>
+    <script src="design-system.js"></script>
+  </body>
+</html>
+

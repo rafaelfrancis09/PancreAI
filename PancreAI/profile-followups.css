@@ -1,0 +1,61 @@
+/* Keep the final profile action fully reachable above the fixed tab bar. */
+body:has(.screen--profile) .app > .screen.screen--profile {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Child-mode confirmations return to the original full-screen presentation. */
+.profile-modal {
+  place-items: stretch center !important;
+  background: #f8fbf9;
+}
+
+.profile-modal__overlay {
+  background: rgba(20, 33, 27, 0.18) !important;
+}
+
+.profile-modal__card {
+  width: min(100%, 480px) !important;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: calc(34px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: translateY(10px) !important;
+}
+
+.profile-modal.is-open .profile-modal__card {
+  transform: translateY(0) !important;
+}
+
+.profile-modal__card h2 {
+  font-size: 26px !important;
+  line-height: 1.18 !important;
+}
+
+.profile-modal__card p {
+  margin: 14px 0 30px !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+}
+
+.profile-modal__actions {
+  width: 100%;
+  margin-top: 6px;
+}
+
+@media (max-width: 380px) {
+  .profile-modal__actions {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .profile-modal__button {
+    padding-right: 10px !important;
+    padding-left: 10px !important;
+    font-size: 13px !important;
+  }
+}
