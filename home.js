@@ -31,7 +31,6 @@ const confirmBtn = document.querySelector("#confirmBtn");
 const historyBtn = document.querySelector("#historyBtn");
 const profileBtn = document.querySelector("#profileBtn");
 const mealPreview = document.querySelector("#mealPreview");
-const cameraLiveImage = document.querySelector("#cameraLiveImage");
 const cameraShell = document.querySelector(".camera-shell");
 const cameraStatus = document.querySelector("#cameraStatus");
 const resultDoseValue = document.querySelector("#resultDoseValue");
@@ -417,7 +416,6 @@ function resetCameraUi() {
   cameraShell.classList.remove("is-capturing", "has-captured-image");
   cameraShell.dataset.cameraState = "ready";
   captureBtn.disabled = false;
-  cameraLiveImage.src = "assets/prato.png";
 }
 
 function closeCamera() {
@@ -1120,7 +1118,6 @@ function captureFromCamera() {
   captureBtn.disabled = true;
   cameraShell.classList.add("is-capturing", "has-captured-image");
   cameraShell.dataset.cameraState = "capturing";
-  cameraLiveImage.src = meal.imageUrl;
   polish?.triggerSoftHaptic();
   setCameraMessage("Capturando...");
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;

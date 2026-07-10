@@ -2881,8 +2881,26 @@ html[data-child-mode="true"] .responsible-entry.child-only:not([hidden]) {
 .app .screen--camera .camera-view {
   isolation: isolate;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  background: #1b2721 !important;
+  background: #10231b !important;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.32) !important;
+}
+.camera-gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(176, 241, 207, 0.22), transparent 27%),
+    radial-gradient(circle at 18% 78%, rgba(76, 188, 131, 0.18), transparent 34%),
+    radial-gradient(circle at 88% 18%, rgba(119, 215, 169, 0.12), transparent 30%),
+    linear-gradient(155deg, #1b3a2e 0%, #10271e 48%, #09150f 100%);
+  transition:
+    filter 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.camera-shell.is-capturing .camera-gradient {
+  filter: brightness(1.16) saturate(1.08);
+  transform: scale(1.015);
 }
 .camera-live-image {
   width: 100%;
