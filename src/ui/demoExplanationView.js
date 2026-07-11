@@ -2,108 +2,109 @@
   const architecture = window.PancreAIArchitecture || {};
   const nutritionCount = window.PancreAIData?.nutritionDatabase?.foods?.length || 0;
   const structuredMealCount = window.PancreAIData?.mealDatabase?.meals?.length || 0;
-  const captureCount = window.PancreAIServices?.simulatedCaptureService?.getSimulatedMealImages?.().length || 0;
+  const demoCount = window.PancreAIServices?.simulatedCaptureService?.getSimulatedMealImages?.().length || 0;
 
   const overviewCards = [
     {
       icon: "camera",
-      title: "A foto abre um caso visual preparado",
-      text: "A c&acirc;mera simulada escolhe um dos casos dispon&iacute;veis e a galeria permite selecionar diretamente uma imagem. Cada foto j&aacute; est&aacute; ligada a uma refei&ccedil;&atilde;o, aos alimentos esperados, &agrave;s por&ccedil;&otilde;es iniciais e aos ingredientes ocultos sugeridos."
+      title: "Câmera e galeria usam fotos reais",
+      text: "Com a permissão do usuário, o navegador captura uma foto pela câmera ou abre uma imagem da galeria. Antes do envio, o app valida, redimensiona e comprime o arquivo."
     },
     {
       icon: "food",
-      title: "A revis&atilde;o controla o resultado",
-      text: "Depois da an&aacute;lise simulada, o usu&aacute;rio pode corrigir quantidades, remover itens, substituir um alimento n&atilde;o identificado e adicionar o que faltou. O c&aacute;lculo usa a lista revisada, n&atilde;o apenas a sugest&atilde;o inicial."
+      title: "A IA sugere, não decide",
+      text: "Um modelo OpenAI com visão sugere alimentos, porções e qualidade da foto. Essas sugestões podem estar erradas e precisam ser revisadas antes do cálculo."
     },
     {
       icon: "db",
-      title: "Os alimentos ficam em uma base separada",
-      text: "A busca de adicionar ou substituir consulta o banco nutricional de alimentos. Essa base guarda gordura, prote&iacute;na, carboidratos e calorias por 100 g e permite recalcular qualquer quantidade informada."
+      title: "Os nutrientes vêm do banco local",
+      text: "A resposta da IA é relacionada ao catálogo do PancreAI. Gordura, proteína, carboidratos e calorias vêm somente desse banco; itens sem correspondência permanecem desconhecidos."
     },
     {
       icon: "security",
-      title: "C&aacute;lculo e seguran&ccedil;a s&atilde;o etapas pr&oacute;prias",
-      text: "O reconhecimento n&atilde;o define a enzima. O motor soma a gordura confirmada, inclui ingredientes ocultos, aplica a prescri&ccedil;&atilde;o cadastrada e executa valida&ccedil;&otilde;es antes de exibir a estimativa."
+      title: "O cálculo é separado da IA",
+      text: "Depois da revisão obrigatória, regras determinísticas somam a gordura, aplicam os dados de tratamento cadastrados e geram avisos. A IA não escolhe nem altera a dose."
     }
   ];
 
-  const simulatedItems = [
-    "Captura pela c&acirc;mera do dispositivo",
-    "Sele&ccedil;&atilde;o de imagens externas do aparelho",
-    "Reconhecimento visual por intelig&ecirc;ncia artificial",
-    "Confian&ccedil;a e qualidade inicial da foto",
-    "Alimentos e por&ccedil;&otilde;es sugeridos pela imagem"
+  const aiItems = [
+    "Foto enviada a um serviço externo por um backend protegido",
+    "Sugestão inicial de alimentos e porções",
+    "Confiança e qualidade estimadas para a foto",
+    "Resposta dependente de internet e disponibilidade do serviço",
+    "Possibilidade de omissões e identificações incorretas"
   ];
 
-  const functionalItems = [
-    "Casos visuais vinculados &agrave;s fotos da demonstra&ccedil;&atilde;o",
-    "Edi&ccedil;&atilde;o, remo&ccedil;&atilde;o e inclus&atilde;o de alimentos",
-    "Busca no banco nutricional separado",
+  const localItems = [
+    "Preparação e compressão da foto no navegador",
+    "Correspondência com o banco nutricional local",
+    "Revisão manual obrigatória dos alimentos e porções",
     "Ingredientes ocultos e ajuste de quantidade",
-    "C&aacute;lculo de gordura, lipase e unidades do medicamento",
-    "Avisos de seguran&ccedil;a, favoritos, lembretes e hist&oacute;rico local"
+    "Cálculo determinístico de gordura, lipase e unidades",
+    "Avisos, favoritos, lembretes e histórico local"
   ];
 
   const dataSources = [
     {
-      title: "Cat&aacute;logo visual da demonstra&ccedil;&atilde;o",
-      badge: `${captureCount} casos`,
-      items: ["Fotos exibidas na c&acirc;mera e galeria simuladas", "Alimentos e por&ccedil;&otilde;es ligados a cada foto", "Sugest&otilde;es de ingredientes ocultos"]
+      title: "Análise visual externa",
+      badge: "via backend",
+      items: ["A chave da API permanece no servidor", "A IA devolve apenas sugestões estruturadas", "Nenhum nutriente retornado pela IA é usado no cálculo"]
     },
     {
-      title: "Banco nutricional de alimentos",
+      title: "Banco nutricional local",
       badge: `${nutritionCount} alimentos`,
-      items: ["Usado ao adicionar ou substituir um alimento", "Valores nutricionais calculados pela quantidade", "Pesquisa por nome dentro da revis&atilde;o"]
+      items: ["Fonte dos nutrientes usados no cálculo", "Valores recalculados pela quantidade confirmada", "Pesquisa para adicionar ou substituir alimentos"]
     },
     {
-      title: "Banco estruturado de refei&ccedil;&otilde;es",
-      badge: `${structuredMealCount} combina&ccedil;&otilde;es`,
-      items: ["Mant&eacute;m refei&ccedil;&otilde;es e acompanhamentos organizados", "Apoia testes e evolu&ccedil;&atilde;o do reconhecimento", "N&atilde;o altera o caso da foto que o usu&aacute;rio escolheu"]
+      title: "Modo demonstrativo explícito",
+      badge: `${demoCount} casos`,
+      items: ["Usa imagens e análises preparadas", "Só é ativado quando o usuário escolhe a demonstração", `O banco estruturado mantém ${structuredMealCount} combinações para testes`]
     }
   ];
 
   const appFlow = [
-    "C&acirc;mera ou galeria simulada",
-    "Caso visual da foto",
-    "An&aacute;lise inicial",
-    "Revis&atilde;o dos alimentos",
+    "Câmera ou galeria real",
+    "Imagem preparada",
+    "Backend protegido",
+    "Sugestões da IA",
+    "Revisão obrigatória",
+    "Banco nutricional local",
     "Ingredientes ocultos",
-    "Banco nutricional",
-    "C&aacute;lculo da enzima",
-    "Valida&ccedil;&atilde;o",
-    "Resultado e hist&oacute;rico"
+    "Cálculo determinístico",
+    "Validação",
+    "Resultado e histórico"
   ];
 
-  const currentFlow = [
-    "Foto preparada",
-    "MockVision",
-    "Revis&atilde;o humana",
-    "Banco nutricional",
-    "C&aacute;lculo",
-    "Seguran&ccedil;a"
-  ];
-
-  const futureFlow = [
+  const currentFlow = architecture.currentFlow || [
     "Foto real",
-    "Provedor de vis&atilde;o",
-    "Revis&atilde;o humana",
-    "Banco nutricional",
-    "C&aacute;lculo",
-    "Seguran&ccedil;a"
+    "OpenAI Vision",
+    "Revisão obrigatória",
+    "Banco nutricional local",
+    "Cálculo determinístico",
+    "Validação"
+  ];
+
+  const demoFlow = architecture.demoFlow || [
+    "Modo demonstrativo explícito",
+    "Caso preparado",
+    "Revisão obrigatória",
+    "Banco nutricional local",
+    "Cálculo determinístico",
+    "Validação"
   ];
 
   const resultCards = [
     {
       icon: "warning",
-      badge: "Valida&ccedil;&atilde;o",
-      title: "O resultado passa por confer&ecirc;ncias",
-      text: "O app sinaliza dados ausentes, alimento n&atilde;o identificado, valores muito altos, arredondamento elevado e situa&ccedil;&otilde;es que exigem revis&atilde;o. A estimativa n&atilde;o substitui a orienta&ccedil;&atilde;o da equipe de sa&uacute;de."
+      badge: "Limites",
+      title: "Toda análise exige conferência",
+      text: "Uma foto não mostra com precisão absoluta a quantidade, o preparo ou os ingredientes ocultos. O app sinaliza itens desconhecidos e dados que precisam de correção."
     },
     {
       icon: "history",
-      badge: "Dados locais",
-      title: "A refei&ccedil;&atilde;o confirmada vira hist&oacute;rico",
-      text: "Ao finalizar, o app salva localmente a foto, os alimentos revisados, as quantidades, os ingredientes ocultos, a gordura total, a sugest&atilde;o de enzima e os ajustes feitos. Favoritos, lembretes e prefer&ecirc;ncias tamb&eacute;m permanecem no navegador."
+      badge: "Privacidade",
+      title: "Envie somente a imagem necessária",
+      text: "A foto da refeição é enviada ao serviço externo para análise. Evite rostos, documentos, rótulos com dados pessoais e informações de saúde desnecessárias."
     }
   ];
 
@@ -163,26 +164,26 @@
 
   function render(root) {
     root.innerHTML = `
-      <section class="demo-important" aria-label="Resumo sobre esta vers&atilde;o">
+      <section class="demo-important" aria-label="Resumo sobre esta versão">
         <span class="demo-important__icon" data-pa-icon="info" aria-hidden="true"></span>
         <div>
-          <span class="demo-eyebrow">Sobre esta vers&atilde;o</span>
-          <p>Esta p&aacute;gina explica o funcionamento real do PancreAI atual, separando o que &eacute; demonstrado com dados preparados do que j&aacute; responde &agrave;s escolhas feitas no aplicativo.</p>
+          <span class="demo-eyebrow">Sobre esta versão</span>
+          <p>Esta página descreve o funcionamento real do PancreAI, da captura da foto ao resultado revisado.</p>
         </div>
       </section>
 
       <section class="demo-summary" aria-label="Como o PancreAI funciona atualmente">
         <div>
-          <span class="demo-eyebrow">Vis&atilde;o geral</span>
-          <h2>Como o PancreAI funciona nesta vers&atilde;o</h2>
-          <p>A c&acirc;mera e a galeria s&atilde;o simuladas. Elas usam fotos preparadas, e cada imagem abre o caso correspondente em vez de analisar uma foto real do dispositivo.</p>
-          <p>Da revis&atilde;o em diante, o fluxo &eacute; interativo: o usu&aacute;rio corrige a refei&ccedil;&atilde;o, consulta o banco de alimentos, marca ingredientes ocultos e recebe um c&aacute;lculo baseado no perfil e no medicamento cadastrados.</p>
-          <strong class="summary-callout">A foto fornece o ponto de partida. A lista confirmada pelo usu&aacute;rio &eacute; o que alimenta o c&aacute;lculo.</strong>
+          <span class="demo-eyebrow">Visão geral</span>
+          <h2>Como o PancreAI funciona nesta versão</h2>
+          <p>A câmera e a galeria recebem fotos reais. A imagem preparada é enviada por um backend protegido a um modelo OpenAI com visão, que sugere alimentos e porções.</p>
+          <p>O usuário precisa revisar essas sugestões. Depois, o banco local fornece os nutrientes e o motor de cálculo aplica regras determinísticas aos dados confirmados e ao tratamento cadastrado.</p>
+          <strong class="summary-callout">A IA fornece um ponto de partida. Somente a lista revisada pelo usuário alimenta o cálculo.</strong>
         </div>
-        <div class="summary-metrics" aria-label="Dados desta demonstra&ccedil;&atilde;o">
-          <div><strong>${captureCount}</strong><span>casos visuais</span><small>Fotos vinculadas a refei&ccedil;&otilde;es</small></div>
-          <div><strong>${nutritionCount}</strong><span>alimentos pesquis&aacute;veis</span><small>Base nutricional separada</small></div>
-          <div><strong>0</strong><span>APIs externas</span><small>Execu&ccedil;&atilde;o local</small></div>
+        <div class="summary-metrics" aria-label="Dados desta versão">
+          <div><strong>1</strong><span>serviço visual externo</span><small>Acessado por backend protegido</small></div>
+          <div><strong>${nutritionCount}</strong><span>alimentos pesquisáveis</span><small>Base nutricional local</small></div>
+          <div><strong>${demoCount}</strong><span>casos demonstrativos</span><small>Disponíveis apenas no modo demo</small></div>
         </div>
       </section>
 
@@ -190,13 +191,13 @@
         ${overviewCards.map(renderOverviewCard).join("")}
       </section>
 
-      <section class="comparison-panel" aria-label="Partes simuladas e funcionais">
-        <span class="demo-eyebrow">O que &eacute; simulado</span>
-        <h2>Simula&ccedil;&atilde;o visual, revis&atilde;o funcional</h2>
-        <p>O limite da demonstra&ccedil;&atilde;o est&aacute; na entrada da imagem e na sugest&atilde;o inicial. As altera&ccedil;&otilde;es feitas depois disso modificam os dados e o resultado.</p>
+      <section class="comparison-panel" aria-label="Responsabilidades da IA e do aplicativo">
+        <span class="demo-eyebrow">Responsabilidades separadas</span>
+        <h2>IA para sugerir, regras locais para calcular</h2>
+        <p>O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e torna a revisão visível.</p>
         <div class="comparison-grid">
-          <article><h3>Preparado para a demonstra&ccedil;&atilde;o</h3>${renderList(simulatedItems)}</article>
-          <article><h3>Funciona no app atual</h3>${renderList(functionalItems)}</article>
+          <article><h3>Análise visual externa</h3>${renderList(aiItems)}</article>
+          <article><h3>Funciona dentro do PancreAI</h3>${renderList(localItems)}</article>
         </div>
       </section>
 
@@ -204,9 +205,9 @@
         <div class="database-panel__head">
           <span class="demo-card__icon" data-pa-icon="db" aria-hidden="true"></span>
           <div>
-            <span class="demo-eyebrow">Organiza&ccedil;&atilde;o dos dados</span>
-            <h2>Tr&ecirc;s fontes de dados, tr&ecirc;s responsabilidades</h2>
-            <p>O cat&aacute;logo de fotos, o banco nutricional de alimentos e o banco estruturado de refei&ccedil;&otilde;es continuam separados para que cada etapa use apenas os dados de que precisa.</p>
+            <span class="demo-eyebrow">Organização dos dados</span>
+            <h2>Cada fonte tem uma responsabilidade</h2>
+            <p>A IA sugere nomes e porções; o banco local fornece nutrientes; o modo demonstrativo mantém casos preparados separados do fluxo real.</p>
           </div>
         </div>
         <div class="database-examples database-examples--sources">
@@ -216,33 +217,33 @@
 
       <section class="technical-panel" aria-label="Fluxo atual do PancreAI">
         <span class="demo-eyebrow">Fluxo atual</span>
-        <h2>Da foto ao hist&oacute;rico</h2>
-        <p>O app mant&eacute;m cada responsabilidade em uma etapa clara. A busca de alimentos pode completar ou corrigir o caso visual antes do c&aacute;lculo.</p>
+        <h2>Da foto real ao histórico</h2>
+        <p>Cada etapa conserva uma responsabilidade clara, e o cálculo só acontece depois da conferência do usuário.</p>
         ${renderFlow(appFlow, "mvp")}
       </section>
 
-      <section class="formula-panel" aria-label="Como a estimativa &eacute; calculada">
-        <span class="demo-eyebrow">C&aacute;lculo da estimativa</span>
-        <h2>O c&aacute;lculo usa a gordura da refei&ccedil;&atilde;o revisada</h2>
+      <section class="formula-panel" aria-label="Como a estimativa é calculada">
+        <span class="demo-eyebrow">Cálculo da estimativa</span>
+        <h2>O cálculo usa a gordura da refeição revisada</h2>
         <p>Primeiro, o app soma a gordura dos alimentos confirmados e dos ingredientes ocultos marcados. Depois aplica a dose prescrita em unidades de lipase por grama de gordura.</p>
         <div class="formula-box">
           <span>Gordura dos alimentos + ingredientes ocultos</span>
           <i aria-hidden="true">&times;</i>
           <span>Dose prescrita</span>
           <i aria-hidden="true">=</i>
-          <strong>Lipase necess&aacute;ria</strong>
+          <strong>Lipase necessária</strong>
         </div>
         <div class="formula-box">
-          <span>Lipase necess&aacute;ria</span>
+          <span>Lipase necessária</span>
           <i aria-hidden="true">/</i>
           <span>Lipase por unidade do medicamento</span>
           <i aria-hidden="true">=</i>
           <strong>Unidades estimadas</strong>
         </div>
-        <p>Quando existe resultado, o valor &eacute; arredondado para a pr&oacute;xima unidade inteira. Casos configurados sem necessidade de enzima permanecem em zero.</p>
+        <p>A IA não participa dessas operações. Os parâmetros de tratamento devem ter sido informados conforme orientação profissional.</p>
       </section>
 
-      <section class="demo-card-grid" aria-label="Valida&ccedil;&atilde;o e dados locais">
+      <section class="demo-card-grid" aria-label="Limites e privacidade">
         ${resultCards.map(renderResultCard).join("")}
       </section>
 
@@ -250,18 +251,18 @@
         ${(architecture.modules || []).map(renderModule).join("")}
       </section>
 
-      <section class="flow-panel architecture-flow" aria-label="Funcionamento atual e evolu&ccedil;&atilde;o futura">
-        <div><span class="demo-eyebrow">Hoje</span>${renderFlow(currentFlow, "current")}</div>
-        <div><span class="demo-eyebrow">Com reconhecimento real</span>${renderFlow(futureFlow, "future")}</div>
-        <strong>A entrada visual pode evoluir sem trocar o restante do fluxo.</strong>
-        <p>No futuro, um provedor de vis&atilde;o pode receber fotos reais e devolver os alimentos sugeridos. A revis&atilde;o humana, o banco nutricional, o c&aacute;lculo, os avisos e o hist&oacute;rico continuam com as mesmas responsabilidades.</p>
+      <section class="flow-panel architecture-flow" aria-label="Fluxo real e modo demonstrativo">
+        <div><span class="demo-eyebrow">Fluxo real</span>${renderFlow(currentFlow, "current")}</div>
+        <div><span class="demo-eyebrow">Modo demonstrativo explícito</span>${renderFlow(demoFlow, "future")}</div>
+        <strong>Uma falha na análise real nunca é escondida por um resultado simulado.</strong>
+        <p>Se o serviço externo estiver indisponível, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.</p>
       </section>
 
-      <section class="truth-note" aria-label="Limites desta vers&atilde;o">
-        <strong>O que esta vers&atilde;o demonstra</strong>
-        <p>O PancreAI atual demonstra a jornada completa com imagens e an&aacute;lises preparadas. Ele n&atilde;o acessa a c&acirc;mera real, n&atilde;o importa fotos externas e n&atilde;o usa intelig&ecirc;ncia artificial para reconhecer a imagem.</p>
-        <p>Mesmo assim, a revis&atilde;o, a busca no banco de alimentos, os ingredientes ocultos, o c&aacute;lculo, os avisos, os favoritos, os lembretes e o hist&oacute;rico respondem &agrave;s a&ccedil;&otilde;es do usu&aacute;rio.</p>
-        <strong class="truth-note__final">O objetivo &eacute; mostrar com clareza o que funciona hoje e o que ser&aacute; substitu&iacute;do quando o reconhecimento real for integrado.</strong>
+      <section class="truth-note" aria-label="Limites desta versão">
+        <strong>Uso responsável</strong>
+        <p>A foto é enviada a um serviço externo. Fotografe somente a refeição e não inclua dados pessoais ou informações desnecessárias.</p>
+        <p>A identificação visual e a estimativa de porções podem conter erros. Revise todos os alimentos, quantidades e ingredientes ocultos antes de continuar.</p>
+        <strong class="truth-note__final">O PancreAI é um protótipo educacional, não um dispositivo médico, e não deve ser usado para alterar tratamento sem orientação profissional.</strong>
       </section>
     `;
 

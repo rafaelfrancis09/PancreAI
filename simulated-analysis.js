@@ -67,6 +67,10 @@
       ? ` Ingredientes ocultos adicionaram ${calculation.hiddenFatContribution.toFixed(1)}g de gordura.`
       : "";
 
+    const sourceText = analysis.isSimulated !== false
+      ? `Estimativa baseada no exemplo demonstrativo "${analysis.mealName}"`
+      : `Estimativa baseada na refeição revisada "${analysis.mealName}"`;
+
     return {
       analysisId: analysis.id,
       provider: analysis.provider || "mock",
@@ -107,7 +111,7 @@
       safetyWarnings,
       calculationReliability,
       consistencyWarning: safetyWarnings.some((warning) => warning.type === "warning" || warning.type === "critical"),
-      estimateText: `Estimativa baseada na refeição simulada "${analysis.mealName}", na dose prescrita e no medicamento cadastrado.${hiddenFatText}`,
+      estimateText: `${sourceText}, na dose prescrita e no medicamento cadastrado.${hiddenFatText}`,
       explanation,
       createdAt: new Date().toISOString()
     };

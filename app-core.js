@@ -46,7 +46,18 @@
   }
 
   function writeJson(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      const quotaExceeded = error?.name === "QuotaExceededError" || error?.code === 22 || error?.code === 1014;
+      if (quotaExceeded) {
+        console.warn(`PancreAI: armazenamento cheio ao salvar ${key}.`);
+      } else {
+        console.warn(`PancreAI: não foi possível salvar ${key}.`, error);
+      }
+      return false;
+    }
   }
 
   function normalizeTreatment(settings) {
@@ -399,19 +410,32 @@ function isMedicalWarningsEnabled() {
     return normalizedHistory;
   }
 
+  function compactHistoryImages(items, imageLimit = 12) {
+    return (items || []).slice(0, 50).map((item, index) => {
+      const embeddedImage = typeof item?.image === "string" && item.image.startsWith("data:image/");
+      if (index < imageLimit || !embeddedImage) return item;
+      return { ...item, image: "assets/prato.png", imageCompacted: true };
+    });
+  }
+
   function saveHistory(items) {
     const normalizedHistory = items
       .map((item) => normalizeHistoryRecord(item))
       .filter(Boolean);
-    writeJson(STORAGE_KEYS.history, normalizedHistory);
-  }
+    const compacted = compactHistoryImages(normalizedHistory, 12);
+    if (writeJson(STORAGE_KEYS.history, compacted)) return true;
 
+    const lightweightFallback = compactHistoryImages(normalizedHistory, 0).slice(0, 25);
+    return writeJson(STORAGE_KEYS.history, lightweightFallback);
+  }
   function getFavorites() {
     return readJson(STORAGE_KEYS.favorites, []);
   }
 
   function saveFavorites(items) {
-    writeJson(STORAGE_KEYS.favorites, items);
+    const normalized = Array.isArray(items) ? items.slice(0, 50) : [];
+    if (writeJson(STORAGE_KEYS.favorites, compactHistoryImages(normalized, 6))) return true;
+    return writeJson(STORAGE_KEYS.favorites, compactHistoryImages(normalized, 0).slice(0, 20));
   }
 
   function getDraftMeal() {
@@ -419,7 +443,12 @@ function isMedicalWarningsEnabled() {
   }
 
   function saveDraftMeal(meal) {
-    writeJson(STORAGE_KEYS.draftMeal, meal);
+    if (writeJson(STORAGE_KEYS.draftMeal, meal)) return true;
+    return writeJson(STORAGE_KEYS.draftMeal, {
+      ...meal,
+      image: "assets/prato.png",
+      imageCompacted: true
+    });
   }
 
   function clearDraftMeal() {
@@ -433,12 +462,13 @@ function isMedicalWarningsEnabled() {
       confirmedAt: record.confirmedAt || new Date().toISOString()
     };
 
-    localStorage.setItem(STORAGE_KEYS.lastMeal, JSON.stringify(normalizedRecord));
+    if (!writeJson(STORAGE_KEYS.lastMeal, normalizedRecord)) {
+      writeJson(STORAGE_KEYS.lastMeal, { ...normalizedRecord, image: "assets/prato.png", imageCompacted: true });
+    }
     const history = getHistory();
     history.unshift(normalizedRecord);
-    saveHistory(history.slice(0, 100));
+    return saveHistory(history.slice(0, 50));
   }
-
   function saveFavorite(record) {
     const favorites = getFavorites();
     favorites.unshift({

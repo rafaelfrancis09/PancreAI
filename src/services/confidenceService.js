@@ -6,22 +6,23 @@
   function calculate({ analysis, changes, hiddenSelections, missingNutritionCount }) {
     let score = 92;
     const reasons = [];
+    const sourceLabel = analysis?.isSimulated !== false ? "demonstração" : "análise visual";
 
     if (analysis?.confidence < 70) {
       score -= 18;
-      reasons.push("A análise simulada teve baixa confiança.");
+      reasons.push(`A ${sourceLabel} teve baixa confiança.`);
     } else if (analysis?.confidence < 85) {
       score -= 8;
-      reasons.push("A confiança da análise simulada foi intermediária.");
+      reasons.push(`A confiança da ${sourceLabel} foi intermediária.`);
     } else {
-      reasons.push("A análise simulada teve boa confiança.");
+      reasons.push(`A ${sourceLabel} teve boa confiança.`);
     }
 
     if (analysis?.qualityWarning) {
       score -= 10;
-      reasons.push("A foto simulada teve uma condição que exige revisão.");
+      reasons.push("A foto teve uma condição que exige revisão.");
     } else {
-      reasons.push("A foto simulada teve boa qualidade.");
+      reasons.push("A foto teve boa qualidade.");
     }
 
     if (analysis?.unknownFood || analysis?.unknownItems?.length) {

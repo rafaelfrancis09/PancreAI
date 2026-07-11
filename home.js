@@ -20,6 +20,7 @@ const galleryPagination = document.querySelector("#galleryPagination");
 const previewBackBtn = document.querySelector("#previewBackBtn");
 const capturePreview = document.querySelector("#capturePreview");
 const capturePreviewCard = document.querySelector("#capturePreviewCard");
+const realPhotoNotice = document.querySelector("#realPhotoNotice");
 const previewActions = document.querySelector("#previewActions");
 const usePhotoBtn = document.querySelector("#usePhotoBtn");
 const retryPhotoBtn = document.querySelector("#retryPhotoBtn");
@@ -33,6 +34,10 @@ const profileBtn = document.querySelector("#profileBtn");
 const mealPreview = document.querySelector("#mealPreview");
 const cameraShell = document.querySelector(".camera-shell");
 const cameraStatus = document.querySelector("#cameraStatus");
+const cameraVideo = document.querySelector("#cameraVideo");
+const cameraFileInput = document.querySelector("#cameraFileInput");
+const galleryFileInput = document.querySelector("#galleryFileInput");
+const deviceGalleryBtn = document.querySelector("#deviceGalleryBtn");
 const resultDoseValue = document.querySelector("#resultDoseValue");
 const resultDoseNote = document.querySelector("#resultDoseNote");
 const resultDoseCapsule = document.querySelector("#resultDoseCapsule");
@@ -51,6 +56,8 @@ const progressFill = document.querySelector("#progressFill");
 const analysisErrorActions = document.querySelector("#analysisErrorActions");
 const analysisRetryBtn = document.querySelector("#analysisRetryBtn");
 const analysisBackBtn = document.querySelector("#analysisBackBtn");
+const analysisDemoBtn = document.querySelector("#analysisDemoBtn");
+const analysisSourceNote = document.querySelector("#analysisSourceNote");
 const confirmPreview = document.querySelector("#confirmPreview");
 const confirmFoodList = document.querySelector("#confirmFoodList");
 const confidenceBadge = document.querySelector("#confidenceBadge");
@@ -87,6 +94,8 @@ const portionOptions = document.querySelector("#portionOptions");
 const core = window.PancreAICore;
 const simulator = window.PancreAISimulator;
 const captureService = window.PancreAIServices?.simulatedCaptureService;
+const realCaptureService = window.PancreAIServices?.realImageCaptureService;
+const realRecognitionProvider = window.PancreAIServices?.realMealRecognitionProvider;
 const polish = window.PancreAIPolish;
 const historyService = window.PancreAIServices?.historyService;
 const medicalWarningsService = window.PancreAIServices?.medicalWarningsService;
@@ -94,6 +103,10 @@ const i18n = window.PancreAII18n;
 const query = new URLSearchParams(window.location.search);
 
 let analysisTimerId = null;
+let analysisRequestId = 0;
+let analysisAbortController = null;
+let cameraStream = null;
+let cameraOperationId = 0;
 let activeObjectUrl = null;
 let cameraCaptureTimerId = null;
 let galleryRendered = false;
@@ -108,6 +121,7 @@ const state = {
   photoFile: null,
   photoSrc: "assets/prato.png",
   persistedPhoto: "assets/prato.png",
+  photoFilename: null,
   simulatedMealId: null,
   simulatedFilename: null,
   captureSource: null,
@@ -287,6 +301,11 @@ function applyHomeCopy() {
     ["#mealSourceLead", "Escolha como deseja analisar sua refeição."],
     ["#cameraBtn strong", "Tirar foto"],
     ["#galleryBtn strong", "Escolher da galeria"],
+    ["#deviceGalleryBtn strong", "home.chooseDevicePhoto"],
+    ["#deviceGalleryBtn small", "home.chooseDevicePhotoHint"],
+    [".gallery-demo-label", "home.demoPhotos"],
+    ["#analysisDemoBtn", "analysis.useDemo"],
+    ["#realPhotoNotice", "analysis.realPhotoNotice"],
     ["#cancelBtn", "common.cancel"],
     [".screen--confirm .result-page__top h2", "analysis.confirmTitle"],
     [".summary-card__header h3", "analysis.detectedFoods"],
@@ -350,27 +369,43 @@ function clearAnalysisTimer() {
   }
 }
 
+function cancelActiveAnalysis() {
+  analysisRequestId += 1;
+  analysisAbortController?.abort();
+  analysisAbortController = null;
+  clearAnalysisTimer();
+}
+
 function revokePhotoUrl() {
-  if (activeObjectUrl) {
-    window.URL.revokeObjectURL(activeObjectUrl);
-    activeObjectUrl = null;
-  }
+  if (!activeObjectUrl) return;
+  window.URL.revokeObjectURL(activeObjectUrl);
+  activeObjectUrl = null;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result || "")), { once: true });
+    reader.addEventListener("error", () => reject(new Error("Não foi possível preparar a prévia da foto.")), { once: true });
+    reader.readAsDataURL(file);
+  });
 }
 
 function setSoftMessage(element, message) {
-  if (!element || element.textContent === message) {
-    return;
-  }
-  if (isChildModeActive()) {
+  if (!element) return;
+  if (element.textContent === message) return;
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (reducedMotion || isChildModeActive()) {
     element.textContent = message;
-    element.classList.remove("is-changing");
     return;
   }
+  element.classList.remove("is-changing");
+  void element.offsetWidth;
   element.classList.add("is-changing");
   window.setTimeout(() => {
     element.textContent = message;
     element.classList.remove("is-changing");
-  }, 130);
+  }, 180);
 }
 
 function setAnalysisMessage(message) {
@@ -380,34 +415,70 @@ function setAnalysisMessage(message) {
 function setCameraMessage(message) {
   setSoftMessage(cameraStatus, message);
 }
+
 function syncPhotoElements() {
   mealPreview.src = state.photoSrc;
   confirmPreview.src = state.photoSrc;
   capturePreview.src = state.photoSrc;
 }
 
-function setPhoto(source) {
-  revokePhotoUrl();
+async function setPhoto(source, options = {}) {
   if (typeof source === "string" && source) {
+    revokePhotoUrl();
     state.photoFile = null;
     state.photoSrc = source;
     state.persistedPhoto = source;
-  } else if (source) {
-    state.photoFile = source;
-    activeObjectUrl = window.URL.createObjectURL(source);
-    state.photoSrc = activeObjectUrl;
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      if (typeof reader.result === "string") state.persistedPhoto = reader.result;
+    state.photoFilename = options.filename || source.split("/").pop()?.split("?")[0] || null;
+    syncPhotoElements();
+    return null;
+  }
+
+  if (source) {
+    if (!realCaptureService?.prepareImageFile) {
+      throw new Error("O preparador de imagens não está disponível.");
+    }
+    const preparedFile = options.prepared
+      ? source
+      : await realCaptureService.prepareImageFile(source);
+    const thumbnailFile = await realCaptureService.prepareImageFile(preparedFile, {
+      maxDimension: 720,
+      maxOutputBytes: 350 * 1024,
+      quality: 0.72
     });
-    reader.readAsDataURL(source);
-  } else if (!state.simulatedMealId) {
+    const persistedPhoto = await readFileAsDataUrl(thumbnailFile);
+
+    revokePhotoUrl();
+    state.photoFile = preparedFile;
+    state.photoFilename = preparedFile.name || source.name || `refeicao-${Date.now()}.jpg`;
+    activeObjectUrl = window.URL.createObjectURL(preparedFile);
+    state.photoSrc = activeObjectUrl;
+    state.persistedPhoto = persistedPhoto;
+    syncPhotoElements();
+    return preparedFile;
+  }
+
+  if (!state.simulatedMealId) {
+    revokePhotoUrl();
     state.photoFile = null;
     state.photoSrc = "assets/prato.png";
     state.persistedPhoto = "assets/prato.png";
+    state.photoFilename = "prato.png";
+    syncPhotoElements();
   }
-  syncPhotoElements();
+  return null;
 }
+
+function stopLiveCamera() {
+  if (cameraStream) realCaptureService?.stopCamera?.(cameraStream);
+  cameraStream = null;
+  if (cameraVideo) {
+    cameraVideo.pause?.();
+    cameraVideo.srcObject = null;
+    cameraVideo.hidden = true;
+  }
+  cameraShell.dataset.cameraSource = "none";
+}
+
 function resetCameraUi() {
   if (cameraCaptureTimerId) {
     window.clearTimeout(cameraCaptureTimerId);
@@ -419,6 +490,8 @@ function resetCameraUi() {
 }
 
 function closeCamera() {
+  cameraOperationId += 1;
+  stopLiveCamera();
   resetCameraUi();
   cameraStatus.textContent = isChildModeActive() ? "Coloque o prato no centro" : "Posicione o prato no centro";
   setView("sheet");
@@ -433,14 +506,14 @@ function renderGalleryPage() {
   galleryGrid.innerHTML = visibleMeals.map((meal) => `
     <button class="gallery-item" type="button" role="listitem" data-meal-id="${escapeHtml(meal.id)}" aria-label="${escapeHtml(meal.title)}">
       <img src="${escapeHtml(meal.imageUrl)}" alt="${escapeHtml(meal.title)}" loading="eager" />
-      <span class="gallery-item__fallback">NÃ£o foi possÃ­vel carregar.<br />Toque para tentar novamente.</span>
+      <span class="gallery-item__fallback">Não foi possível carregar.<br />Toque para tentar novamente.</span>
     </button>
   `).join("");
 
   galleryPrevBtn.disabled = galleryPage === 0;
   galleryNextBtn.disabled = galleryPage >= totalPages - 1;
   galleryPagination.innerHTML = Array.from({ length: totalPages }, (_, index) => `
-    <span class="gallery-pagination__dot${index === galleryPage ? " is-active" : ""}" aria-label="PÃ¡gina ${index + 1} de ${totalPages}"></span>
+    <span class="gallery-pagination__dot${index === galleryPage ? " is-active" : ""}" aria-label="Página ${index + 1} de ${totalPages}"></span>
   `).join("");
 }
 
@@ -458,7 +531,10 @@ function renderGallery() {
   renderGalleryPage();
   galleryRendered = true;
 }
+
 function openGallery() {
+  cameraOperationId += 1;
+  stopLiveCamera();
   resetCameraUi();
   if (!galleryRendered) renderGallery();
   const subtitle = document.querySelector(".screen--gallery .capture-header p");
@@ -466,15 +542,30 @@ function openGallery() {
   setView("gallery");
 }
 
-function showCapturePreview(meal, source) {
+async function showCapturePreview(meal, source) {
   const selected = meal || captureService?.getSimulatedMealById?.(null);
   if (!selected) return;
   state.simulatedMealId = selected.id;
   state.simulatedFilename = selected.filename;
-  state.captureSource = source || selected.captureSource || "gallery_simulated";
+  state.captureSource = source || selected.captureSource || "gallery_demo";
   state.analysis = null;
   state.detectedFoods = [];
-  setPhoto(selected.imageUrl);
+  realPhotoNotice.hidden = true;
+  await setPhoto(selected.imageUrl, { filename: selected.filename });
+  capturePreviewCard.hidden = false;
+  previewActions.hidden = false;
+  imageErrorCard.hidden = true;
+  setView("preview");
+}
+
+async function showRealCapturePreview(file, source, options = {}) {
+  state.simulatedMealId = null;
+  state.simulatedFilename = null;
+  state.captureSource = source;
+  state.analysis = null;
+  state.detectedFoods = [];
+  realPhotoNotice.hidden = false;
+  await setPhoto(file, { prepared: Boolean(options.prepared) });
   capturePreviewCard.hidden = false;
   previewActions.hidden = false;
   imageErrorCard.hidden = true;
@@ -484,12 +575,14 @@ function showCapturePreview(meal, source) {
 function showPreviewImageError() {
   if (app.dataset.view !== "preview") return;
   capturePreviewCard.hidden = true;
+  realPhotoNotice.hidden = true;
   previewActions.hidden = true;
   imageErrorCard.hidden = false;
 }
 
 function restorePreviewImage() {
   capturePreviewCard.hidden = false;
+  realPhotoNotice.hidden = !state.photoFile;
   previewActions.hidden = false;
   imageErrorCard.hidden = true;
 }
@@ -501,8 +594,42 @@ function retryPreviewImage() {
 }
 
 function returnToCaptureSource() {
-  if (state.captureSource === "camera_simulated") openCamera();
+  cancelActiveAnalysis();
+  if (["camera_real", "camera_file"].includes(state.captureSource)) openCamera();
   else openGallery();
+}
+async function handleRealImageSelection(input, source) {
+  const file = input?.files?.[0];
+  if (input) input.value = "";
+  if (!file) return;
+
+  const isCameraFallback = source === "camera_file";
+  const trigger = isCameraFallback ? captureBtn : deviceGalleryBtn;
+  if (trigger) trigger.disabled = true;
+  if (isCameraFallback) {
+    cameraOperationId += 1;
+    stopLiveCamera();
+    cameraShell.classList.add("is-capturing");
+    setCameraMessage("Preparando foto...");
+  } else {
+    polish?.showToast("Preparando foto...");
+  }
+
+  try {
+    await showRealCapturePreview(file, source);
+  } catch (error) {
+    polish?.showToast(error?.message || "Não foi possível preparar esta foto.");
+    if (isCameraFallback) {
+      cameraShell.classList.remove("is-capturing");
+      cameraShell.dataset.cameraState = "error";
+      setView("camera");
+      setCameraMessage(error?.message || "Não foi possível preparar esta foto.");
+    } else {
+      setView("gallery");
+    }
+  } finally {
+    if (trigger) trigger.disabled = false;
+  }
 }
 function openSheet() {
   setView("sheet");
@@ -760,10 +887,12 @@ function renderFoodList() {
     unknownFoodCard.innerHTML = "";
     unknownFoodCard.hidden = true;
   }
+  confirmAnalysisBtn.disabled = state.foods.length === 0;
 }
 function renderConfirmation() {
   confirmPreview.src = state.photoSrc;
   renderFoodList();
+  confirmAnalysisBtn.disabled = state.foods.length === 0;
   renderHiddenFats();
   calculateResult();
   renderLearningSuggestion();
@@ -778,13 +907,14 @@ function renderConfirmation() {
     ? "Esta análise possui baixa confiança. Recomendamos fotografar novamente."
     : state.analysis.confidence < 85
       ? "A precisão pode ser reduzida devido às condições da foto."
-      : "Confiança alta para uma simulação realista.";
-
+      : state.analysis.isSimulated
+        ? "Confiança alta no exemplo demonstrativo."
+        : "Boa confiança visual. Revise os alimentos antes do cálculo.";
   const shouldShowQualityAlert = state.analysis.confidence < 70;
   qualityAlert.hidden = !shouldShowQualityAlert;
   qualityAlert.innerHTML = shouldShowQualityAlert ? `
     <h3>Revise a foto</h3>
-    <p>${state.analysis.photoQuality}</p>
+    <p>${escapeHtml(state.analysis.photoQuality?.label || state.analysis.photoQuality || "Qualidade não informada")}</p>
     <small>Confira os alimentos antes de calcular.</small>
   ` : "";
   if (state.analysis.packaging) {
@@ -934,7 +1064,7 @@ function buildMealRecord() {
     providerLabel: state.result?.providerLabel || state.analysis?.providerLabel || "MockVision",
     isSimulated: state.result?.isSimulated !== false,
     mealId: state.simulatedMealId || state.analysis?.mealId || null,
-    filename: state.simulatedFilename || state.analysis?.filename || null,
+    filename: state.simulatedFilename || state.photoFilename || state.analysis?.filename || null,
     captureSource: state.captureSource || null,
     name: state.analysis?.mealName || state.foods.slice(0, 3).map((food) => food.name).join(", ") || "Refeição analisada",
     category: state.analysis?.category || null,
@@ -1013,42 +1143,76 @@ function finalizeAnalysis() {
   polish?.showToast("Histórico atualizado");
 }
 
+function applyAnalysis(analysis) {
+  if (!analysis || typeof analysis !== "object") {
+    throw new Error("O serviço retornou uma análise inválida.");
+  }
+  const confidence = Number(analysis.confidence);
+  state.analysis = {
+    ...analysis,
+    confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(100, Math.round(confidence))) : 50
+  };
+  state.detectedFoods = cloneFoods(Array.isArray(state.analysis.foods) ? state.analysis.foods : []);
+  state.foods = cloneFoods(state.detectedFoods);
+  state.unknownFood = state.analysis.unknownFood ? { ...state.analysis.unknownFood } : null;
+  state.hiddenSelections = (Array.isArray(state.analysis.hiddenFats) ? state.analysis.hiddenFats : [])
+    .map((item) => ({ ...item }));
+  sessionStorage.removeItem("pancreaiSelectedDose");
+}
+
 function simulateAnalysis() {
   const simulation = simulator.simulateAnalysis(state.simulatedMealId);
   simulation.captureSource = state.captureSource;
-  state.analysis = simulation;
-  state.detectedFoods = cloneFoods(simulation.foods);
-  state.foods = cloneFoods(simulation.foods);
-  state.unknownFood = simulation.unknownFood ? { ...simulation.unknownFood } : null;
-  state.hiddenSelections = simulation.hiddenFats.map((item) => ({ ...item }));
-  sessionStorage.removeItem("pancreaiSelectedDose");
-}
-function showAnalysisError() {
-  analysisTitle.textContent = "N\u00e3o foi poss\u00edvel analisar esta imagem.";
-  analysisMessage.textContent = "Tente novamente.";
-  progressFill.style.width = "0%";
-  analysisErrorActions.hidden = false;
+  applyAnalysis(simulation);
 }
 
-function startAnalysis(file, options = {}) {
+function showAnalysisError(error) {
+  const message = error?.message || "Tente novamente ou volte para escolher outra foto.";
+  analysisTitle.textContent = "Não foi possível analisar esta imagem.";
+  analysisMessage.textContent = message;
+  progressFill.style.width = "0%";
+  analysisErrorActions.hidden = false;
+  analysisDemoBtn.hidden = !(simulator?.simulateAnalysis && captureService?.getSimulatedMealById);
+  analysisSourceNote.hidden = analysisDemoBtn.hidden;
+  analysisSourceNote.textContent = analysisDemoBtn.hidden
+    ? ""
+    : translate("analysis.demoSourceNote");
+}
+
+async function startDemoFallback() {
+  const fallback = captureService?.getSimulatedMealById?.(state.simulatedMealId || null);
+  if (!fallback) return;
+  await showCapturePreview(fallback, "demo_fallback");
+  await startAnalysis(null, { preserveCounters: true, useDemoFallback: true });
+}
+
+async function startAnalysis(file, options = {}) {
   const preserveCounters = Boolean(options.preserveCounters);
+  const useDemoFallback = Boolean(options.useDemoFallback);
   if (!core.isSetupComplete()) {
     localStorage.setItem("pancreaiReturnTo", "home.html");
     window.location.href = "configuracao.html";
     return;
   }
 
-  if (file) setPhoto(file);
-  if (!state.simulatedMealId && captureService?.getSimulatedMealById) {
-    const fallback = captureService.getSimulatedMealById(null);
-    state.simulatedMealId = fallback.id;
-    state.simulatedFilename = fallback.filename;
-    state.captureSource = state.captureSource || "gallery_simulated";
-    setPhoto(fallback.imageUrl);
-  } else {
-    syncPhotoElements();
+  try {
+    if (file) await setPhoto(file);
+  } catch (error) {
+    setView("analyzing");
+    showAnalysisError(error);
+    return;
   }
 
+  if (!state.photoFile && !state.photoSrc) {
+    setView("analyzing");
+    showAnalysisError(new Error("Escolha uma foto antes de iniciar a análise."));
+    return;
+  }
+
+  analysisAbortController?.abort();
+  const controller = new AbortController();
+  analysisAbortController = controller;
+  const requestId = ++analysisRequestId;
   state.patient = core.getPatient();
   state.analysis = null;
   state.detectedFoods = [];
@@ -1062,72 +1226,144 @@ function startAnalysis(file, options = {}) {
     state.addedItems = [];
     state.removedItems = [];
   }
+
   setView("analyzing");
   clearAnalysisTimer();
   analysisErrorActions.hidden = true;
+  analysisDemoBtn.hidden = true;
+  analysisSourceNote.hidden = true;
 
   const quickChildFlow = isChildModeActive();
-  const steps = [
+  const steps = useDemoFallback ? [
+    "Preparando demonstração...",
+    "Carregando exemplo...",
+    "Preparando revisão..."
+  ] : [
     "Analisando imagem...",
     "Identificando alimentos...",
-    "Estimando por\u00e7\u00f5es...",
-    "Conferindo poss\u00edveis ingredientes...",
-    "Preparando revis\u00e3o..."
+    "Estimando porções...",
+    "Conferindo possíveis ingredientes...",
+    "Preparando revisão..."
   ];
-  let progress = 0;
+  let progress = 8;
   let stepIndex = 0;
   analysisTitle.textContent = steps[0];
-  analysisMessage.textContent = steps[1];
-  progressFill.style.width = "0%";
+  analysisMessage.textContent = steps[Math.min(1, steps.length - 1)];
+  progressFill.style.width = `${progress}%`;
 
   const tick = () => {
-    if (app.dataset.view !== "analyzing") return;
-    progress = Math.min(progress + 15 + Math.random() * 14, 96);
+    if (requestId !== analysisRequestId || app.dataset.view !== "analyzing") return;
+    progress = Math.min(progress + 7 + Math.random() * 9, 92);
     stepIndex = Math.min(stepIndex + 1, steps.length - 1);
     setAnalysisMessage(steps[stepIndex]);
     progressFill.style.width = `${progress}%`;
-    if (progress < 96) window.setTimeout(tick, quickChildFlow ? 220 : 440 + Math.random() * 260);
-  };
-  tick();
-
-  analysisTimerId = window.setTimeout(() => {
-    try {
-      simulateAnalysis();
-      progressFill.style.width = "100%";
-      renderConfirmation();
-      setView("confirm");
-    } catch (error) {
-      showAnalysisError();
-    } finally {
-      analysisTimerId = null;
+    if (progress < 92) {
+      analysisTimerId = window.setTimeout(tick, quickChildFlow ? 320 : 520 + Math.random() * 220);
     }
-  }, quickChildFlow ? 1100 : 2400 + Math.random() * 1200);
+  };
+  analysisTimerId = window.setTimeout(tick, quickChildFlow ? 220 : 360);
+
+  try {
+    let analysis;
+    if (useDemoFallback) {
+      await new Promise((resolve) => window.setTimeout(resolve, quickChildFlow ? 320 : 620));
+      if (requestId !== analysisRequestId) return;
+      analysis = simulator.simulateAnalysis(state.simulatedMealId);
+      analysis.captureSource = state.captureSource;
+      analysis.fallbackReason = "explicit-demo";
+    } else {
+      if (!realRecognitionProvider?.isAvailable?.()) {
+        throw new Error("O serviço de análise por IA não está disponível neste navegador.");
+      }
+      const imageReference = state.photoFile || {
+        url: state.photoSrc,
+        filename: state.photoFilename || state.simulatedFilename || "refeicao.jpg"
+      };
+      analysis = await realRecognitionProvider.analyze(imageReference, {
+        locale: i18n?.getCurrentLanguage?.() || document.documentElement.lang || "pt-BR",
+        credentials: "omit",
+        signal: controller.signal
+      });
+    }
+
+    if (requestId !== analysisRequestId) return;
+    clearAnalysisTimer();
+    applyAnalysis(analysis);
+    progressFill.style.width = "100%";
+    renderConfirmation();
+    setView("confirm");
+  } catch (error) {
+    if (requestId !== analysisRequestId) return;
+    clearAnalysisTimer();
+    showAnalysisError(error);
+  } finally {
+    if (requestId === analysisRequestId) analysisAbortController = null;
+  }
 }
-function openCamera() {
+
+async function openCamera() {
+  const operationId = ++cameraOperationId;
+  stopLiveCamera();
   resetCameraUi();
   setView("camera");
-  cameraStatus.textContent = isChildModeActive() ? "Coloque o prato no centro" : "Posicione o prato no centro";
-}
-function captureFromCamera() {
-  if (captureBtn.disabled) return;
-  const meal = captureService?.startSimulatedCameraCapture?.();
-  if (!meal) {
-    setCameraMessage("N\u00e3o foi poss\u00edvel capturar. Tente novamente.");
+  cameraStatus.textContent = "Iniciando câmera...";
+
+  if (!realCaptureService?.startCamera || !cameraVideo) {
+    cameraShell.dataset.cameraState = "error";
+    setCameraMessage("Câmera indisponível. Toque no botão central para usar a câmera do dispositivo.");
     return;
   }
+
+  try {
+    const stream = await realCaptureService.startCamera();
+    if (operationId !== cameraOperationId || app.dataset.view !== "camera") {
+      realCaptureService.stopCamera(stream);
+      return;
+    }
+    cameraStream = stream;
+    cameraVideo.srcObject = stream;
+    cameraVideo.hidden = false;
+    cameraShell.dataset.cameraSource = "real";
+    await cameraVideo.play();
+    if (operationId !== cameraOperationId) return;
+    cameraShell.dataset.cameraState = "ready";
+    setCameraMessage(isChildModeActive() ? "Coloque o prato no centro" : "Posicione o prato no centro");
+  } catch (error) {
+    if (operationId !== cameraOperationId) return;
+    stopLiveCamera();
+    cameraShell.dataset.cameraState = "error";
+    setCameraMessage(`${error?.message || "Câmera indisponível."} Toque no botão central para escolher uma foto.`);
+  }
+}
+
+async function captureFromCamera() {
+  if (captureBtn.disabled) return;
+  if (!cameraStream || !cameraVideo || cameraVideo.readyState < 2) {
+    cameraFileInput.value = "";
+    cameraFileInput.click();
+    return;
+  }
+
+  const operationId = ++cameraOperationId;
   captureBtn.disabled = true;
   cameraShell.classList.add("is-capturing", "has-captured-image");
   cameraShell.dataset.cameraState = "capturing";
   polish?.triggerSoftHaptic();
   setCameraMessage("Capturando...");
-  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const quickChildFlow = isChildModeActive();
-  cameraCaptureTimerId = window.setTimeout(() => {
-    cameraCaptureTimerId = null;
-    cameraShell.classList.remove("is-capturing");
+
+  try {
+    const capturedFile = await realCaptureService.captureVideoFrame(cameraVideo);
+    if (operationId !== cameraOperationId) return;
+    await showRealCapturePreview(capturedFile, "camera_real");
+    if (operationId !== cameraOperationId) return;
+    stopLiveCamera();
+  } catch (error) {
+    if (operationId !== cameraOperationId) return;
+    cameraShell.classList.remove("is-capturing", "has-captured-image");
+    cameraShell.dataset.cameraState = "ready";
     captureBtn.disabled = false;
-    showCapturePreview(meal, "camera_simulated");
-  }, reducedMotion ? 120 : quickChildFlow ? 420 : 1150);
+    setCameraMessage(error?.message || "Não foi possível capturar. Tente novamente.");
+  }
 }
 function openPortionModal(index) {
   const food = state.foods[index];
@@ -1277,15 +1513,22 @@ function restoreDraftResult() {
   state.detectedFoods = cloneFoods(draft.detectedFoods || draft.foods || []);
   state.foods = cloneFoods(draft.reviewedFoods || draft.foods || []);
   state.hiddenSelections = (draft.hiddenSelections || draft.hiddenIngredientsAdded || []).map((item) => ({ ...item }));
+  const draftPhotoQuality = draft.photoQuality || "Foto boa";
+  const draftQualityLevel = typeof draftPhotoQuality === "object"
+    ? String(draftPhotoQuality.level || "").toLowerCase()
+    : "";
+  const draftQualityLabel = typeof draftPhotoQuality === "object"
+    ? draftPhotoQuality.label
+    : draftPhotoQuality;
   state.analysis = {
     mealId: draft.mealId || null,
     filename: draft.filename || null,
     mealName: draft.name || "Refei\u00e7\u00e3o analisada",
     category: draft.category || null,
     confidence: draft.confidence || 85,
-    photoQuality: draft.photoQuality || "Foto boa",
+    photoQuality: draftPhotoQuality,
     packaging: draft.packaging || null,
-    qualityWarning: draft.photoQuality && !["Foto excelente", "Foto boa"].includes(draft.photoQuality),
+    qualityWarning: draftQualityLevel ? ["medium", "low", "poor", "bad"].includes(draftQualityLevel) : !["Foto excelente", "Foto boa"].includes(draftQualityLabel),
     specialResult: draft.specialResult || draft.finalResult?.specialResult || null
   };
   state.reanalyses = draft.reanalyses || 0;
@@ -1325,6 +1568,12 @@ cameraBtn.addEventListener("click", () => {
   openCamera();
 });
 galleryBtn.addEventListener("click", openGallery);
+deviceGalleryBtn.addEventListener("click", () => {
+  galleryFileInput.value = "";
+  galleryFileInput.click();
+});
+galleryFileInput.addEventListener("change", () => handleRealImageSelection(galleryFileInput, "gallery_upload"));
+cameraFileInput.addEventListener("change", () => handleRealImageSelection(cameraFileInput, "camera_file"));
 cameraCloseBtn.addEventListener("click", closeCamera);
 cameraCancelBtn.addEventListener("click", closeCamera);
 cameraSwitchBtn.addEventListener("click", openGallery);
@@ -1340,6 +1589,7 @@ usePhotoBtn.addEventListener("click", () => startAnalysis());
 capturePreview.addEventListener("error", showPreviewImageError);
 capturePreview.addEventListener("load", restorePreviewImage);
 analysisRetryBtn.addEventListener("click", () => startAnalysis(null, { preserveCounters: true }));
+analysisDemoBtn.addEventListener("click", startDemoFallback);
 analysisBackBtn.addEventListener("click", returnToCaptureSource);
 
 galleryGrid.addEventListener("error", (event) => {
@@ -1362,7 +1612,7 @@ galleryGrid.addEventListener("click", (event) => {
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   window.setTimeout(() => {
     item.classList.remove("is-selecting");
-    showCapturePreview(meal, "gallery_simulated");
+    void showCapturePreview(meal, "gallery_demo");
   }, reducedMotion ? 20 : 160);
 });
 confirmFoodList.addEventListener("click", (event) => {
@@ -1503,7 +1753,8 @@ profileBtn.addEventListener("click", () => {
 });
 
 window.addEventListener("beforeunload", () => {
-  clearAnalysisTimer();
+  cancelActiveAnalysis();
+  stopLiveCamera();
   revokePhotoUrl();
   if (cameraCaptureTimerId) window.clearTimeout(cameraCaptureTimerId);
 });

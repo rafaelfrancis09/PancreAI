@@ -1555,26 +1555,26 @@
     "Die erste Erkennung schlägt nur Lebensmittel vor. Die Berechnung erfolgt erst, nachdem Portionen geprüft, Fehler entfernt, Elemente ergänzt und versteckte Zutaten bestätigt wurden.",
     "L’identificazione iniziale suggerisce solo alimenti. Il calcolo avviene solo dopo che l’utente controlla le porzioni, rimuove errori, aggiunge elementi e conferma ingredienti nascosti."
   ],
-  "A IA futura entra em um ponto específico": [
-    "Future AI enters at one specific point",
-    "La IA futura entra en un punto específico",
-    "La future IA intervient à un point précis",
-    "Die zukünftige KI greift an einer klaren Stelle ein",
-    "La futura IA entra in un punto specifico"
+  "A IA sugere, não decide": [
+    "AI suggests; it does not decide",
+    "La IA sugiere; no decide",
+    "L’IA suggère ; elle ne décide pas",
+    "Die KI macht Vorschläge; sie entscheidet nicht",
+    "L’IA suggerisce; non decide"
   ],
-  "O reconhecimento visual foi separado do cálculo, da segurança e do histórico. No futuro, o MockVision poderá ser substituído por um provider real sem reconstruir o aplicativo.": [
-    "Visual recognition was separated from calculation, safety, and history. In the future, MockVision can be replaced by a real provider without rebuilding the app.",
-    "El reconocimiento visual se separó del cálculo, la seguridad y el historial. En el futuro, MockVision podrá sustituirse por un proveedor real sin reconstruir la app.",
-    "La reconnaissance visuelle a été séparée du calcul, de la sécurité et de l’historique. À l’avenir, MockVision pourra être remplacé par un fournisseur réel sans reconstruire l’application.",
-    "Die visuelle Erkennung wurde von Berechnung, Sicherheit und Verlauf getrennt. Künftig kann MockVision durch einen echten Anbieter ersetzt werden, ohne die App neu aufzubauen.",
-    "Il riconoscimento visivo è stato separato da calcolo, sicurezza e cronologia. In futuro MockVision potrà essere sostituito da un provider reale senza ricostruire l’app."
+  "O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e torna a revisão visível.": [
+    "Visual recognition does not control the nutrition database, prescription, or calculation. This separation reduces the impact of an incorrect suggestion and makes review visible.",
+    "El reconocimiento visual no controla la base nutricional, la prescripción ni el cálculo. Esta separación reduce el impacto de una sugerencia incorrecta y hace visible la revisión.",
+    "La reconnaissance visuelle ne contrôle ni la base nutritionnelle, ni la prescription, ni le calcul. Cette séparation réduit l’impact d’une suggestion incorrecte et rend la vérification visible.",
+    "Die visuelle Erkennung steuert weder die Nährwertdatenbank noch die Verordnung oder die Berechnung. Diese Trennung verringert die Auswirkungen eines falschen Vorschlags und macht die Prüfung sichtbar.",
+    "Il riconoscimento visivo non controlla il database nutrizionale, la prescrizione o il calcolo. Questa separazione riduce l’impatto di un suggerimento errato e rende visibile la revisione."
   ],
-  "Fronteira do mock": [
-    "Mock boundary",
-    "Límite del mock",
-    "Frontière du mock",
-    "Mock-Grenze",
-    "Confine del mock"
+  "Responsabilidades separadas": [
+    "Separate responsibilities",
+    "Responsabilidades separadas",
+    "Responsabilités séparées",
+    "Getrennte Verantwortlichkeiten",
+    "Responsabilità separate"
   ],
   "O limite da simulação é claro": [
     "The simulation boundary is clear",
@@ -1730,12 +1730,12 @@
     "Stimmige Mahlzeiten statt Zufallsauswahl",
     "Pasti coerenti, non scelte casuali"
   ],
-  "A simulação não mistura alimentos sem relação. O MockVision seleciona uma refeição completa do banco e varia apenas as porções dentro de intervalos realistas.": [
-    "The simulation does not mix unrelated foods. MockVision selects a complete meal from the database and only varies portions within realistic ranges.",
-    "La simulación no mezcla alimentos sin relación. MockVision selecciona una comida completa de la base y solo varía las porciones dentro de rangos realistas.",
-    "La simulation ne mélange pas des aliments sans rapport. MockVision sélectionne un repas complet dans la base et ne varie que les portions dans des plages réalistes.",
-    "Die Simulation mischt keine unpassenden Lebensmittel. MockVision wählt eine vollständige Mahlzeit aus der Datenbank und variiert nur die Portionen in realistischen Bereichen.",
-    "La simulazione non mescola alimenti senza relazione. MockVision seleziona un pasto completo dal database e varia solo le porzioni entro intervalli realistici."
+  "Se o serviço externo estiver indisponível, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.": [
+    "If the external service is unavailable, the app shows an error. Prepared cases are used only when demo mode is explicitly selected.",
+    "Si el servicio externo no está disponible, la app muestra un error. Los casos preparados solo se usan cuando se elige explícitamente el modo demostración.",
+    "Si le service externe est indisponible, l’app affiche une erreur. Les cas préparés ne sont utilisés que lorsque le mode démonstration est choisi explicitement.",
+    "Wenn der externe Dienst nicht verfügbar ist, zeigt die App einen Fehler an. Vorbereitete Fälle werden nur verwendet, wenn der Demomodus ausdrücklich gewählt wird.",
+    "Se il servizio esterno non è disponibile, l’app mostra un errore. I casi preparati vengono usati solo quando si sceglie esplicitamente la modalità dimostrativa."
   ],
   "Almoço brasileiro": [
     "Brazilian lunch",
@@ -2036,12 +2036,12 @@
     "Verlauf",
     "Cronologia"
   ],
-  "Reconhecer alimentos por imagem exige um modelo treinado, validação e testes. Nesta fase, o reconhecimento foi isolado em um provider simulado chamado MockVisionProvider. Isso permite construir e testar o produto completo ao redor da IA antes de substituir esse módulo por um provedor real.": [
-    "Recognizing foods from images requires a trained model, validation, and testing. At this stage, recognition was isolated in a simulated provider called MockVisionProvider. This makes it possible to build and test the full product around AI before replacing that module with a real provider.",
-    "Reconocer alimentos por imagen requiere un modelo entrenado, validación y pruebas. En esta etapa, el reconocimiento fue aislado en un proveedor simulado llamado MockVisionProvider. Esto permite construir y probar el producto completo alrededor de la IA antes de reemplazar ese módulo por un proveedor real.",
-    "Reconnaître des aliments par image exige un modèle entraîné, une validation et des tests. À ce stade, la reconnaissance a été isolée dans un fournisseur simulé appelé MockVisionProvider. Cela permet de construire et tester le produit complet autour de l’IA avant de remplacer ce module par un fournisseur réel.",
-    "Lebensmittel per Bild zu erkennen erfordert ein trainiertes Modell, Validierung und Tests. In dieser Phase wurde die Erkennung in einem simulierten Provider namens MockVisionProvider isoliert. So kann das vollständige Produkt rund um die KI gebaut und getestet werden, bevor dieses Modul durch einen echten Provider ersetzt wird.",
-    "Riconoscere alimenti da un’immagine richiede un modello addestrato, validazione e test. In questa fase, il riconoscimento è stato isolato in un provider simulato chiamato MockVisionProvider. Questo permette di costruire e testare il prodotto completo attorno all’IA prima di sostituire quel modulo con un provider reale."
+  "A câmera e a galeria recebem fotos reais. A imagem preparada é enviada por um backend protegido a um modelo OpenAI com visão, que sugere alimentos e porções.": [
+    "The camera and gallery receive real photos. The prepared image is sent through a protected backend to an OpenAI vision model, which suggests foods and portions.",
+    "La cámara y la galería reciben fotos reales. La imagen preparada se envía mediante un backend protegido a un modelo OpenAI con visión, que sugiere alimentos y porciones.",
+    "L’appareil photo et la galerie reçoivent de vraies photos. L’image préparée est envoyée via un backend protégé à un modèle OpenAI doté de vision, qui suggère des aliments et des portions.",
+    "Kamera und Galerie verwenden echte Fotos. Das vorbereitete Bild wird über ein geschütztes Backend an ein OpenAI-Modell mit Bildverarbeitung gesendet, das Lebensmittel und Portionen vorschlägt.",
+    "La fotocamera e la galleria ricevono foto reali. L’immagine preparata viene inviata tramite un backend protetto a un modello OpenAI con capacità visive, che suggerisce alimenti e porzioni."
   ],
   "O app não usa calorias como base principal. Ele soma a gordura dos alimentos confirmados, aplica a dose prescrita em U/g de gordura e converte a lipase necessária em cápsulas de Creon.": [
     "The app does not use calories as the main basis. It adds the fat from confirmed foods, applies the prescribed dose in U/g of fat, and converts the required lipase into Creon capsules.",
@@ -2071,12 +2071,12 @@
     "Der Verlauf speichert bestätigte Lebensmittel, Portionen, Gesamtfett, Lipase, Kapseln, Fotoqualität, Zuverlässigkeit, hinzugefügte Zutaten, Änderungen und den verwendeten Provider. Die Daten werden während dieser Demo lokal im Browser gespeichert.",
     "La cronologia registra alimenti confermati, porzioni, grassi totali, lipasi, capsule, qualità della foto, affidabilità, ingredienti aggiunti, modifiche effettuate e provider utilizzato. I dati vengono salvati localmente nel browser durante questa demo."
   ],
-  "A troca futura acontece apenas no provider de reconhecimento. O restante do fluxo não depende de a entrada vir de uma simulação ou de um modelo real de visão computacional.": [
-    "The future replacement happens only in the recognition provider. The rest of the flow does not depend on whether the input comes from a simulation or a real computer vision model.",
-    "El cambio futuro ocurre solo en el proveedor de reconocimiento. El resto del flujo no depende de si la entrada viene de una simulación o de un modelo real de visión computacional.",
-    "Le remplacement futur se fait uniquement dans le fournisseur de reconnaissance. Le reste du flux ne dépend pas du fait que l’entrée vienne d’une simulation ou d’un vrai modèle de vision par ordinateur.",
-    "Der zukünftige Austausch erfolgt nur im Erkennungs-Provider. Der restliche Ablauf hängt nicht davon ab, ob die Eingabe aus einer Simulation oder einem echten Computer-Vision-Modell stammt.",
-    "La sostituzione futura avviene solo nel provider di riconoscimento. Il resto del flusso non dipende dal fatto che l’input arrivi da una simulazione o da un modello reale di visione artificiale."
+  "A IA sugere nomes e porções; o banco local fornece nutrientes; o modo demonstrativo mantém casos preparados separados do fluxo real.": [
+    "AI suggests names and portions; the local database provides nutrients; demo mode keeps prepared cases separate from the real flow.",
+    "La IA sugiere nombres y porciones; la base local proporciona nutrientes; el modo demostración mantiene los casos preparados separados del flujo real.",
+    "L’IA suggère des noms et des portions ; la base locale fournit les nutriments ; le mode démonstration maintient les cas préparés séparés du flux réel.",
+    "Die KI schlägt Namen und Portionen vor; die lokale Datenbank liefert Nährwerte; der Demomodus hält vorbereitete Fälle vom realen Ablauf getrennt.",
+    "L’IA suggerisce nomi e porzioni; il database locale fornisce i nutrienti; la modalità dimostrativa mantiene i casi preparati separati dal flusso reale."
   ],
   "O PancreAI não tenta esconder que a IA ainda não foi implementada. Ele mostra exatamente onde ela entrará, quais partes já funcionam e por que o projeto foi pensado para evoluir.": [
     "PancreAI does not try to hide that AI has not been implemented yet. It shows exactly where it will enter, which parts already work, and why the project was designed to evolve.",
