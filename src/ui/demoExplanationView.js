@@ -1,72 +1,70 @@
 (function () {
   const architecture = window.PancreAIArchitecture || {};
   const nutritionCount = window.PancreAIData?.nutritionDatabase?.foods?.length || 0;
-  const structuredMealCount = window.PancreAIData?.mealDatabase?.meals?.length || 0;
-  const demoCount = window.PancreAIServices?.simulatedCaptureService?.getSimulatedMealImages?.().length || 0;
 
   const overviewCards = [
     {
       icon: "camera",
       title: "Câmera e galeria usam fotos reais",
-      text: "Com a permissão do usuário, o navegador captura uma foto pela câmera ou abre uma imagem da galeria. Antes da análise, o app valida, redimensiona e prepara o arquivo no próprio navegador."
+      text: "Com a permissão do usuário, o navegador captura uma foto ou abre uma imagem da galeria. O app valida, redimensiona e comprime o arquivo antes do envio."
     },
     {
       icon: "food",
-      title: "A IA sugere, não decide",
-      text: "Uma rede Food-101 executada no navegador sugere categorias de alimentos, porções aproximadas e qualidade da foto. Essas sugestões podem estar erradas e precisam ser revisadas antes do cálculo."
+      title: "O Gemini faz a análise visual",
+      text: "A foto é enviada pelo backend ao Gemini 2.5 Flash, que reconhece alimentos e estima porções visuais. A IA pode errar, por isso cada sugestão precisa ser revisada."
     },
     {
       icon: "db",
       title: "Os nutrientes vêm do banco local",
-      text: "A resposta da IA é relacionada ao catálogo do PancreAI. Gordura, proteína, carboidratos e calorias vêm somente desse banco; itens sem correspondência permanecem desconhecidos."
+      text: "A resposta da IA é relacionada ao catálogo do PancreAI. Gordura, proteína, carboidratos e calorias vêm somente do banco local e das quantidades confirmadas."
     },
     {
       icon: "security",
       title: "O cálculo é separado da IA",
-      text: "Depois da revisão obrigatória, regras determinísticas somam a gordura, aplicam os dados de tratamento cadastrados e geram avisos. A IA não escolhe nem altera a dose."
+      text: "Depois da revisão obrigatória, regras locais somam a gordura, aplicam os dados de tratamento cadastrados e geram avisos. A IA não escolhe nem altera a dose."
     }
   ];
 
   const aiItems = [
-    "Foto analisada localmente, sem envio a um serviço de IA",
-    "Sugestão inicial de alimentos e porções",
-    "Confiança e qualidade estimadas para a foto",
-    "Primeiro uso baixa o modelo; os próximos aproveitam o cache do navegador",
-    "Possibilidade de omissões e identificações incorretas"
+    "Reconhecimento visual de alimentos na foto",
+    "Estimativa visual de porções aproximadas",
+    "Indicação de confiança e qualidade da imagem",
+    "Possibilidade de omissões e identificações incorretas",
+    "Nenhum nutriente, medicamento ou dose fornecido pela IA é usado no cálculo"
   ];
 
   const localItems = [
-    "Preparação e compressão da foto no navegador",
+    "Validação e compressão da foto no navegador",
     "Correspondência com o banco nutricional local",
     "Revisão manual obrigatória dos alimentos e porções",
     "Ingredientes ocultos e ajuste de quantidade",
     "Cálculo determinístico de gordura, lipase e unidades",
-    "Avisos, favoritos, lembretes e histórico local"
+    "Tratamento, preferências, favoritos e histórico salvos localmente"
   ];
 
   const dataSources = [
     {
-      title: "Análise visual local",
-      badge: "no navegador",
-      items: ["Nenhuma chave de API ou conta é necessária", "A rede local devolve apenas sugestões visuais", "Nenhum nutriente retornado pela IA é usado no cálculo"]
+      title: "Análise visual com Gemini",
+      badge: "via backend",
+      items: ["A chave da API fica somente no servidor", "A foto é enviada ao serviço Gemini para análise", "A resposta contém apenas sugestões visuais para revisão"]
     },
     {
       title: "Banco nutricional local",
-      badge: `${nutritionCount} alimentos`,
+      badge: String(nutritionCount),
       items: ["Fonte dos nutrientes usados no cálculo", "Valores recalculados pela quantidade confirmada", "Pesquisa para adicionar ou substituir alimentos"]
     },
     {
-      title: "Modo demonstrativo explícito",
-      badge: `${demoCount} casos`,
-      items: ["Usa imagens e análises preparadas", "Só é ativado quando o usuário escolhe a demonstração", `O banco estruturado mantém ${structuredMealCount} combinações para testes`]
+      title: "Dados no dispositivo",
+      badge: "armazenamento local",
+      items: ["Tratamento e preferências permanecem no navegador", "Histórico e favoritos ficam no dispositivo", "A chave do Gemini nunca é incluída no código da página"]
     }
   ];
 
   const appFlow = [
-    "Câmera ou galeria real",
-    "Imagem preparada",
-    "Worker do navegador",
-    "Sugestões da IA",
+    "Câmera ou galeria",
+    "Imagem validada",
+    "Backend seguro",
+    "Gemini 2.5 Flash",
     "Revisão obrigatória",
     "Banco nutricional local",
     "Ingredientes ocultos",
@@ -77,16 +75,8 @@
 
   const currentFlow = architecture.currentFlow || [
     "Foto real",
-    "IA local Food-101",
-    "Revisão obrigatória",
-    "Banco nutricional local",
-    "Cálculo determinístico",
-    "Validação"
-  ];
-
-  const demoFlow = architecture.demoFlow || [
-    "Modo demonstrativo explícito",
-    "Caso preparado",
+    "Backend seguro",
+    "Gemini 2.5 Flash",
     "Revisão obrigatória",
     "Banco nutricional local",
     "Cálculo determinístico",
@@ -98,13 +88,13 @@
       icon: "warning",
       badge: "Limites",
       title: "Toda análise exige conferência",
-      text: "Uma foto não mostra com precisão absoluta a quantidade, o preparo ou os ingredientes ocultos. O app sinaliza itens desconhecidos e dados que precisam de correção."
+      text: "Uma foto não revela com precisão absoluta quantidades, preparo ou ingredientes ocultos. Corrija itens errados e adicione o que não foi reconhecido antes de calcular."
     },
     {
       icon: "history",
       badge: "Privacidade",
       title: "Envie somente a imagem necessária",
-      text: "A foto da refeição permanece no aparelho durante a análise. Ainda assim, fotografe apenas o prato e revise cuidadosamente as sugestões."
+      text: "A foto é enviada para análise pelo Gemini. Fotografe apenas o prato, sem pessoas, documentos ou dados pessoais desnecessários."
     }
   ];
 
@@ -175,15 +165,15 @@
       <section class="demo-summary" aria-label="Como o PancreAI funciona atualmente">
         <div>
           <span class="demo-eyebrow">Visão geral</span>
-          <h2>Como o PancreAI funciona nesta versão</h2>
-          <p>A câmera e a galeria recebem fotos reais. Uma rede Food-101 analisa a imagem no próprio navegador e sugere categorias de alimentos e porções aproximadas.</p>
-          <p>O usuário precisa revisar essas sugestões. Depois, o banco local fornece os nutrientes e o motor de cálculo aplica regras determinísticas aos dados confirmados e ao tratamento cadastrado.</p>
-          <strong class="summary-callout">A IA fornece um ponto de partida. Somente a lista revisada pelo usuário alimenta o cálculo.</strong>
+          <h2>Como o PancreAI funciona</h2>
+          <p>A câmera e a galeria recebem fotos reais. O backend envia a imagem ao Gemini 2.5 Flash, que reconhece alimentos e estima porções visuais.</p>
+          <p>O usuário revisa essas sugestões. Depois, o banco local fornece os nutrientes e o motor de cálculo aplica regras determinísticas aos dados confirmados e ao tratamento cadastrado.</p>
+          <strong class="summary-callout">A IA fornece sugestões visuais. Somente a lista revisada pelo usuário alimenta o cálculo.</strong>
         </div>
         <div class="summary-metrics" aria-label="Dados desta versão">
-          <div><strong>1</strong><span>modelo visual local</span><small>Executado em worker no navegador</small></div>
+          <div><strong>1</strong><span>modelo visual</span><small>Gemini 2.5 Flash via backend</small></div>
           <div><strong>${nutritionCount}</strong><span>alimentos pesquisáveis</span><small>Base nutricional local</small></div>
-          <div><strong>${demoCount}</strong><span>casos demonstrativos</span><small>Disponíveis apenas no modo demo</small></div>
+          <div><strong>100%</strong><span>revisão necessária</span><small>Antes de todo cálculo</small></div>
         </div>
       </section>
 
@@ -193,10 +183,10 @@
 
       <section class="comparison-panel" aria-label="Responsabilidades da IA e do aplicativo">
         <span class="demo-eyebrow">Responsabilidades separadas</span>
-        <h2>IA para sugerir, regras locais para calcular</h2>
-        <p>O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e torna a revisão visível.</p>
+        <h2>IA para reconhecer, regras locais para calcular</h2>
+        <p>O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e mantém a revisão visível.</p>
         <div class="comparison-grid">
-          <article><h3>Análise visual local</h3>${renderList(aiItems)}</article>
+          <article><h3>Gemini 2.5 Flash</h3>${renderList(aiItems)}</article>
           <article><h3>Funciona dentro do PancreAI</h3>${renderList(localItems)}</article>
         </div>
       </section>
@@ -207,7 +197,7 @@
           <div>
             <span class="demo-eyebrow">Organização dos dados</span>
             <h2>Cada fonte tem uma responsabilidade</h2>
-            <p>A IA sugere nomes e porções; o banco local fornece nutrientes; o modo demonstrativo mantém casos preparados separados do fluxo real.</p>
+            <p>O Gemini sugere nomes e porções visuais; o banco local fornece nutrientes; o navegador mantém tratamento e histórico no dispositivo.</p>
           </div>
         </div>
         <div class="database-examples database-examples--sources">
@@ -251,18 +241,18 @@
         ${(architecture.modules || []).map(renderModule).join("")}
       </section>
 
-      <section class="flow-panel architecture-flow" aria-label="Fluxo real e modo demonstrativo">
-        <div><span class="demo-eyebrow">Fluxo real</span>${renderFlow(currentFlow, "current")}</div>
-        <div><span class="demo-eyebrow">Modo demonstrativo explícito</span>${renderFlow(demoFlow, "future")}</div>
-        <strong>Uma falha na análise real nunca é escondida por um resultado simulado.</strong>
-        <p>Se a IA local não conseguir carregar ou reconhecer a imagem, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.</p>
+      <section class="flow-panel architecture-flow" aria-label="Fluxo funcional da análise">
+        <div><span class="demo-eyebrow">Fluxo funcional</span>${renderFlow(currentFlow, "current")}</div>
+        <strong>A chave do Gemini permanece protegida no servidor.</strong>
+        <p>Se o serviço estiver indisponível, exceder a cota ou não reconhecer a imagem, o app informa a falha e permite tentar novamente. Nenhum resultado preparado substitui a análise.</p>
       </section>
 
       <section class="truth-note" aria-label="Limites desta versão">
-        <strong>Uso responsável</strong>
-        <p>A foto permanece no aparelho durante a análise. Fotografe somente a refeição e não inclua dados pessoais ou informações desnecessárias.</p>
+        <strong>Uso responsável e privacidade</strong>
+        <p>A análise visual é destinada ao uso por um responsável adulto. O modo infantil altera apenas a apresentação e deve ser usado com supervisão.</p>
+        <p>A foto é enviada ao Gemini para análise. No nível gratuito, o serviço está sujeito a cotas, e o conteúdo pode ser usado pelo Google para melhoria dos produtos e passar por revisão humana.</p>
         <p>A identificação visual e a estimativa de porções podem conter erros. Revise todos os alimentos, quantidades e ingredientes ocultos antes de continuar.</p>
-        <strong class="truth-note__final">O PancreAI é um protótipo educacional, não um dispositivo médico, e não deve ser usado para alterar tratamento sem orientação profissional.</strong>
+        <strong class="truth-note__final">O PancreAI não é um dispositivo médico e não deve ser usado para alterar tratamento sem orientação profissional.</strong>
       </section>
     `;
 

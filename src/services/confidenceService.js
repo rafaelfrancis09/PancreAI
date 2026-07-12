@@ -6,7 +6,7 @@
   function calculate({ analysis, changes, hiddenSelections, missingNutritionCount }) {
     let score = 92;
     const reasons = [];
-    const sourceLabel = analysis?.isSimulated !== false ? "demonstração" : "análise visual";
+    const sourceLabel = "análise visual por IA";
 
     if (analysis?.confidence < 70) {
       score -= 18;
@@ -44,7 +44,7 @@
 
     if (missingNutritionCount > 0) {
       score -= 12;
-      reasons.push("Ha alimentos sem dados nutricionais completos.");
+      reasons.push("Há alimentos sem dados nutricionais completos.");
     }
 
     const finalScore = clamp(Math.round(score), 0, 100);

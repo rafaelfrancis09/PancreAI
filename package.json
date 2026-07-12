@@ -2,7 +2,7 @@
   "name": "pancreai",
   "version": "1.0.0",
   "private": true,
-  "description": "PancreAI web app with private in-browser meal-image classification",
+  "description": "PancreAI web app with secure Gemini-powered meal image analysis and local nutrition calculations",
   "scripts": {
     "test": "node --test"
   },

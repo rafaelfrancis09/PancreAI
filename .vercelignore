@@ -1,0 +1,14 @@
+# Arquivos usados apenas no desenvolvimento e na documentação
+.git/
+.github/
+.agents/
+.codex/
+.venv/
+.vercel/
+node_modules/
+test/
+tests/
+Apresentacao/
+*.md
+.env*
+.gitignore

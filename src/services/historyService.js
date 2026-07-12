@@ -1,22 +1,22 @@
 (function () {
   const core = window.PancreAICore;
 
-  // O histórico permanece local nesta versão para evitar exposição de dados sensíveis de saúde.
+  // O histórico permanece local para evitar exposição desnecessária de dados sensíveis de saúde.
   function getHistory() {
     return core?.getHistory ? core.getHistory() : [];
   }
 
   function saveHistory(items) {
-    if (core?.saveHistory) {
-      core.saveHistory(items);
-    }
+    if (core?.saveHistory) core.saveHistory(items);
   }
 
   function saveMealRecord(record) {
     if (core?.saveMealRecord) {
       core.saveMealRecord({
         ...record,
-        provider: record.provider || "mock"
+        provider: record.provider || "gemini",
+        providerLabel: record.providerLabel || "Gemini 2.5 Flash",
+        isSimulated: record.isSimulated ?? false
       });
     }
   }

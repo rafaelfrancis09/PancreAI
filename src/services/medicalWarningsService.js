@@ -107,7 +107,7 @@
         id: "analysis-packaging",
         severity: "info",
         title: "Embalagem detectada",
-        message: "Nesta versão, o app ainda não lê rótulos. Confira manualmente as informações nutricionais.",
+        message: "O app não lê rótulos. Confira manualmente as informações nutricionais.",
         stage: "analysis"
       }));
     }

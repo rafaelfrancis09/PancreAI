@@ -56,8 +56,6 @@ const progressFill = document.querySelector("#progressFill");
 const analysisErrorActions = document.querySelector("#analysisErrorActions");
 const analysisRetryBtn = document.querySelector("#analysisRetryBtn");
 const analysisBackBtn = document.querySelector("#analysisBackBtn");
-const analysisDemoBtn = document.querySelector("#analysisDemoBtn");
-const analysisSourceNote = document.querySelector("#analysisSourceNote");
 const confirmPreview = document.querySelector("#confirmPreview");
 const confirmFoodList = document.querySelector("#confirmFoodList");
 const confidenceBadge = document.querySelector("#confidenceBadge");
@@ -90,6 +88,12 @@ const portionModal = document.querySelector("#portionModal");
 const portionClose = document.querySelector("#portionClose");
 const portionTitle = document.querySelector("#portionTitle");
 const portionOptions = document.querySelector("#portionOptions");
+const responsibleConsentModal = document.querySelector("#responsibleConsentModal");
+const responsibleConsentDismiss = document.querySelector("#responsibleConsentDismiss");
+const responsibleConsentTitle = document.querySelector("#responsibleConsentTitle");
+const responsibleConsentMessage = document.querySelector("#responsibleConsentMessage");
+const responsibleConsentConfirm = document.querySelector("#responsibleConsentConfirm");
+const responsibleConsentCancel = document.querySelector("#responsibleConsentCancel");
 
 const core = window.PancreAICore;
 const simulator = window.PancreAISimulator;
@@ -115,6 +119,11 @@ let galleryPage = 0;
 const GALLERY_PAGE_SIZE = 6;
 let pendingFoodTarget = null;
 let pendingPortionIndex = null;
+let responsibleConsentPromise = null;
+let responsibleConsentResolver = null;
+let responsibleConsentGrantedForSession = false;
+const RESPONSIBLE_ADULT_CONTEXT = "responsible_adult";
+const RESPONSIBLE_ADULT_CONSENT_KEY = "pancreai_responsible_adult_consent_v1";
 
 const state = {
   patient: core.getPatient(),
@@ -129,6 +138,7 @@ const state = {
   detectedFoods: [],
   foods: [],
   unknownFood: null,
+  unknownFoods: [],
   hiddenSelections: [],
   result: null,
   suggestion: null,
@@ -304,7 +314,6 @@ function applyHomeCopy() {
     ["#deviceGalleryBtn strong", "home.chooseDevicePhoto"],
     ["#deviceGalleryBtn small", "home.chooseDevicePhotoHint"],
     [".gallery-demo-label", "home.demoPhotos"],
-    ["#analysisDemoBtn", "analysis.useDemo"],
     ["#realPhotoNotice", "analysis.realPhotoNotice"],
     ["#cancelBtn", "common.cancel"],
     [".screen--confirm .result-page__top h2", "analysis.confirmTitle"],
@@ -547,10 +556,10 @@ async function showCapturePreview(meal, source) {
   if (!selected) return;
   state.simulatedMealId = selected.id;
   state.simulatedFilename = selected.filename;
-  state.captureSource = source || selected.captureSource || "gallery_demo";
+  state.captureSource = source || selected.captureSource || "gallery_builtin";
   state.analysis = null;
   state.detectedFoods = [];
-  realPhotoNotice.hidden = true;
+  realPhotoNotice.hidden = false;
   await setPhoto(selected.imageUrl, { filename: selected.filename });
   capturePreviewCard.hidden = false;
   previewActions.hidden = false;
@@ -582,7 +591,7 @@ function showPreviewImageError() {
 
 function restorePreviewImage() {
   capturePreviewCard.hidden = false;
-  realPhotoNotice.hidden = !state.photoFile;
+  realPhotoNotice.hidden = false;
   previewActions.hidden = false;
   imageErrorCard.hidden = true;
 }
@@ -647,6 +656,59 @@ function openModal(element) {
 function closeModal(element) {
   element.setAttribute("aria-hidden", "true");
   element.dataset.open = "false";
+}
+
+function hasResponsibleAdultConsent() {
+  if (responsibleConsentGrantedForSession) return true;
+  try {
+    return localStorage.getItem(RESPONSIBLE_ADULT_CONSENT_KEY) === "true";
+  } catch (_) {
+    return false;
+  }
+}
+
+function syncResponsibleConsentCopy() {
+  if (responsibleConsentTitle) {
+    responsibleConsentTitle.textContent = translate("analysis.adultConsentTitle");
+  }
+  if (responsibleConsentMessage) {
+    responsibleConsentMessage.textContent = translate("analysis.adultConsentMessage");
+  }
+  if (responsibleConsentConfirm) {
+    responsibleConsentConfirm.textContent = translate("analysis.adultConsentConfirm");
+  }
+  if (responsibleConsentCancel) {
+    responsibleConsentCancel.textContent = translate("common.cancel");
+  }
+}
+
+function resolveResponsibleAdultConsent(granted) {
+  if (granted) {
+    responsibleConsentGrantedForSession = true;
+    try {
+      localStorage.setItem(RESPONSIBLE_ADULT_CONSENT_KEY, "true");
+    } catch (_) {
+      // A confirmação continua válida apenas nesta sessão quando o armazenamento está indisponível.
+    }
+  }
+  if (responsibleConsentModal) closeModal(responsibleConsentModal);
+  const resolve = responsibleConsentResolver;
+  responsibleConsentResolver = null;
+  responsibleConsentPromise = null;
+  resolve?.(Boolean(granted));
+}
+
+function ensureResponsibleAdultConsent() {
+  if (hasResponsibleAdultConsent()) return Promise.resolve(true);
+  if (!responsibleConsentModal) return Promise.resolve(false);
+  if (responsibleConsentPromise) return responsibleConsentPromise;
+
+  syncResponsibleConsentCopy();
+  openModal(responsibleConsentModal);
+  responsibleConsentPromise = new Promise((resolve) => {
+    responsibleConsentResolver = resolve;
+  });
+  return responsibleConsentPromise;
 }
 
 function syncHiddenSelections() {
@@ -866,9 +928,12 @@ function renderFoodList() {
   });
 
   if (state.unknownFood) {
+    const unknownLabel = translateFoodLabel(state.unknownFood.label || state.unknownFood.name || "Item não identificado");
+    const unknownProgress = state.unknownFoods.length > 1 ? ` (1/${state.unknownFoods.length})` : "";
     unknownFoodCard.hidden = false;
     unknownFoodCard.innerHTML = childMode ? `
       <h3>Tem algo que não reconhecemos</h3>
+      <p><strong>${escapeHtml(unknownLabel)}${unknownProgress}</strong></p>
       <p>Peça para um responsável conferir ou substitua pelo alimento correto.</p>
       <div class="food-item__actions food-item__actions--child">
         <button class="food-item__button" data-unknown-action="replace" type="button">Substituir</button>
@@ -876,6 +941,7 @@ function renderFoodList() {
       </div>
     ` : `
       <h3>Alimento não identificado</h3>
+      <p><strong>${escapeHtml(unknownLabel)}${unknownProgress}</strong></p>
       <p>O módulo de análise encontrou um item sem identificação confiável.</p>
       <div class="food-item__actions">
         <button class="food-item__button" data-unknown-action="edit" type="button">Editar</button>
@@ -907,9 +973,7 @@ function renderConfirmation() {
     ? "Esta análise possui baixa confiança. Recomendamos fotografar novamente."
     : state.analysis.confidence < 85
       ? "A precisão pode ser reduzida devido às condições da foto."
-      : state.analysis.isSimulated
-        ? "Confiança alta no exemplo demonstrativo."
-        : "Boa confiança visual. Revise os alimentos antes do cálculo.";
+      : "Boa confiança visual. Revise os alimentos antes do cálculo.";
   const shouldShowQualityAlert = state.analysis.confidence < 70;
   qualityAlert.hidden = !shouldShowQualityAlert;
   qualityAlert.innerHTML = shouldShowQualityAlert ? `
@@ -919,7 +983,7 @@ function renderConfirmation() {
   ` : "";
   if (state.analysis.packaging) {
     packagingCard.hidden = false;
-    packagingCard.innerHTML = `<h3>Embalagem detectada</h3><p>${escapeHtml(translateFoodLabel(state.analysis.packaging))}</p><small>Parece que há um alimento embalado. No futuro será possível ler automaticamente a tabela nutricional.</small>`;
+    packagingCard.innerHTML = `<h3>Embalagem detectada</h3><p>${escapeHtml(translateFoodLabel(state.analysis.packaging))}</p><small>Confira o rótulo e ajuste o alimento ou a porção manualmente, se necessário.</small>`;
   } else {
     packagingCard.innerHTML = "";
     packagingCard.hidden = true;
@@ -1060,9 +1124,9 @@ function buildMealRecord() {
   const selectedLipaseUnitsDelivered = Number(state.selectedDose || 0) * Number(state.result?.lipaseUnitsPerUnit || treatment.lipaseUnitsPerUnit || 0);
   return {
     id: `meal-${now.getTime()}`,
-    provider: state.result?.provider || state.analysis?.provider || "mock",
-    providerLabel: state.result?.providerLabel || state.analysis?.providerLabel || "MockVision",
-    isSimulated: state.result?.isSimulated !== false,
+    provider: state.result?.provider || state.analysis?.provider || "gemini",
+    providerLabel: state.result?.providerLabel || state.analysis?.providerLabel || "Gemini 2.5 Flash",
+    isSimulated: state.result?.isSimulated ?? state.analysis?.isSimulated ?? false,
     mealId: state.simulatedMealId || state.analysis?.mealId || null,
     filename: state.simulatedFilename || state.photoFilename || state.analysis?.filename || null,
     captureSource: state.captureSource || null,
@@ -1154,16 +1218,17 @@ function applyAnalysis(analysis) {
   };
   state.detectedFoods = cloneFoods(Array.isArray(state.analysis.foods) ? state.analysis.foods : []);
   state.foods = cloneFoods(state.detectedFoods);
-  state.unknownFood = state.analysis.unknownFood ? { ...state.analysis.unknownFood } : null;
+  state.unknownFoods = cloneFoods(
+    Array.isArray(state.analysis.unknownItems)
+      ? state.analysis.unknownItems
+      : state.analysis.unknownFood
+        ? [state.analysis.unknownFood]
+        : []
+  );
+  state.unknownFood = state.unknownFoods[0] || null;
   state.hiddenSelections = (Array.isArray(state.analysis.hiddenFats) ? state.analysis.hiddenFats : [])
     .map((item) => ({ ...item }));
   sessionStorage.removeItem("pancreaiSelectedDose");
-}
-
-function simulateAnalysis() {
-  const simulation = simulator.simulateAnalysis(state.simulatedMealId);
-  simulation.captureSource = state.captureSource;
-  applyAnalysis(simulation);
 }
 
 function showAnalysisError(error) {
@@ -1172,25 +1237,10 @@ function showAnalysisError(error) {
   analysisMessage.textContent = message;
   progressFill.style.width = "0%";
   analysisErrorActions.hidden = false;
-  analysisDemoBtn.hidden = !(simulator?.simulateAnalysis && captureService?.getSimulatedMealById);
-  analysisSourceNote.hidden = analysisDemoBtn.hidden;
-  analysisSourceNote.textContent = analysisDemoBtn.hidden
-    ? ""
-    : translate("analysis.demoSourceNote");
-}
-
-async function startDemoFallback() {
-  const fallback = captureService?.getSimulatedMealById?.(state.simulatedMealId || null);
-  if (!fallback) return;
-  await showCapturePreview(fallback, "demo_fallback");
-  await startAnalysis(null, { preserveCounters: true, useDemoFallback: true });
 }
 
 async function startAnalysis(file, options = {}) {
   const preserveCounters = Boolean(options.preserveCounters);
-  const useDemoFallback = Boolean(options.useDemoFallback);
-  const usePreparedDemo = state.captureSource === "gallery_demo" && Boolean(state.simulatedMealId);
-  const useDemoAnalysis = useDemoFallback || usePreparedDemo;
   if (!core.isSetupComplete()) {
     localStorage.setItem("pancreaiReturnTo", "home.html");
     window.location.href = "configuracao.html";
@@ -1211,6 +1261,9 @@ async function startAnalysis(file, options = {}) {
     return;
   }
 
+  const consentGranted = await ensureResponsibleAdultConsent();
+  if (!consentGranted) return;
+
   analysisAbortController?.abort();
   const controller = new AbortController();
   analysisAbortController = controller;
@@ -1220,6 +1273,7 @@ async function startAnalysis(file, options = {}) {
   state.detectedFoods = [];
   state.foods = [];
   state.unknownFood = null;
+  state.unknownFoods = [];
   state.result = null;
   state.selectedDose = 0;
   if (!preserveCounters) {
@@ -1232,19 +1286,13 @@ async function startAnalysis(file, options = {}) {
   setView("analyzing");
   clearAnalysisTimer();
   analysisErrorActions.hidden = true;
-  analysisDemoBtn.hidden = true;
-  analysisSourceNote.hidden = true;
 
   const quickChildFlow = isChildModeActive();
-  const steps = useDemoAnalysis ? [
-    "Preparando demonstração...",
-    "Carregando exemplo...",
-    "Preparando revisão..."
-  ] : [
-    "Analisando imagem...",
+  const steps = [
+    "Preparando foto...",
+    "Enviando com segurança...",
     "Identificando alimentos...",
     "Estimando porções...",
-    "Conferindo possíveis ingredientes...",
     "Preparando revisão..."
   ];
   let progress = 8;
@@ -1266,38 +1314,19 @@ async function startAnalysis(file, options = {}) {
   analysisTimerId = window.setTimeout(tick, quickChildFlow ? 220 : 360);
 
   try {
-    let analysis;
-    if (useDemoAnalysis) {
-      await new Promise((resolve) => window.setTimeout(resolve, quickChildFlow ? 320 : 620));
-      if (requestId !== analysisRequestId) return;
-      analysis = simulator.simulateAnalysis(state.simulatedMealId);
-      analysis.captureSource = state.captureSource;
-      analysis.fallbackReason = useDemoFallback ? "explicit-demo-fallback" : "selected-demo-gallery";
-    } else {
-      if (!realRecognitionProvider?.isAvailable?.()) {
-        throw new Error("O serviço de análise por IA não está disponível neste navegador.");
-      }
-      const imageReference = state.photoFile || {
-        url: state.photoSrc,
-        filename: state.photoFilename || state.simulatedFilename || "refeicao.jpg"
-      };
-      analysis = await realRecognitionProvider.analyze(imageReference, {
-        locale: i18n?.getCurrentLanguage?.() || document.documentElement.lang || "pt-BR",
-        signal: controller.signal,
-        onProgress: (event) => {
-          if (requestId !== analysisRequestId || app.dataset.view !== "analyzing") return;
-          if (event?.phase === "model") {
-            setAnalysisMessage(event.percent == null
-              ? "Carregando IA local pela primeira vez..."
-              : `Carregando IA local... ${event.percent}%`);
-            return;
-          }
-          if (event?.phase === "inference") {
-            setAnalysisMessage(`Analisando partes do prato... ${event.current}/${event.total}`);
-          }
-        }
-      });
+    if (!realRecognitionProvider?.isAvailable?.()) {
+      throw new Error("O serviço de análise por IA não está disponível neste navegador.");
     }
+    const imageReference = state.photoFile || {
+      url: state.photoSrc,
+      filename: state.photoFilename || state.simulatedFilename || "refeicao.jpg"
+    };
+    const analysis = await realRecognitionProvider.analyze(imageReference, {
+      locale: i18n?.getCurrentLanguage?.() || document.documentElement.lang || "pt-BR",
+      signal: controller.signal,
+      usageContext: RESPONSIBLE_ADULT_CONTEXT
+    });
+    analysis.captureSource = state.captureSource;
 
     if (requestId !== analysisRequestId) return;
     clearAnalysisTimer();
@@ -1485,7 +1514,8 @@ function addFoodByName(foodName) {
   }
 
   if (pendingFoodTarget === "replace-unknown") {
-    state.unknownFood = null;
+    state.unknownFoods.shift();
+    state.unknownFood = state.unknownFoods[0] || null;
     state.changes.push(`Alimento não identificado substituído por ${foodName}`);
   }
 
@@ -1505,7 +1535,8 @@ function addFoodByName(foodName) {
 
 function handleUnknownFood(action) {
   if (action === "remove") {
-    state.unknownFood = null;
+    state.unknownFoods.shift();
+    state.unknownFood = state.unknownFoods[0] || null;
     state.changes.push("Alimento não identificado removido");
     renderConfirmation();
     return;
@@ -1602,8 +1633,10 @@ usePhotoBtn.addEventListener("click", () => startAnalysis());
 capturePreview.addEventListener("error", showPreviewImageError);
 capturePreview.addEventListener("load", restorePreviewImage);
 analysisRetryBtn.addEventListener("click", () => startAnalysis(null, { preserveCounters: true }));
-analysisDemoBtn.addEventListener("click", startDemoFallback);
 analysisBackBtn.addEventListener("click", returnToCaptureSource);
+responsibleConsentDismiss?.addEventListener("click", () => resolveResponsibleAdultConsent(false));
+responsibleConsentCancel?.addEventListener("click", () => resolveResponsibleAdultConsent(false));
+responsibleConsentConfirm?.addEventListener("click", () => resolveResponsibleAdultConsent(true));
 
 galleryGrid.addEventListener("error", (event) => {
   const image = event.target.closest("img");
@@ -1625,7 +1658,7 @@ galleryGrid.addEventListener("click", (event) => {
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   window.setTimeout(() => {
     item.classList.remove("is-selecting");
-    void showCapturePreview(meal, "gallery_demo");
+    void showCapturePreview(meal, "gallery_builtin");
   }, reducedMotion ? 20 : 160);
 });
 confirmFoodList.addEventListener("click", (event) => {
@@ -1784,5 +1817,4 @@ window.addEventListener("pancreai:childmodechange", () => {
 if (!restoreDraftResult()) {
   setView("home");
 }
-
 

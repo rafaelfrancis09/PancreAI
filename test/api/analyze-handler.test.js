@@ -1,29 +1,178 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+
 const handler = require("../../api/analyze-meal");
 
-function runHandler(method) {
+const JPEG_BYTES = Buffer.from([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x43]);
+let requestCounter = 0;
+
+function jsonRequest(overrides = {}) {
+  requestCounter += 1;
+  return {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-forwarded-for": `198.51.100.${requestCounter}`
+    },
+    body: {
+      image: `data:image/jpeg;base64,${JPEG_BYTES.toString("base64")}`,
+      locale: "pt-BR",
+      usageContext: "responsible_adult",
+      catalog: [{ id: "arroz", name: "Arroz branco" }],
+      ...overrides
+    }
+  };
+}
+
+function runHandler(req) {
   const headers = {};
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const res = {
       statusCode: 200,
       setHeader(name, value) { headers[name.toLowerCase()] = value; },
-      end(body = "") { resolve({ status: this.statusCode, headers, body: body ? JSON.parse(body) : null }); }
+      removeHeader(name) { delete headers[name.toLowerCase()]; },
+      end(body = "") {
+        try {
+          resolve({ status: this.statusCode, headers, body: body ? JSON.parse(body) : null });
+        } catch (error) {
+          reject(error);
+        }
+      }
     };
-    handler({ method, headers: {} }, res);
+    Promise.resolve(handler(req, res)).catch(reject);
   });
 }
 
-test("rota antiga informa que a análise acontece no navegador", async () => {
-  const response = await runHandler("GET");
+function geminiPayload() {
+  return {
+    candidates: [{
+      finishReason: "STOP",
+      content: {
+        parts: [{ text: JSON.stringify({
+          mealName: "Arroz",
+          category: "Almoço",
+          confidence: 92,
+          photoQuality: { level: "good" },
+          detectedItems: [{ name: "Arroz branco", quantityGrams: 120, confidence: 93 }],
+          warnings: [],
+          unknownItems: []
+        }) }]
+      }
+    }]
+  };
+}
+
+test("POST chama Gemini 2.5 Flash com chave apenas no header", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_MODEL;
+  const previousFetch = global.fetch;
+  const secret = "test-secret-must-never-be-in-body";
+  process.env.GEMINI_API_KEY = secret;
+  delete process.env.GEMINI_MODEL;
+  let upstream;
+  global.fetch = async (url, options) => {
+    upstream = { url: String(url), options };
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_MODEL;
+    else process.env.GEMINI_MODEL = previousModel;
+  });
+
+  const response = await runHandler(jsonRequest());
   assert.equal(response.status, 200);
-  assert.equal(response.body.execution, "browser");
-  assert.equal(response.body.imageUpload, false);
-  assert.equal(response.body.serverRequired, false);
+  assert.equal(response.body.provider, "gemini");
+  assert.equal(response.body.providerLabel, "Gemini 2.5 Flash");
+  assert.equal(response.body.isSimulated, false);
+  assert.match(upstream.url, /\/models\/gemini-2\.5-flash:generateContent$/);
+  assert.equal(upstream.options.method, "POST");
+  assert.equal(upstream.options.headers["x-goog-api-key"], secret);
+  assert.equal(upstream.options.headers.Authorization, undefined);
+  assert.equal(upstream.options.body.includes(secret), false);
+  const body = JSON.parse(upstream.options.body);
+  assert.equal(body.contents[0].parts[1].inlineData.data, JPEG_BYTES.toString("base64"));
+  assert.equal(body.generationConfig.responseMimeType, "application/json");
+  assert.equal(body.generationConfig.responseJsonSchema.additionalProperties, false);
 });
 
-test("rota antiga rejeita upload em vez de receber uma foto", async () => {
-  const response = await runHandler("POST");
+test("sem GEMINI_API_KEY responde configuração ausente sem chamar a rede", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  delete process.env.GEMINI_API_KEY;
+  global.fetch = async () => { throw new Error("não deveria chamar Gemini"); };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, "service_not_configured");
+  assert.equal(JSON.stringify(response.body).includes("GEMINI_API_KEY"), false);
+});
+
+test("contexto de responsável adulto é obrigatório antes de enviar imagem à IA", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  let called = false;
+  global.fetch = async () => { called = true; throw new Error("não deveria chamar Gemini"); };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest({ usageContext: "" }));
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, "adult_context_required");
+  assert.equal(called, false);
+});
+
+test("CORS bloqueia origem não autorizada antes da análise", async (t) => {
+  const previousOrigins = process.env.ALLOWED_ORIGINS;
+  process.env.ALLOWED_ORIGINS = "https://allowed.example";
+  t.after(() => {
+    if (previousOrigins === undefined) delete process.env.ALLOWED_ORIGINS;
+    else process.env.ALLOWED_ORIGINS = previousOrigins;
+  });
+
+  const request = jsonRequest();
+  request.headers.origin = "https://blocked.example";
+  const response = await runHandler(request);
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, "origin_not_allowed");
+  assert.equal(response.headers["access-control-allow-origin"], undefined);
+});
+
+test("preflight CORS autoriza somente a origem configurada", async (t) => {
+  const previousOrigins = process.env.ALLOWED_ORIGINS;
+  process.env.ALLOWED_ORIGINS = "https://allowed.example";
+  t.after(() => {
+    if (previousOrigins === undefined) delete process.env.ALLOWED_ORIGINS;
+    else process.env.ALLOWED_ORIGINS = previousOrigins;
+  });
+
+  const response = await runHandler({
+    method: "OPTIONS",
+    headers: { origin: "https://allowed.example" }
+  });
+  assert.equal(response.status, 204);
+  assert.equal(response.body, null);
+  assert.equal(response.headers["access-control-allow-origin"], "https://allowed.example");
+  assert.match(response.headers["access-control-allow-methods"], /POST/);
+});
+
+test("métodos inválidos não iniciam uma análise", async () => {
+  const response = await runHandler({ method: "GET", headers: {} });
   assert.equal(response.status, 405);
-  assert.equal(response.body.error.code, "local_analysis_only");
+  assert.equal(response.body.error.code, "method_not_allowed");
+  assert.match(response.headers.allow, /POST/);
 });

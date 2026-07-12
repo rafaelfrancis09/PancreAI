@@ -1,14 +1,32 @@
-# Compatibilidade da rota de análise
+# API de análise visual
 
-O PancreAI não precisa mais de uma API de visão, chave secreta ou função
-serverless. A classificação Food-101 é executada no navegador por
-`src/workers/foodRecognitionWorker.js`, e a foto não é enviada ao servidor.
+Esta pasta contém a função serverless usada pelo PancreAI para analisar fotos de
+refeições com o Gemini 2.5 Flash sem expor a chave no navegador.
 
-As rotas desta pasta foram mantidas somente para que implantações antigas não
-falhem silenciosamente:
+## Rotas
 
-- `GET /api/analyze-meal` informa que a análise é local.
-- `POST /api/analyze-meal` devolve `405 local_analysis_only` e não processa a foto.
-- `GET /api/health` confirma que nenhum servidor é necessário.
+- `POST /api/analyze-meal`: valida a imagem, envia o conteúdo ao Gemini e devolve
+  sugestões de alimentos e porções visuais vinculadas ao catálogo permitido.
+- `GET /api/health`: verifica se a função está configurada, sem revelar segredos.
 
-A versão publicada no GitHub Pages usa apenas os arquivos estáticos do projeto.
+## Variáveis de ambiente
+
+```text
+GEMINI_API_KEY=sua_chave_do_google_ai_studio
+GEMINI_MODEL=gemini-2.5-flash
+ALLOWED_ORIGINS=https://seu-dominio.example
+MAX_REQUESTS_PER_MINUTE=10
+```
+
+`GEMINI_API_KEY` é obrigatória e deve existir somente no ambiente do servidor.
+Nunca coloque a chave em HTML, JavaScript do navegador, URL ou commit. O modelo
+padrão é `gemini-2.5-flash`.
+
+Se o frontend e a função estiverem no mesmo domínio, o endpoint relativo
+`/api/analyze-meal` funciona diretamente. Para manter o frontend no GitHub Pages,
+publique esta API em uma plataforma serverless, configure o endpoint absoluto no
+frontend e adicione a origem do Pages em `ALLOWED_ORIGINS`.
+
+O nível gratuito do Gemini está sujeito às cotas e políticas do Google. A API pode
+responder com limite temporário; o app deve permitir nova tentativa e nunca
+substituir a falha por um resultado preparado.

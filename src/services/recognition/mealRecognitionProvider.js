@@ -1,17 +1,15 @@
 (function () {
   /**
-   * Contrato compartilhado pelos provedores de reconhecimento de refeições.
-   *
-   * O fluxo real usa uma rede Food-101 executada em um worker do navegador.
-   * O provedor simulado permanece separado e só é usado quando a demonstração
-   * é escolhida explicitamente. Ambos entregam o mesmo formato à tela de revisão.
+   * Contrato compartilhado pelo fluxo de reconhecimento de refeições.
+   * A imagem é enviada ao backend seguro, o Gemini sugere alimentos e porções,
+   * e a tela de revisão liga os itens ao banco nutricional local.
    */
   const providerContract = {
     expectedMethod: "analyze(imageReference, options)",
     currentProvider: "RealMealRecognitionProvider",
-    currentModel: "onnx-community/swin-finetuned-food101-ONNX",
-    execution: "browser-worker",
-    demoProvider: "MockMealRecognitionProvider",
+    currentModel: "gemini-2.5-flash",
+    execution: "secure-backend",
+    analysisMode: "real",
     outputFields: [
       "provider",
       "providerLabel",
