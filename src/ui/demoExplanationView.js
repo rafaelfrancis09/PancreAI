@@ -8,12 +8,12 @@
     {
       icon: "camera",
       title: "Câmera e galeria usam fotos reais",
-      text: "Com a permissão do usuário, o navegador captura uma foto pela câmera ou abre uma imagem da galeria. Antes do envio, o app valida, redimensiona e comprime o arquivo."
+      text: "Com a permissão do usuário, o navegador captura uma foto pela câmera ou abre uma imagem da galeria. Antes da análise, o app valida, redimensiona e prepara o arquivo no próprio navegador."
     },
     {
       icon: "food",
       title: "A IA sugere, não decide",
-      text: "Um modelo OpenAI com visão sugere alimentos, porções e qualidade da foto. Essas sugestões podem estar erradas e precisam ser revisadas antes do cálculo."
+      text: "Uma rede Food-101 executada no navegador sugere categorias de alimentos, porções aproximadas e qualidade da foto. Essas sugestões podem estar erradas e precisam ser revisadas antes do cálculo."
     },
     {
       icon: "db",
@@ -28,10 +28,10 @@
   ];
 
   const aiItems = [
-    "Foto enviada a um serviço externo por um backend protegido",
+    "Foto analisada localmente, sem envio a um serviço de IA",
     "Sugestão inicial de alimentos e porções",
     "Confiança e qualidade estimadas para a foto",
-    "Resposta dependente de internet e disponibilidade do serviço",
+    "Primeiro uso baixa o modelo; os próximos aproveitam o cache do navegador",
     "Possibilidade de omissões e identificações incorretas"
   ];
 
@@ -46,9 +46,9 @@
 
   const dataSources = [
     {
-      title: "Análise visual externa",
-      badge: "via backend",
-      items: ["A chave da API permanece no servidor", "A IA devolve apenas sugestões estruturadas", "Nenhum nutriente retornado pela IA é usado no cálculo"]
+      title: "Análise visual local",
+      badge: "no navegador",
+      items: ["Nenhuma chave de API ou conta é necessária", "A rede local devolve apenas sugestões visuais", "Nenhum nutriente retornado pela IA é usado no cálculo"]
     },
     {
       title: "Banco nutricional local",
@@ -65,7 +65,7 @@
   const appFlow = [
     "Câmera ou galeria real",
     "Imagem preparada",
-    "Backend protegido",
+    "Worker do navegador",
     "Sugestões da IA",
     "Revisão obrigatória",
     "Banco nutricional local",
@@ -77,7 +77,7 @@
 
   const currentFlow = architecture.currentFlow || [
     "Foto real",
-    "OpenAI Vision",
+    "IA local Food-101",
     "Revisão obrigatória",
     "Banco nutricional local",
     "Cálculo determinístico",
@@ -104,7 +104,7 @@
       icon: "history",
       badge: "Privacidade",
       title: "Envie somente a imagem necessária",
-      text: "A foto da refeição é enviada ao serviço externo para análise. Evite rostos, documentos, rótulos com dados pessoais e informações de saúde desnecessárias."
+      text: "A foto da refeição permanece no aparelho durante a análise. Ainda assim, fotografe apenas o prato e revise cuidadosamente as sugestões."
     }
   ];
 
@@ -176,12 +176,12 @@
         <div>
           <span class="demo-eyebrow">Visão geral</span>
           <h2>Como o PancreAI funciona nesta versão</h2>
-          <p>A câmera e a galeria recebem fotos reais. A imagem preparada é enviada por um backend protegido a um modelo OpenAI com visão, que sugere alimentos e porções.</p>
+          <p>A câmera e a galeria recebem fotos reais. Uma rede Food-101 analisa a imagem no próprio navegador e sugere categorias de alimentos e porções aproximadas.</p>
           <p>O usuário precisa revisar essas sugestões. Depois, o banco local fornece os nutrientes e o motor de cálculo aplica regras determinísticas aos dados confirmados e ao tratamento cadastrado.</p>
           <strong class="summary-callout">A IA fornece um ponto de partida. Somente a lista revisada pelo usuário alimenta o cálculo.</strong>
         </div>
         <div class="summary-metrics" aria-label="Dados desta versão">
-          <div><strong>1</strong><span>serviço visual externo</span><small>Acessado por backend protegido</small></div>
+          <div><strong>1</strong><span>modelo visual local</span><small>Executado em worker no navegador</small></div>
           <div><strong>${nutritionCount}</strong><span>alimentos pesquisáveis</span><small>Base nutricional local</small></div>
           <div><strong>${demoCount}</strong><span>casos demonstrativos</span><small>Disponíveis apenas no modo demo</small></div>
         </div>
@@ -196,7 +196,7 @@
         <h2>IA para sugerir, regras locais para calcular</h2>
         <p>O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e torna a revisão visível.</p>
         <div class="comparison-grid">
-          <article><h3>Análise visual externa</h3>${renderList(aiItems)}</article>
+          <article><h3>Análise visual local</h3>${renderList(aiItems)}</article>
           <article><h3>Funciona dentro do PancreAI</h3>${renderList(localItems)}</article>
         </div>
       </section>
@@ -255,12 +255,12 @@
         <div><span class="demo-eyebrow">Fluxo real</span>${renderFlow(currentFlow, "current")}</div>
         <div><span class="demo-eyebrow">Modo demonstrativo explícito</span>${renderFlow(demoFlow, "future")}</div>
         <strong>Uma falha na análise real nunca é escondida por um resultado simulado.</strong>
-        <p>Se o serviço externo estiver indisponível, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.</p>
+        <p>Se a IA local não conseguir carregar ou reconhecer a imagem, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.</p>
       </section>
 
       <section class="truth-note" aria-label="Limites desta versão">
         <strong>Uso responsável</strong>
-        <p>A foto é enviada a um serviço externo. Fotografe somente a refeição e não inclua dados pessoais ou informações desnecessárias.</p>
+        <p>A foto permanece no aparelho durante a análise. Fotografe somente a refeição e não inclua dados pessoais ou informações desnecessárias.</p>
         <p>A identificação visual e a estimativa de porções podem conter erros. Revise todos os alimentos, quantidades e ingredientes ocultos antes de continuar.</p>
         <strong class="truth-note__final">O PancreAI é um protótipo educacional, não um dispositivo médico, e não deve ser usado para alterar tratamento sem orientação profissional.</strong>
       </section>

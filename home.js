@@ -1189,6 +1189,8 @@ async function startDemoFallback() {
 async function startAnalysis(file, options = {}) {
   const preserveCounters = Boolean(options.preserveCounters);
   const useDemoFallback = Boolean(options.useDemoFallback);
+  const usePreparedDemo = state.captureSource === "gallery_demo" && Boolean(state.simulatedMealId);
+  const useDemoAnalysis = useDemoFallback || usePreparedDemo;
   if (!core.isSetupComplete()) {
     localStorage.setItem("pancreaiReturnTo", "home.html");
     window.location.href = "configuracao.html";
@@ -1234,7 +1236,7 @@ async function startAnalysis(file, options = {}) {
   analysisSourceNote.hidden = true;
 
   const quickChildFlow = isChildModeActive();
-  const steps = useDemoFallback ? [
+  const steps = useDemoAnalysis ? [
     "Preparando demonstração...",
     "Carregando exemplo...",
     "Preparando revisão..."
@@ -1265,12 +1267,12 @@ async function startAnalysis(file, options = {}) {
 
   try {
     let analysis;
-    if (useDemoFallback) {
+    if (useDemoAnalysis) {
       await new Promise((resolve) => window.setTimeout(resolve, quickChildFlow ? 320 : 620));
       if (requestId !== analysisRequestId) return;
       analysis = simulator.simulateAnalysis(state.simulatedMealId);
       analysis.captureSource = state.captureSource;
-      analysis.fallbackReason = "explicit-demo";
+      analysis.fallbackReason = useDemoFallback ? "explicit-demo-fallback" : "selected-demo-gallery";
     } else {
       if (!realRecognitionProvider?.isAvailable?.()) {
         throw new Error("O serviço de análise por IA não está disponível neste navegador.");
@@ -1281,8 +1283,19 @@ async function startAnalysis(file, options = {}) {
       };
       analysis = await realRecognitionProvider.analyze(imageReference, {
         locale: i18n?.getCurrentLanguage?.() || document.documentElement.lang || "pt-BR",
-        credentials: "omit",
-        signal: controller.signal
+        signal: controller.signal,
+        onProgress: (event) => {
+          if (requestId !== analysisRequestId || app.dataset.view !== "analyzing") return;
+          if (event?.phase === "model") {
+            setAnalysisMessage(event.percent == null
+              ? "Carregando IA local pela primeira vez..."
+              : `Carregando IA local... ${event.percent}%`);
+            return;
+          }
+          if (event?.phase === "inference") {
+            setAnalysisMessage(`Analisando partes do prato... ${event.current}/${event.total}`);
+          }
+        }
       });
     }
 

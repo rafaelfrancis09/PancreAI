@@ -1,58 +1,67 @@
 # Arquitetura atual do PancreAI
 
-O PancreAI é um protótipo web em HTML, CSS e JavaScript que recebe uma foto real de uma refeição, sugere alimentos e porções para revisão e calcula uma estimativa de unidades de enzima pancreática a partir da gordura confirmada pelo usuário.
+O PancreAI é um protótipo web estático em HTML, CSS e JavaScript. Ele recebe uma
+foto real de uma refeição, usa uma rede neural local para sugerir alimentos e
+porções, exige revisão e calcula uma estimativa com regras determinísticas.
 
-O protótipo não é um dispositivo médico, não prescreve tratamento e não foi validado para uso clínico.
+O protótipo não é um dispositivo médico, não prescreve tratamento e não foi
+validado para uso clínico.
 
-## Entrada da imagem
+## Entrada e análise da imagem
 
-- A câmera usa o acesso permitido pelo navegador e captura um quadro real do dispositivo.
-- A galeria aceita uma imagem escolhida pelo usuário.
-- Antes do envio, o navegador valida, redimensiona e comprime a imagem.
-- A foto preparada é enviada ao backend /api/analyze-meal, que mantém a chave da API fora do navegador e consulta um modelo OpenAI com capacidade de visão.
-- A resposta visual contém apenas sugestões iniciais de alimentos, porções, confiança e qualidade da foto. Ela não define nutrientes nem unidades de enzima.
+- A câmera captura um quadro real com a permissão do navegador.
+- A galeria aceita JPEG, PNG ou WebP escolhidos pelo usuário.
+- O navegador valida, redimensiona e comprime a imagem.
+- `foodRecognitionWorker.js` carrega o modelo Food-101 quantizado e executa a
+  inferência fora da linha principal, mantendo botões e animações responsivos.
+- A imagem é dividida em uma visão geral e regiões do prato para produzir
+  sugestões conservadoras.
+- A foto não é enviada a uma API de visão.
 
-O usuário deve fotografar somente a refeição e evitar rostos, documentos, rótulos com dados pessoais ou qualquer informação desnecessária. A imagem sai do dispositivo para ser analisada por um serviço externo.
+O modelo reconhece categorias do conjunto Food-101, não todos os ingredientes
+existentes. Por isso, somente equivalências claras entram automaticamente; os
+demais rótulos ficam desconhecidos e exigem correção manual.
 
 ## Responsabilidades separadas
 
-- src/services/realImageCaptureService.js: abre a câmera, captura quadros, valida arquivos e prepara a imagem.
-- src/services/recognition/realMealRecognitionProvider.js: envia a imagem ao backend e normaliza a resposta sem aceitar nutrientes fornecidos pela IA.
-- src/services/recognition/foodMatcher.js: relaciona nomes sugeridos ao catálogo local; itens sem correspondência permanecem desconhecidos.
-- api/analyze-meal.js: protege a chave, valida a requisição e chama a OpenAI pelo servidor.
-- src/data/nutritionDatabase.js: fonte local dos valores nutricionais usados pelo aplicativo.
-- src/data/mealDatabase.js: combinações estruturadas para organização, testes e modo demonstrativo.
-- src/services/doseCalculator.js: executa o cálculo determinístico depois da revisão.
-- src/services/safetyValidator.js: produz avisos para dados ausentes ou valores que exigem conferência.
-- src/services/historyService.js: salva o resultado confirmado localmente no navegador.
+- `src/services/realImageCaptureService.js`: captura, valida e prepara a foto.
+- `src/workers/foodRecognitionWorker.js`: baixa e executa a rede neural local.
+- `src/services/recognition/realMealRecognitionProvider.js`: recorta a imagem,
+  coordena o worker, avalia qualidade e normaliza as sugestões.
+- `src/services/recognition/foodMatcher.js`: associa rótulos ao catálogo local.
+- `src/data/nutritionDatabase.js`: única fonte de nutrientes usada pelo app.
+- `src/services/doseCalculator.js`: realiza o cálculo depois da revisão.
+- `src/services/safetyValidator.js`: apresenta avisos antes do resultado.
+- `src/services/historyService.js`: mantém o histórico local no navegador.
 
 ## Fluxo principal
 
-1. O usuário fotografa a refeição ou escolhe uma imagem real da galeria.
-2. O navegador prepara a foto e a envia ao backend.
-3. O backend consulta o modelo de visão e devolve sugestões estruturadas.
-4. O FoodMatcher relaciona cada sugestão ao banco local. Alimentos sem correspondência não recebem nutrientes inventados.
-5. O usuário obrigatoriamente revisa os alimentos, corrige porções, remove erros, adiciona itens ausentes e confirma ingredientes ocultos.
-6. O banco local fornece os nutrientes para as quantidades confirmadas.
-7. O DoseCalculator soma a gordura e aplica somente os dados de tratamento cadastrados.
-8. O SafetyValidator apresenta avisos antes do resultado.
-9. A refeição finalizada pode ser salva no histórico local.
+1. O usuário fotografa a refeição ou escolhe uma imagem.
+2. O navegador prepara a foto e gera regiões de análise.
+3. O worker executa o modelo Food-101 e devolve rótulos e confiança.
+4. O provedor conserva apenas mapeamentos claros para o banco local.
+5. O usuário revisa, corrige quantidades, remove erros e adiciona itens ausentes.
+6. O banco local calcula nutrientes para as quantidades confirmadas.
+7. O cálculo soma a gordura e aplica apenas o tratamento cadastrado.
+8. Avisos são mostrados antes de salvar o resultado no histórico local.
 
-Não existe fallback silencioso para uma análise simulada. Se o serviço estiver indisponível, o aplicativo informa o erro. O modo demonstrativo usa casos preparados apenas quando é escolhido explicitamente.
+Não existe fallback silencioso. Casos preparados são usados somente quando o
+modo demonstrativo é escolhido explicitamente.
 
 ## Cálculo determinístico
 
-A IA não calcula nem escolhe a dose. O cálculo usa a gordura confirmada na revisão:
+A IA não escolhe a dose. O cálculo usa a gordura confirmada na revisão:
 
-1. gordura total × dose prescrita em U/g = lipase necessária
-2. lipase necessária ÷ lipase por unidade do medicamento = unidades estimadas
+1. gordura total × dose prescrita em U/g = lipase necessária;
+2. lipase necessária ÷ lipase por unidade do medicamento = unidades estimadas.
 
-Quando existe resultado, o número é arredondado para a próxima unidade inteira. Os parâmetros de tratamento devem ter sido fornecidos por um profissional; o PancreAI não recomenda mudanças de prescrição.
+Os parâmetros de tratamento devem ter sido informados conforme orientação
+profissional. O PancreAI não recomenda mudanças de prescrição.
 
 ## Limites conhecidos
 
-- Uma foto não revela com precisão absoluta quantidades, preparo ou ingredientes ocultos.
-- A IA pode omitir, confundir ou classificar incorretamente alimentos.
-- O banco local pode não conter todos os alimentos sugeridos.
-- O resultado depende da foto, das correções do usuário, do banco nutricional e dos dados de tratamento informados.
-- O protótipo requer validação técnica, nutricional, clínica, de segurança e de privacidade antes de qualquer uso assistencial.
+- O primeiro uso baixa cerca de 60 MB e depende da conexão.
+- O desempenho varia de acordo com o aparelho e o navegador.
+- Food-101 classifica pratos completos e pode não separar todos os componentes.
+- Uma foto não revela com precisão ingredientes ocultos ou quantidades.
+- Toda sugestão precisa ser revisada antes do cálculo.

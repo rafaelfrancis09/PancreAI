@@ -15,7 +15,7 @@ function createService() {
   return context.window.PancreAIServices.realImageCaptureService;
 }
 
-test("captura aceita somente formatos que o backend também valida", () => {
+test("captura aceita somente formatos suportados pela análise local", () => {
   const service = createService();
   for (const type of ["image/jpeg", "image/png", "image/webp"]) {
     assert.equal(service.validateImageFile(new Blob(["image"], { type })), true);

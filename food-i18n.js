@@ -1730,12 +1730,12 @@
     "Stimmige Mahlzeiten statt Zufallsauswahl",
     "Pasti coerenti, non scelte casuali"
   ],
-  "Se o serviço externo estiver indisponível, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.": [
-    "If the external service is unavailable, the app shows an error. Prepared cases are used only when demo mode is explicitly selected.",
-    "Si el servicio externo no está disponible, la app muestra un error. Los casos preparados solo se usan cuando se elige explícitamente el modo demostración.",
-    "Si le service externe est indisponible, l’app affiche une erreur. Les cas préparés ne sont utilisés que lorsque le mode démonstration est choisi explicitement.",
-    "Wenn der externe Dienst nicht verfügbar ist, zeigt die App einen Fehler an. Vorbereitete Fälle werden nur verwendet, wenn der Demomodus ausdrücklich gewählt wird.",
-    "Se il servizio esterno non è disponibile, l’app mostra un errore. I casi preparati vengono usati solo quando si sceglie esplicitamente la modalità dimostrativa."
+  "Se a IA local não conseguir carregar ou reconhecer a imagem, o app mostra um erro. Os casos preparados só são usados quando o modo demonstrativo é escolhido explicitamente.": [
+    "If the local AI cannot load or recognize the image, the app shows an error. Prepared cases are used only when demo mode is explicitly selected.",
+    "Si la IA local no puede cargar o reconocer la imagen, la app muestra un error. Los casos preparados solo se usan cuando se elige explícitamente el modo demostración.",
+    "Si l’IA locale ne peut pas charger ou reconnaître l’image, l’app affiche une erreur. Les cas préparés ne sont utilisés que lorsque le mode démonstration est choisi explicitement.",
+    "Wenn die lokale KI das Bild nicht laden oder erkennen kann, zeigt die App einen Fehler an. Vorbereitete Fälle werden nur verwendet, wenn der Demomodus ausdrücklich gewählt wird.",
+    "Se l’IA locale non riesce a caricare o riconoscere l’immagine, l’app mostra un errore. I casi preparati vengono usati solo quando si sceglie esplicitamente la modalità dimostrativa."
   ],
   "Almoço brasileiro": [
     "Brazilian lunch",
@@ -2036,12 +2036,12 @@
     "Verlauf",
     "Cronologia"
   ],
-  "A câmera e a galeria recebem fotos reais. A imagem preparada é enviada por um backend protegido a um modelo OpenAI com visão, que sugere alimentos e porções.": [
-    "The camera and gallery receive real photos. The prepared image is sent through a protected backend to an OpenAI vision model, which suggests foods and portions.",
-    "La cámara y la galería reciben fotos reales. La imagen preparada se envía mediante un backend protegido a un modelo OpenAI con visión, que sugiere alimentos y porciones.",
-    "L’appareil photo et la galerie reçoivent de vraies photos. L’image préparée est envoyée via un backend protégé à un modèle OpenAI doté de vision, qui suggère des aliments et des portions.",
-    "Kamera und Galerie verwenden echte Fotos. Das vorbereitete Bild wird über ein geschütztes Backend an ein OpenAI-Modell mit Bildverarbeitung gesendet, das Lebensmittel und Portionen vorschlägt.",
-    "La fotocamera e la galleria ricevono foto reali. L’immagine preparata viene inviata tramite un backend protetto a un modello OpenAI con capacità visive, che suggerisce alimenti e porzioni."
+  "A câmera e a galeria recebem fotos reais. Uma rede Food-101 analisa a imagem no próprio navegador e sugere categorias de alimentos e porções aproximadas.": [
+    "The camera and gallery receive real photos. A Food-101 network analyzes the image directly in the browser and suggests food categories and approximate portions.",
+    "La cámara y la galería reciben fotos reales. Una red Food-101 analiza la imagen directamente en el navegador y sugiere categorías de alimentos y porciones aproximadas.",
+    "L’appareil photo et la galerie reçoivent de vraies photos. Un réseau Food-101 analyse l’image directement dans le navigateur et suggère des catégories d’aliments et des portions approximatives.",
+    "Kamera und Galerie verwenden echte Fotos. Ein Food-101-Netz analysiert das Bild direkt im Browser und schlägt Lebensmittelkategorien sowie ungefähre Portionen vor.",
+    "La fotocamera e la galleria ricevono foto reali. Una rete Food-101 analizza l’immagine direttamente nel browser e suggerisce categorie di alimenti e porzioni approssimative."
   ],
   "O app não usa calorias como base principal. Ele soma a gordura dos alimentos confirmados, aplica a dose prescrita em U/g de gordura e converte a lipase necessária em cápsulas de Creon.": [
     "The app does not use calories as the main basis. It adds the fat from confirmed foods, applies the prescribed dose in U/g of fat, and converts the required lipase into Creon capsules.",
@@ -2615,6 +2615,27 @@
     "Carne bovina, linguiça e farofa": ["Beef, sausage, and farofa", "Carne, salchicha y farofa", "Bœuf, saucisse et farofa", "Rindfleisch, Bratwurst und Farofa", "Manzo, salsiccia e farofa"],
     "Carne bovina, linguiça e farofa.": ["Beef, sausage, and farofa.", "Carne, salchicha y farofa.", "Bœuf, saucisse et farofa.", "Rindfleisch, Bratwurst und Farofa.", "Manzo, salsiccia e farofa."]
   });
+  const LOCAL_AI_ROWS = {
+    "Uma rede Food-101 executada no navegador sugere categorias de alimentos, porções aproximadas e qualidade da foto. Essas sugestões podem estar erradas e precisam ser revisadas antes do cálculo.": [
+      "A Food-101 network running in the browser suggests food categories, approximate portions, and photo quality. These suggestions may be wrong and must be reviewed before calculation.",
+      "Una red Food-101 que se ejecuta en el navegador sugiere categorías de alimentos, porciones aproximadas y calidad de la foto. Estas sugerencias pueden ser incorrectas y deben revisarse antes del cálculo.",
+      "Un réseau Food-101 exécuté dans le navigateur suggère des catégories d’aliments, des portions approximatives et la qualité de la photo. Ces suggestions peuvent être erronées et doivent être vérifiées avant le calcul.",
+      "Ein im Browser ausgeführtes Food-101-Netz schlägt Lebensmittelkategorien, ungefähre Portionen und die Fotoqualität vor. Diese Vorschläge können falsch sein und müssen vor der Berechnung geprüft werden.",
+      "Una rete Food-101 eseguita nel browser suggerisce categorie di alimenti, porzioni approssimative e qualità della foto. Questi suggerimenti possono essere errati e devono essere controllati prima del calcolo."
+    ],
+    "Foto analisada localmente, sem envio a um serviço de IA": ["Photo analyzed locally, without sending it to an AI service", "Foto analizada localmente, sin enviarla a un servicio de IA", "Photo analysée localement, sans envoi à un service d’IA", "Foto lokal analysiert, ohne Übertragung an einen KI-Dienst", "Foto analizzata localmente, senza invio a un servizio di IA"],
+    "Primeiro uso baixa o modelo; os próximos aproveitam o cache do navegador": ["The first use downloads the model; later uses rely on the browser cache", "El primer uso descarga el modelo; los siguientes aprovechan la caché del navegador", "La première utilisation télécharge le modèle ; les suivantes utilisent le cache du navigateur", "Bei der ersten Nutzung wird das Modell geladen; spätere Nutzungen verwenden den Browser-Cache", "Il primo utilizzo scarica il modello; i successivi usano la cache del browser"],
+    "Análise visual local": ["Local visual analysis", "Análisis visual local", "Analyse visuelle locale", "Lokale Bildanalyse", "Analisi visiva locale"],
+    "no navegador": ["in the browser", "en el navegador", "dans le navigateur", "im Browser", "nel browser"],
+    "Nenhuma chave de API ou conta é necessária": ["No API key or account is required", "No se necesita una clave de API ni una cuenta", "Aucune clé d’API ni aucun compte n’est nécessaire", "Kein API-Schlüssel und kein Konto erforderlich", "Non servono chiavi API né account"],
+    "A rede local devolve apenas sugestões visuais": ["The local network returns visual suggestions only", "La red local devuelve solo sugerencias visuales", "Le réseau local renvoie uniquement des suggestions visuelles", "Das lokale Netz liefert nur visuelle Vorschläge", "La rete locale restituisce solo suggerimenti visivi"],
+    "Worker do navegador": ["Browser worker", "Worker del navegador", "Worker du navigateur", "Browser-Worker", "Worker del browser"],
+    "IA local Food-101": ["Local Food-101 AI", "IA local Food-101", "IA locale Food-101", "Lokale Food-101-KI", "IA locale Food-101"],
+    "A foto da refeição permanece no aparelho durante a análise. Ainda assim, fotografe apenas o prato e revise cuidadosamente as sugestões.": ["The meal photo remains on the device during analysis. Even so, photograph only the plate and carefully review the suggestions.", "La foto de la comida permanece en el dispositivo durante el análisis. Aun así, fotografía solo el plato y revisa cuidadosamente las sugerencias.", "La photo du repas reste sur l’appareil pendant l’analyse. Photographiez néanmoins uniquement l’assiette et vérifiez attentivement les suggestions.", "Das Foto der Mahlzeit bleibt während der Analyse auf dem Gerät. Fotografieren Sie dennoch nur den Teller und prüfen Sie die Vorschläge sorgfältig.", "La foto del pasto rimane sul dispositivo durante l’analisi. Fotografa comunque solo il piatto e controlla attentamente i suggerimenti."],
+    "modelo visual local": ["local visual model", "modelo visual local", "modèle visuel local", "lokales Bildmodell", "modello visivo locale"],
+    "Executado em worker no navegador": ["Runs in a browser worker", "Se ejecuta en un worker del navegador", "Exécuté dans un worker du navigateur", "Wird in einem Browser-Worker ausgeführt", "Eseguito in un worker del browser"],
+    "A foto permanece no aparelho durante a análise. Fotografe somente a refeição e não inclua dados pessoais ou informações desnecessárias.": ["The photo remains on the device during analysis. Photograph only the meal and do not include personal data or unnecessary information.", "La foto permanece en el dispositivo durante el análisis. Fotografía solo la comida y no incluyas datos personales ni información innecesaria.", "La photo reste sur l’appareil pendant l’analyse. Photographiez uniquement le repas et n’incluez pas de données personnelles ni d’informations inutiles.", "Das Foto bleibt während der Analyse auf dem Gerät. Fotografieren Sie nur die Mahlzeit und fügen Sie keine personenbezogenen oder unnötigen Informationen hinzu.", "La foto rimane sul dispositivo durante l’analisi. Fotografa solo il pasto e non includere dati personali o informazioni non necessarie."]
+  };
   const MAP_CACHE = new Map();
   const FOOD_KEYS_SORTED = Object.keys(FOOD_ROWS).sort(function (a, b) { return b.length - a.length; });
 
@@ -2728,7 +2749,8 @@
     if (lang === FALLBACK) return String(value ?? "");
     const source = normalizeText(value);
     if (!source) return String(value ?? "");
-    return exactFrom(EXTRA_ROWS, source, lang)
+    return exactFrom(LOCAL_AI_ROWS, source, lang)
+      || exactFrom(EXTRA_ROWS, source, lang)
       || exactFrom(FOOD_ROWS, source, lang)
       || exactFrom(CATEGORY_ROWS, source, lang)
       || (shouldTryCompositeTranslation(source) ? translateComposite(source, lang) : null)
@@ -2740,7 +2762,8 @@
     if (lang === FALLBACK) return String(value ?? "");
     const source = normalizeText(value);
     if (!source) return String(value ?? "");
-    return exactFrom(EXTRA_ROWS, source, lang)
+    return exactFrom(LOCAL_AI_ROWS, source, lang)
+      || exactFrom(EXTRA_ROWS, source, lang)
       || exactFrom(FOOD_ROWS, source, lang)
       || exactFrom(CATEGORY_ROWS, source, lang)
       || null;

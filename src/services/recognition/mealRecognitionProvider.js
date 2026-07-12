@@ -1,19 +1,17 @@
 (function () {
   /**
-   * Contrato esperado para provedores de reconhecimento de refeições.
+   * Contrato compartilhado pelos provedores de reconhecimento de refeições.
    *
-   * Um provider recebe uma imagem, arquivo ou referencia visual e retorna uma
-   * análise estruturada com refeição, alimentos, quantidades, confiança,
-   * qualidade da foto, avisos e possiveis itens desconhecidos.
-   *
-   * Hoje o app usa MockMealRecognitionProvider. Futuramente este contrato pode
-   * ser implementado por um AIVisionProvider real sem trocar o cálculo, a
-   * segurança, a confirmação humana ou o histórico.
+   * O fluxo real usa uma rede Food-101 executada em um worker do navegador.
+   * O provedor simulado permanece separado e só é usado quando a demonstração
+   * é escolhida explicitamente. Ambos entregam o mesmo formato à tela de revisão.
    */
   const providerContract = {
-    expectedMethod: "analyze(imageReference)",
-    currentProvider: "MockMealRecognitionProvider",
-    futureProvider: "AIVisionProvider",
+    expectedMethod: "analyze(imageReference, options)",
+    currentProvider: "RealMealRecognitionProvider",
+    currentModel: "onnx-community/swin-finetuned-food101-ONNX",
+    execution: "browser-worker",
+    demoProvider: "MockMealRecognitionProvider",
     outputFields: [
       "provider",
       "providerLabel",
@@ -31,8 +29,6 @@
 
   window.PancreAIRecognition = {
     ...(window.PancreAIRecognition || {}),
-    mealRecognitionProvider: {
-      providerContract
-    }
+    mealRecognitionProvider: { providerContract }
   };
 })();

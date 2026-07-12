@@ -1,13 +1,13 @@
 (function () {
   window.PancreAIArchitecture = {
     productName: "PancreAI",
-    currentRecognitionProvider: "RealMealRecognitionProvider + OpenAI Vision",
+    currentRecognitionProvider: "RealMealRecognitionProvider + IA local Food-101",
     currentRecognitionLabel: "Análise real por imagem, com revisão obrigatória",
     demoRecognitionProvider: "SimulatedCaptureService + MockVision",
     centralMessage: "A IA sugere. O usuário revisa. O banco local informa os nutrientes. O cálculo determinístico produz a estimativa.",
     modules: [
       { name: "Câmera e galeria reais", file: "src/services/realImageCaptureService.js", status: "funcional", label: "Captura, validação e compressão da foto" },
-      { name: "Análise visual", file: "src/services/recognition/realMealRecognitionProvider.js", status: "funcional", label: "OpenAI Vision acessada por backend protegido" },
+      { name: "Análise visual", file: "src/services/recognition/realMealRecognitionProvider.js", status: "funcional", label: "Rede Food-101 executada em worker no navegador" },
       { name: "Correspondência de alimentos", file: "src/services/recognition/foodMatcher.js", status: "funcional", label: "Nomes ligados ao catálogo local sem inventar nutrientes" },
       { name: "Banco nutricional", file: "src/data/nutritionDatabase.js", status: "funcional", label: "Fonte local dos valores por quantidade" },
       { name: "Revisão obrigatória", file: "home.js", status: "funcional", label: "Editar, remover, adicionar e confirmar" },
@@ -16,7 +16,7 @@
       { name: "Histórico local", file: "src/services/historyService.js", status: "funcional", label: "Refeições confirmadas salvas no navegador" },
       { name: "Modo demonstrativo", file: "src/services/simulatedCaptureService.js", status: "opcional", label: "Casos preparados somente quando escolhidos explicitamente" }
     ],
-    currentFlow: ["Foto real", "Backend protegido", "OpenAI Vision", "Revisão obrigatória", "Banco nutricional local", "Cálculo determinístico", "Validação", "Histórico"],
+    currentFlow: ["Foto real", "IA local Food-101", "Revisão obrigatória", "Banco nutricional local", "Cálculo determinístico", "Validação", "Histórico"],
     demoFlow: ["Modo demonstrativo explícito", "Caso preparado", "Revisão obrigatória", "Banco nutricional local", "Cálculo determinístico", "Validação", "Histórico"]
   };
 })();

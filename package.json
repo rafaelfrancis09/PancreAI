@@ -2,7 +2,7 @@
   "name": "pancreai",
   "version": "1.0.0",
   "private": true,
-  "description": "PancreAI web app and secure serverless meal-image analysis API",
+  "description": "PancreAI web app with private in-browser meal-image classification",
   "scripts": {
     "test": "node --test"
   },

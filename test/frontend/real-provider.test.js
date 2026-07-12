@@ -9,8 +9,12 @@ const providerSource = fs.readFileSync(
   "utf8"
 );
 
-function createProvider(fetchImplementation = global.fetch) {
+function createProvider() {
   let idCounter = 0;
+  const catalog = {
+    "Macarrão à bolonhesa": { id: "macarrao_bolonhesa", fat: 8, protein: 12, carbs: 34, calories: 260 },
+    "Bife grelhado": { id: "bife_grelhado", fat: 10, protein: 26, carbs: 0, calories: 210 }
+  };
   const foodMatcher = {
     normalizeGrams(value) {
       const numeric = Number(value);
@@ -21,17 +25,32 @@ function createProvider(fetchImplementation = global.fetch) {
       return Number.isFinite(numeric) ? Math.max(0, Math.min(100, Math.round(numeric))) : fallback;
     },
     normalizeDetectedItems(items) {
-      const detectedItems = items.map((item) => ({
-        foodId: "arroz_branco",
-        name: "Arroz branco",
-        originalName: item.name,
-        quantityGrams: Number(item.quantityGrams),
-        confidence: Number(item.confidence),
-        nutrients: { fat: 0.4, protein: 3, carbs: 34, calories: 156 }
-      }));
+      const detectedItems = [];
+      const unknownItems = [];
+      items.forEach((item) => {
+        const food = catalog[item.name];
+        if (!food) {
+          unknownItems.push({ label: item.name, confidence: item.confidence, quantityGrams: item.quantityGrams });
+          return;
+        }
+        const factor = Number(item.quantityGrams) / 100;
+        detectedItems.push({
+          foodId: food.id,
+          name: item.name,
+          originalName: item.name,
+          quantityGrams: Number(item.quantityGrams),
+          confidence: Number(item.confidence),
+          nutrients: {
+            fat: food.fat * factor,
+            protein: food.protein * factor,
+            carbs: food.carbs * factor,
+            calories: food.calories * factor
+          }
+        });
+      });
       return {
         detectedItems,
-        unknownItems: [],
+        unknownItems,
         foods: detectedItems.map((item) => ({
           foodId: item.foodId,
           name: item.name,
@@ -48,35 +67,24 @@ function createProvider(fetchImplementation = global.fetch) {
   const context = {
     AbortController,
     Blob,
-    FormData,
-    Response,
     Uint8Array,
     URL,
     atob,
     clearTimeout,
     console,
-    document: {
-      querySelector(selector) {
-        assert.equal(selector, 'meta[name="pancreai-analysis-endpoint"]');
-        return { getAttribute: () => "https://api.pancreai.test/api/analyze-meal" };
-      }
-    },
-    fetch: fetchImplementation,
+    document: { baseURI: "https://pancreai.test/" },
+    fetch: async () => { throw new Error("A foto não deve ser enviada pela rede."); },
     setTimeout
   };
   context.window = {
     Blob,
-    FormData,
+    Worker: function Worker() {},
+    WebAssembly,
     PancreAIUtils: { ids: { createId: (prefix) => `${prefix}_${++idCounter}` } },
     PancreAIRecognition: { foodMatcher },
-    PancreAIData: {
-      nutritionDatabase: { foods: [{ id: "arroz_branco", name: "Arroz branco" }] }
-    },
-    PancreAIServices: {
-      hiddenIngredientsService: { getDefaultSelections: () => [] }
-    },
+    PancreAIServices: { hiddenIngredientsService: { getDefaultSelections: () => [] } },
     clearTimeout,
-    fetch: fetchImplementation,
+    fetch: context.fetch,
     setTimeout
   };
 
@@ -84,57 +92,47 @@ function createProvider(fetchImplementation = global.fetch) {
   return context.window.PancreAIServices.realMealRecognitionProvider;
 }
 
-test("provider lê o endpoint público configurável sem expor segredo", () => {
+test("provider usa IA no navegador sem endpoint nem chave", () => {
   const provider = createProvider();
-  assert.equal(provider.getEndpoint(), "https://api.pancreai.test/api/analyze-meal");
+  assert.equal(provider.execution, "browser");
+  assert.equal(provider.modelId, "onnx-community/swin-finetuned-food101-ONNX");
+  assert.equal(provider.isAvailable(), true);
+  assert.equal("getEndpoint" in provider, false);
 });
 
-test("provider envia imagem e catálogo e normaliza o resultado para o banco local", async () => {
-  let requestedUrl;
-  let submittedCatalog;
-  const provider = createProvider(async (url, options) => {
-    requestedUrl = url;
-    submittedCatalog = JSON.parse(options.body.get("catalog"));
-    assert.equal(options.method, "POST");
-    assert.equal(options.body.get("locale"), "pt-BR");
-    assert.equal(options.body.get("image") instanceof Blob, true);
-    return new Response(JSON.stringify({
-      id: "analysis_1",
-      provider: "openai",
-      providerLabel: "OpenAI Vision",
-      isSimulated: false,
-      mealName: "Arroz",
-      category: "Almoço",
-      confidence: 91,
-      photoQuality: { level: "good", label: "Foto boa" },
-      detectedItems: [{ name: "Arroz branco", quantityGrams: 120, confidence: 94 }],
-      warnings: [],
-      unknownItems: []
-    }), { status: 200, headers: { "content-type": "application/json" } });
-  });
-
-  const result = await provider.analyze(new Blob([Buffer.from([0xff, 0xd8, 0xff])], { type: "image/jpeg" }), {
-    locale: "pt-BR"
-  });
-
-  assert.equal(requestedUrl, "https://api.pancreai.test/api/analyze-meal");
-  assert.deepEqual(submittedCatalog, [{ id: "arroz_branco", name: "Arroz branco" }]);
-  assert.equal(result.isSimulated, false);
-  assert.equal(result.foods[0].name, "Arroz branco");
-  assert.equal(result.foods[0].fat, 0.4);
-});
-
-test("provider não exibe HTML devolvido por um endpoint configurado incorretamente", async () => {
+test("classificação Food-101 é convertida para o banco nutricional local", async () => {
   const provider = createProvider();
-  const response = new Response("<html><body>not found</body></html>", {
-    status: 404,
-    headers: { "content-type": "text/html" }
-  });
-
-  await assert.rejects(
-    () => provider._private.parseResponse(response),
-    (error) => error?.code === "HTTP_404" &&
-      error?.message.includes("configuração da hospedagem") &&
-      !error?.message.includes("<html>")
+  provider._private.setClassifierForTests(async () => [
+    { label: "spaghetti_bolognese", score: 0.92 },
+    { label: "steak", score: 0.04 }
+  ]);
+  const progress = [];
+  const result = await provider.analyze(
+    new Blob([Buffer.from([0xff, 0xd8, 0xff])], { type: "image/jpeg" }),
+    { onProgress: (event) => progress.push(event.phase) }
   );
+
+  assert.equal(result.provider, "transformersjs-food101");
+  assert.equal(result.providerLabel, "IA local Food-101");
+  assert.equal(result.isSimulated, false);
+  assert.equal(result.foods[0].name, "Macarrão à bolonhesa");
+  assert.equal(result.foods[0].grams, 220);
+  assert.equal(result.foods[0].fat, 17.6);
+  assert.equal(progress.includes("prepare"), true);
+  assert.equal(progress.includes("inference"), true);
+});
+
+test("rótulo sem correspondência fica desconhecido em vez de inventar nutrientes", async () => {
+  const provider = createProvider();
+  provider._private.setClassifierForTests(async () => [
+    { label: "apple_pie", score: 0.81 }
+  ]);
+  const result = await provider.analyze(
+    new Blob([Buffer.from([0xff, 0xd8, 0xff])], { type: "image/jpeg" })
+  );
+
+  assert.equal(result.foods.length, 0);
+  assert.equal(result.unknownItems.length, 1);
+  assert.equal(result.unknownItems[0].label, "Apple pie");
+  assert.equal(result.warnings.some((warning) => warning.includes("manualmente")), true);
 });

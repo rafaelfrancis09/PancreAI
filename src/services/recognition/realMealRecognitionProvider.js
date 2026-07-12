@@ -3,11 +3,18 @@
 
   const ids = window.PancreAIUtils?.ids;
   const foodMatcher = window.PancreAIRecognition?.foodMatcher;
-  const nutritionDatabase = window.PancreAIData?.nutritionDatabase;
   const hiddenIngredientsService = window.PancreAIServices?.hiddenIngredientsService;
-  const DEFAULT_ENDPOINT = "/api/analyze-meal";
-  const DEFAULT_TIMEOUT_MS = 45000;
-  let endpointOverride = null;
+
+  const MODEL_ID = "onnx-community/swin-finetuned-food101-ONNX";
+  const DEFAULT_TIMEOUT_MS = 120000;
+  const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+
+  let classifierPromise = null;
+  let classifierOverride = null;
+  let recognitionWorker = null;
+  let workerRequestCounter = 0;
+  const workerRequests = new Map();
+  const progressListeners = new Set();
 
   class MealAnalysisError extends Error {
     constructor(message, code, status, details) {
@@ -19,18 +26,62 @@
     }
   }
 
-  function getEndpoint(options = {}) {
-    const metaEndpoint = document
-      .querySelector('meta[name="pancreai-analysis-endpoint"]')
-      ?.getAttribute("content")
-      ?.trim();
-    return options.endpoint || endpointOverride ||
-      window.PancreAIConfig?.mealAnalysisEndpoint || metaEndpoint || DEFAULT_ENDPOINT;
+  // Food-101 recognizes complete dishes. This conservative map only connects
+  // labels that have a clear equivalent in the local PancreAI catalog.
+  const MODEL_LABEL_MAPPINGS = {
+    "chocolate mousse": [{ name: "Mousse de chocolate", factor: 1 }],
+    "falafel": [{ name: "Falafel assado", factor: 1 }],
+    "filet mignon": [{ name: "Bife grelhado", factor: 1 }],
+    "french fries": [{ name: "Batata frita", factor: 1 }],
+    "fried rice": [{ name: "Arroz com legumes", factor: 1 }],
+    "frozen yogurt": [{ name: "Iogurte grego", factor: 1 }],
+    "gnocchi": [{ name: "Nhoque ao sugo", factor: 1 }],
+    "greek salad": [{ name: "Salada verde", factor: 1 }],
+    "grilled salmon": [{ name: "Salmão grelhado", factor: 1 }],
+    "guacamole": [{ name: "Guacamole", factor: 1 }],
+    "gyoza": [{ name: "Guioza grelhado", factor: 1 }],
+    "hamburger": [
+      { name: "Hambúrguer bovino", factor: 0.5 },
+      { name: "Pão de hambúrguer", factor: 0.35 },
+      { name: "Queijo cheddar", factor: 0.15 }
+    ],
+    "hummus": [{ name: "Homus", factor: 1 }],
+    "lasagna": [{ name: "Lasanha à bolonhesa", factor: 1 }],
+    "omelette": [{ name: "Omelete de queijo", factor: 1 }],
+    "pancakes": [{ name: "Panqueca americana", factor: 1 }],
+    "pork chop": [{ name: "Lombo suíno assado", factor: 1 }],
+    "risotto": [{ name: "Risoto de legumes", factor: 1 }],
+    "sashimi": [{ name: "Sashimi de salmão", factor: 1 }],
+    "spaghetti bolognese": [{ name: "Macarrão à bolonhesa", factor: 1 }],
+    "steak": [{ name: "Bife grelhado", factor: 1 }],
+    "sushi": [{ name: "Sushi combinado", factor: 1 }],
+    "tacos": [{ name: "Taco de carne", factor: 1 }],
+    "waffles": [{ name: "Waffle", factor: 1 }]
+  };
+
+  function safeText(value, fallback = "", maxLength = 160) {
+    const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
+    return (normalized || fallback).slice(0, maxLength);
   }
 
-  function setEndpoint(endpoint) {
-    const value = String(endpoint || "").trim();
-    endpointOverride = value || null;
+  function normalizeModelLabel(value) {
+    return safeText(value, "", 100).replace(/_/g, " ").toLowerCase();
+  }
+
+  function humanizeModelLabel(value) {
+    const normalized = normalizeModelLabel(value);
+    return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : "Alimento não identificado";
+  }
+
+  function normalizePhotoQuality(value) {
+    const level = safeText(value?.level || value, "medium", 24).toLowerCase();
+    const copy = {
+      excellent: ["Foto excelente", "A refeição está bem enquadrada e iluminada."],
+      good: ["Foto boa", "A imagem permite uma análise visual adequada."],
+      medium: ["Qualidade moderada", "Alguns detalhes podem exigir mais atenção na revisão."],
+      low: ["Foto inadequada", "A iluminação ou o contraste dificultam a identificação."]
+    }[level] || ["Qualidade moderada", "Revise as sugestões com atenção."];
+    return { label: copy[0], level, value: level, message: copy[1] };
   }
 
   function isBlob(value) {
@@ -51,13 +102,11 @@
     if (isBlob(image)) return image;
     if (isBlob(image?.file)) return image.file;
     if (isBlob(image?.blob)) return image.blob;
-
     const reference = image?.dataUrl || image?.imageData || image?.url || image?.src || image;
     if (typeof reference !== "string" || !reference.trim()) {
       throw new MealAnalysisError("Selecione uma imagem para analisar.", "IMAGE_REQUIRED");
     }
     if (reference.startsWith("data:")) return dataUrlToBlob(reference);
-
     try {
       const response = await fetch(reference, { credentials: "same-origin" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -67,100 +116,267 @@
     }
   }
 
-  function safeFilename(image, blob) {
-    const supplied = image?.name || image?.filename || image?.file?.name;
-    if (supplied) return String(supplied);
-    const extension = String(blob?.type || "image/jpeg").split("/")[1]?.replace("jpeg", "jpg") || "jpg";
-    return `meal-${Date.now()}.${extension}`;
-  }
-
-  function safeText(value, fallback = "", maxLength = 160) {
-    const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
-    return (normalized || fallback).slice(0, maxLength);
-  }
-
-  function normalizePhotoQuality(value) {
-    if (value && typeof value === "object") {
-      const level = safeText(value.level || value.value, "unknown", 24).toLowerCase();
-      return {
-        label: safeText(value.label || value.message, "Qualidade da foto analisada", 80),
-        level,
-        value: safeText(value.value || level, level, 24),
-        message: safeText(value.message, "", 180)
-      };
+  function blobToDataUrl(blob) {
+    if (typeof FileReader === "undefined") {
+      const objectUrl = URL.createObjectURL(blob);
+      return Promise.resolve({ source: objectUrl, revoke: () => URL.revokeObjectURL(objectUrl) });
     }
-    const label = safeText(value, "Qualidade da foto analisada", 80);
-    return { label, level: "unknown", value: "unknown", message: "" };
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new MealAnalysisError("Não foi possível ler a imagem.", "IMAGE_READ_FAILED"));
+      reader.onload = () => resolve({ source: String(reader.result), revoke: () => {} });
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function notifyProgress(payload) {
+    progressListeners.forEach((listener) => {
+      try { listener(payload); } catch (_) { /* the screen may already be closed */ }
+    });
+  }
+
+  function normalizeDownloadProgress(event) {
+    const raw = Number(event?.progress);
+    const percent = Number.isFinite(raw) ? Math.round(raw <= 1 ? raw * 100 : raw) : null;
+    return {
+      phase: "model",
+      percent: percent == null ? null : Math.max(0, Math.min(100, percent)),
+      status: event?.status || "loading"
+    };
+  }
+
+  function rejectWorkerRequests(error) {
+    workerRequests.forEach(({ reject }) => reject(error));
+    workerRequests.clear();
+  }
+
+  function resetRecognitionWorker(error) {
+    recognitionWorker?.terminate?.();
+    recognitionWorker = null;
+    classifierPromise = null;
+    if (error) rejectWorkerRequests(error);
+  }
+
+  function getRecognitionWorker() {
+    if (recognitionWorker) return recognitionWorker;
+    const workerUrl = new URL("src/workers/foodRecognitionWorker.js", document.baseURI);
+    recognitionWorker = new Worker(workerUrl, { type: "module", name: "pancreai-food-recognition" });
+    recognitionWorker.addEventListener("message", (message) => {
+      const payload = message.data || {};
+      if (payload.type === "progress") {
+        notifyProgress(normalizeDownloadProgress(payload.event));
+        return;
+      }
+      const pending = workerRequests.get(payload.id);
+      if (!pending) return;
+      workerRequests.delete(payload.id);
+      if (payload.type === "result") {
+        pending.resolve(payload.output);
+        return;
+      }
+      pending.reject(new MealAnalysisError(
+        "Não foi possível executar a IA local.",
+        "LOCAL_AI_FAILED",
+        null,
+        payload.error?.message
+      ));
+    });
+    recognitionWorker.addEventListener("error", (event) => {
+      resetRecognitionWorker(new MealAnalysisError(
+        "Não foi possível carregar a IA local. Verifique a internet e tente novamente.",
+        "MODEL_LOAD_FAILED",
+        null,
+        event?.message
+      ));
+    });
+    return recognitionWorker;
+  }
+
+  function classifyInWorker(source, options) {
+    const worker = getRecognitionWorker();
+    const id = `food_recognition_${Date.now()}_${++workerRequestCounter}`;
+    return new Promise((resolve, reject) => {
+      workerRequests.set(id, { resolve, reject });
+      worker.postMessage({ id, source, options });
+    });
+  }
+
+  async function getClassifier() {
+    if (classifierOverride) return classifierOverride;
+    if (!classifierPromise) {
+      classifierPromise = Promise.resolve((source, options) => classifyInWorker(source, options));
+    }
+    return classifierPromise;
+  }
+  function drawCover(context, image, region) {
+    const outputSize = context.canvas.width;
+    const sourceRatio = region.width / region.height;
+    let sourceWidth = region.width;
+    let sourceHeight = region.height;
+    let sourceX = region.x;
+    let sourceY = region.y;
+    if (sourceRatio > 1) {
+      sourceWidth = region.height;
+      sourceX += (region.width - sourceWidth) / 2;
+    } else {
+      sourceHeight = region.width;
+      sourceY += (region.height - sourceHeight) / 2;
+    }
+    context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputSize, outputSize);
+  }
+
+  function measurePhotoQuality(context) {
+    let pixels;
+    try {
+      pixels = context.getImageData(0, 0, context.canvas.width, context.canvas.height).data;
+    } catch (_) {
+      return "medium";
+    }
+    let count = 0;
+    let sum = 0;
+    let sumSquares = 0;
+    for (let index = 0; index < pixels.length; index += 64) {
+      const luminance = pixels[index] * 0.2126 + pixels[index + 1] * 0.7152 + pixels[index + 2] * 0.0722;
+      count += 1;
+      sum += luminance;
+      sumSquares += luminance * luminance;
+    }
+    const mean = sum / Math.max(1, count);
+    const contrast = Math.sqrt(Math.max(0, sumSquares / Math.max(1, count) - mean * mean));
+    if (mean < 42 || mean > 232 || contrast < 14) return "low";
+    if (mean < 62 || mean > 218 || contrast < 25) return "medium";
+    if (mean > 78 && mean < 205 && contrast > 42) return "excellent";
+    return "good";
+  }
+
+  async function prepareImageVariants(blob) {
+    const original = await blobToDataUrl(blob);
+    const fallback = {
+      variants: [{ source: original.source, region: "whole", grams: 220, weight: 1 }],
+      quality: "medium",
+      cleanup: original.revoke
+    };
+    if (typeof createImageBitmap !== "function" || !document?.createElement) return fallback;
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(blob, { imageOrientation: "from-image" });
+      const width = bitmap.width;
+      const height = bitmap.height;
+      if (!width || !height) return fallback;
+      const definitions = [
+        { region: "whole", x: 0, y: 0, width, height, grams: 220, weight: 1 },
+        { region: "top-left", x: 0, y: 0, width: width * 0.62, height: height * 0.62, grams: 100, weight: 0.9 },
+        { region: "top-right", x: width * 0.38, y: 0, width: width * 0.62, height: height * 0.62, grams: 100, weight: 0.9 },
+        { region: "bottom-left", x: 0, y: height * 0.38, width: width * 0.62, height: height * 0.62, grams: 100, weight: 0.9 },
+        { region: "bottom-right", x: width * 0.38, y: height * 0.38, width: width * 0.62, height: height * 0.62, grams: 100, weight: 0.9 }
+      ];
+      const variants = [];
+      let quality = "medium";
+      definitions.forEach((definition, index) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 224;
+        canvas.height = 224;
+        const context = canvas.getContext("2d", { willReadFrequently: index === 0 });
+        if (!context) return;
+        drawCover(context, bitmap, definition);
+        if (index === 0) quality = measurePhotoQuality(context);
+        variants.push({
+          source: canvas.toDataURL("image/jpeg", 0.86),
+          region: definition.region,
+          grams: definition.grams,
+          weight: definition.weight
+        });
+      });
+      return { variants: variants.length ? variants : fallback.variants, quality, cleanup: original.revoke };
+    } catch (_) {
+      return fallback;
+    } finally {
+      bitmap?.close?.();
+    }
+  }
+
+  function normalizePredictions(output) {
+    const list = Array.isArray(output?.[0]) ? output[0] : output;
+    return (Array.isArray(list) ? list : [])
+      .map((item) => ({ label: normalizeModelLabel(item?.label), score: Number(item?.score) }))
+      .filter((item) => item.label && Number.isFinite(item.score))
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 5);
+  }
+
+  function addMappedPrediction(map, prediction, variant) {
+    const mappings = MODEL_LABEL_MAPPINGS[prediction.label];
+    if (!mappings) return false;
+    const confidence = Math.round(Math.max(1, Math.min(99, prediction.score * variant.weight * 100)));
+    mappings.forEach((mapping) => {
+      const quantityGrams = Math.max(15, Math.round(variant.grams * mapping.factor));
+      const previous = map.get(mapping.name);
+      if (!previous || confidence > previous.confidence) {
+        map.set(mapping.name, { name: mapping.name, quantityGrams, confidence });
+      }
+    });
+    return true;
+  }
+
+  async function classifyVariants(classifier, prepared, onProgress) {
+    const detected = new Map();
+    let bestUnknown = null;
+    for (let index = 0; index < prepared.variants.length; index += 1) {
+      const variant = prepared.variants[index];
+      onProgress?.({ phase: "inference", current: index + 1, total: prepared.variants.length });
+      const predictions = normalizePredictions(await classifier(variant.source, { topk: 5 }));
+      predictions.forEach((prediction) => {
+        if (!bestUnknown || prediction.score > bestUnknown.score) bestUnknown = prediction;
+      });
+      const threshold = variant.region === "whole" ? 0.12 : 0.2;
+      const mapped = predictions.find((prediction) => prediction.score >= threshold && MODEL_LABEL_MAPPINGS[prediction.label]);
+      if (mapped) addMappedPrediction(detected, mapped, variant);
+    }
+    return { detectedItems: [...detected.values()].slice(0, 6), bestUnknown };
   }
 
   function normalizeWarning(warning) {
-    const value = typeof warning === "string"
-      ? warning
-      : warning?.message || warning?.label || warning?.code;
+    const value = typeof warning === "string" ? warning : warning?.message || warning?.label || warning?.code;
     return safeText(value, "Revise a análise antes de continuar.", 220);
   }
 
   function normalizePayload(payload) {
     if (!payload || typeof payload !== "object") {
-      throw new MealAnalysisError("O serviço retornou uma resposta inválida.", "INVALID_RESPONSE");
+      throw new MealAnalysisError("A IA local retornou uma resposta inválida.", "INVALID_RESPONSE");
     }
     if (!foodMatcher?.normalizeDetectedItems) {
       throw new MealAnalysisError("O banco nutricional não foi carregado.", "FOOD_MATCHER_UNAVAILABLE");
     }
-
-    const sourceItems = payload.detectedItems || payload.foods || payload.items || [];
-    const rawItems = Array.isArray(sourceItems) ? sourceItems.slice(0, 12) : [];
+    const rawItems = Array.isArray(payload.detectedItems) ? payload.detectedItems.slice(0, 12) : [];
     const mapped = foodMatcher.normalizeDetectedItems(rawItems);
-    const backendUnknown = payload.unknownItems || payload.unknownFoods || [];
-    const remainingSlots = Math.max(0, 12 - mapped.detectedItems.length - mapped.unknownItems.length);
-    const preservedUnknown = Array.isArray(backendUnknown)
-      ? backendUnknown.slice(0, remainingSlots).map((item, index) => {
-          const label = safeText(
-            item?.label || item?.name || item?.foodName,
-            "Alimento não identificado",
-            120
-          );
-          return {
-            id: safeText(item?.id, ids?.createId?.("unknown") || ("unknown_api_" + Date.now() + "_" + index), 100),
-            label,
-            originalLabel: label,
-            quantityGrams: foodMatcher.normalizeGrams(item?.quantityGrams ?? item?.portionGrams ?? item?.grams),
-            confidence: foodMatcher.normalizeConfidence(item?.confidence ?? item?.score),
-            reason: safeText(item?.reason, "backend-unknown", 80),
-            source: "ai-unmatched"
-          };
-        })
-      : [];
-    const unknownItems = [...mapped.unknownItems, ...preservedUnknown];
+    const providedUnknown = Array.isArray(payload.unknownItems) ? payload.unknownItems : [];
+    const unknownItems = [...mapped.unknownItems, ...providedUnknown].slice(0, 6).map((item, index) => ({
+      id: safeText(item?.id, ids?.createId?.("unknown") || `unknown_local_${Date.now()}_${index}`, 100),
+      label: safeText(item?.label || item?.name, "Alimento não identificado", 120),
+      originalLabel: safeText(item?.originalLabel || item?.label || item?.name, "Alimento não identificado", 120),
+      quantityGrams: foodMatcher.normalizeGrams(item?.quantityGrams),
+      confidence: foodMatcher.normalizeConfidence(item?.confidence),
+      reason: safeText(item?.reason, "local-model-unmatched", 80),
+      source: "local-ai-unmatched"
+    }));
     const itemConfidences = [...mapped.detectedItems, ...unknownItems]
       .map((item) => Number(item.confidence))
       .filter(Number.isFinite);
     const averageConfidence = itemConfidences.length
       ? Math.round(itemConfidences.reduce((sum, value) => sum + value, 0) / itemConfidences.length)
       : 0;
-    const confidence = foodMatcher.normalizeConfidence(
-      payload.confidence ?? payload.overallConfidence,
-      averageConfidence
-    );
-    const photoQuality = normalizePhotoQuality(payload.photoQuality || payload.imageQuality);
-    const warnings = (Array.isArray(payload.warnings) ? payload.warnings.slice(0, 10) : []).map(normalizeWarning);
-
-    if (mapped.detectedItems.some((item) => item.missingQuantity)) {
-      warnings.push("Confirme a quantidade dos alimentos sem porção estimada.");
-    }
-    if (unknownItems.length) {
-      warnings.push("Há alimentos que precisam ser identificados manualmente.");
-    }
-
-    const hiddenFats = hiddenIngredientsService?.getDefaultSelections?.() || [];
-    const packaging = safeText(payload.packaging?.label || payload.packaging, "", 100) || null;
+    const confidence = foodMatcher.normalizeConfidence(payload.confidence, averageConfidence);
+    const photoQuality = normalizePhotoQuality(payload.photoQuality);
+    const warnings = (Array.isArray(payload.warnings) ? payload.warnings : []).map(normalizeWarning);
+    if (mapped.detectedItems.some((item) => item.missingQuantity)) warnings.push("Confirme a quantidade dos alimentos sem porção estimada.");
+    if (unknownItems.length) warnings.push("Há alimentos que precisam ser identificados manualmente.");
     return {
-      id: safeText(payload.id, ids?.createId?.("ai_analysis") || ("ai_analysis_" + Date.now()), 100),
-      provider: safeText(payload.provider, "openai-vision", 60),
-      providerLabel: safeText(payload.providerLabel, "PancreAI Vision", 80),
+      id: safeText(payload.id, ids?.createId?.("local_ai_analysis") || `local_ai_analysis_${Date.now()}`, 100),
+      provider: "transformersjs-food101",
+      providerLabel: "IA local Food-101",
       isSimulated: false,
-      mealName: safeText(payload.mealName || payload.meal?.name, "Refeição analisada", 120),
-      category: safeText(payload.category || payload.meal?.category, "refeicao", 60),
+      mealName: safeText(payload.mealName, "Refeição analisada", 120),
+      category: safeText(payload.category, "Refeição", 60),
       confidence,
       photoQuality,
       photoQualityDetails: photoQuality,
@@ -168,51 +384,13 @@
       warnings: [...new Set(warnings)].slice(0, 12),
       unknownItems,
       unknownFood: unknownItems[0] || null,
-      packagingDetected: Boolean(payload.packagingDetected || packaging),
-      packaging,
+      packagingDetected: false,
+      packaging: null,
       foods: mapped.foods,
-      qualityWarning: ["low", "poor", "bad", "medium"].includes(String(photoQuality.level).toLowerCase()),
-      hiddenFats,
-      rawMetadata: payload.metadata && typeof payload.metadata === "object"
-        ? {
-            requestId: safeText(payload.metadata.requestId, "", 100) || null,
-            model: safeText(payload.metadata.model, "", 80) || null
-          }
-        : null
+      qualityWarning: ["low", "medium"].includes(photoQuality.level),
+      hiddenFats: hiddenIngredientsService?.getDefaultSelections?.() || [],
+      rawMetadata: { model: MODEL_ID, execution: "browser" }
     };
-  }
-  async function parseResponse(response) {
-    const contentType = response.headers.get("content-type") || "";
-    const isJson = /(^|[+/])json\b/i.test(contentType);
-    let payload = null;
-    try {
-      payload = isJson ? await response.json() : null;
-    } catch (_) {
-      payload = null;
-    }
-    if (!response.ok) {
-      const backendMessage = isJson
-        ? safeText(payload?.error?.message || payload?.message, "", 220)
-        : "";
-      const safeMessage = response.status === 404
-        ? "O endereço do serviço de análise não foi encontrado. Confira a configuração da hospedagem."
-        : response.status === 403
-          ? "Este endereço do app não tem permissão para usar a análise."
-          : response.status === 429
-            ? "O limite de análises foi atingido. Tente novamente em alguns minutos."
-            : response.status >= 500
-              ? backendMessage || "O serviço de análise está temporariamente indisponível."
-              : backendMessage || "Não foi possível analisar esta imagem.";
-      throw new MealAnalysisError(
-        safeMessage,
-        payload?.code || payload?.error?.code || ("HTTP_" + response.status),
-        response.status
-      );
-    }
-    if (!isJson || !payload) {
-      throw new MealAnalysisError("O serviço retornou uma resposta inválida.", "INVALID_RESPONSE", response.status);
-    }
-    return payload;
   }
 
   async function analyze(image, options = {}) {
@@ -220,89 +398,98 @@
     if (!String(blob.type || "").startsWith("image/")) {
       throw new MealAnalysisError("O arquivo selecionado não é uma imagem.", "UNSUPPORTED_FILE_TYPE");
     }
-    const maxBytes = Number(options.maxBytes || 3 * 1024 * 1024);
-    if (blob.size > maxBytes) {
+    if (blob.size > Number(options.maxBytes || MAX_IMAGE_BYTES)) {
       throw new MealAnalysisError("A imagem é muito grande. Escolha um arquivo de até 3 MB.", "IMAGE_TOO_LARGE");
     }
-
-    const formData = new FormData();
-    formData.append("image", blob, safeFilename(image, blob));
-    if (options.locale) formData.append("locale", String(options.locale));
-
-    // Only identifiers and labels are sent. Nutrient values remain local and
-    // values returned by the model are intentionally ignored.
-    const catalog = (nutritionDatabase?.foods || []).slice(0, 250).map((food) => ({
-      id: food.id,
-      name: food.name
-    }));
-    formData.append("catalog", JSON.stringify(catalog));
-
-    const controller = new AbortController();
-    const externalSignal = options.signal;
-    let timedOut = false;
-    const abortFromExternalSignal = () => controller.abort(externalSignal?.reason);
-    if (externalSignal?.aborted) abortFromExternalSignal();
-    else externalSignal?.addEventListener?.("abort", abortFromExternalSignal, { once: true });
-    const timeout = window.setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, Number(options.timeoutMs || DEFAULT_TIMEOUT_MS));
+    const onProgress = typeof options.onProgress === "function" ? options.onProgress : null;
+    if (onProgress) progressListeners.add(onProgress);
+    let timeoutId = null;
+    let prepared = null;
     try {
-      const response = await fetch(getEndpoint(options), {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-        credentials: options.credentials || "same-origin",
-        headers: { Accept: "application/json", ...(options.headers || {}) }
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new MealAnalysisError(
+          "A IA local demorou demais para carregar. Tente novamente.",
+          "ANALYSIS_TIMEOUT"
+        )), Number(options.timeoutMs || DEFAULT_TIMEOUT_MS));
       });
-      return normalizePayload(await parseResponse(response));
+      const analysisPromise = (async () => {
+        options.signal?.throwIfAborted?.();
+        onProgress?.({ phase: "prepare" });
+        prepared = await prepareImageVariants(blob);
+        const classifier = await getClassifier();
+        options.signal?.throwIfAborted?.();
+        const recognition = await classifyVariants(classifier, prepared, onProgress);
+        options.signal?.throwIfAborted?.();
+        const unknownItems = recognition.detectedItems.length || !recognition.bestUnknown
+          ? []
+          : [{
+              label: humanizeModelLabel(recognition.bestUnknown.label),
+              confidence: Math.round(recognition.bestUnknown.score * 100),
+              reason: "food101-label-without-local-match"
+            }];
+        const confidences = recognition.detectedItems.map((item) => item.confidence);
+        const confidence = confidences.length
+          ? Math.round(confidences.reduce((sum, value) => sum + value, 0) / confidences.length)
+          : Math.round((recognition.bestUnknown?.score || 0) * 100);
+        const names = recognition.detectedItems.map((item) => item.name);
+        return normalizePayload({
+          mealName: names.length ? names.slice(0, 2).join(" e ") : "Refeição para revisar",
+          category: "Refeição",
+          confidence,
+          photoQuality: { level: prepared.quality },
+          detectedItems: recognition.detectedItems,
+          unknownItems,
+          warnings: [
+            "A identificação foi feita no aparelho por uma IA de categorias alimentares.",
+            "Confirme todos os alimentos e as porções antes de continuar."
+          ]
+        });
+      })();
+      return await Promise.race([analysisPromise, timeoutPromise]);
     } catch (error) {
-      if (error instanceof MealAnalysisError) throw error;
-      if (externalSignal?.aborted) {
+      if (error instanceof MealAnalysisError) {
+        if (error.code === "ANALYSIS_TIMEOUT") resetRecognitionWorker(error);
+        throw error;
+      }
+      if (options.signal?.aborted || error?.name === "AbortError") {
         throw new MealAnalysisError("A análise foi cancelada.", "ANALYSIS_ABORTED");
       }
-      if (timedOut || error?.name === "AbortError") {
-        throw new MealAnalysisError("A análise demorou demais. Tente novamente.", "ANALYSIS_TIMEOUT");
-      }
-      throw new MealAnalysisError("Não foi possível conectar ao serviço de análise.", "NETWORK_ERROR");
+      throw new MealAnalysisError("Não foi possível executar a IA local.", "LOCAL_AI_FAILED", null, error?.message);
     } finally {
-      window.clearTimeout(timeout);
-      externalSignal?.removeEventListener?.("abort", abortFromExternalSignal);
+      if (timeoutId) window.clearTimeout(timeoutId);
+      prepared?.cleanup?.();
+      if (onProgress) progressListeners.delete(onProgress);
     }
   }
 
-  async function healthCheck(options = {}) {
-    const endpoint = options.endpoint || getEndpoint(options).replace(/\/analyze-meal\/?$/, "/health");
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), Number(options.timeoutMs || 5000));
-    try {
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-        credentials: options.credentials || "same-origin"
-      });
-      return response.ok;
-    } catch (_) {
-      return false;
-    } finally {
-      window.clearTimeout(timeout);
-    }
+  async function healthCheck() {
+    return isAvailable();
   }
 
   function isAvailable() {
-    return Boolean(window.fetch && window.FormData && window.Blob && foodMatcher?.normalizeDetectedItems);
+    return Boolean(window.fetch && window.Blob && window.WebAssembly && window.Worker && foodMatcher?.normalizeDetectedItems);
+  }
+
+  function setClassifierForTests(classifier) {
+    classifierOverride = classifier || null;
+    classifierPromise = null;
   }
 
   const provider = {
     analyze,
     healthCheck,
     isAvailable,
-    getEndpoint,
-    setEndpoint,
     normalizePayload,
     MealAnalysisError,
-    _private: { parseResponse }
+    modelId: MODEL_ID,
+    execution: "browser",
+    _private: {
+      classifyVariants,
+      humanizeModelLabel,
+      normalizePredictions,
+      prepareImageVariants,
+      setClassifierForTests
+    }
   };
 
   window.PancreAIRecognition = {

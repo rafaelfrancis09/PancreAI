@@ -1,47 +1,55 @@
 # PancreAI
 
-O PancreAI é um protótipo web que usa uma foto real da refeição para sugerir alimentos e porções. O usuário revisa obrigatoriamente essas sugestões; depois, o banco nutricional local fornece os nutrientes e um motor determinístico estima as unidades de enzima com base no tratamento previamente cadastrado.
+O PancreAI é um protótipo web que analisa uma foto real da refeição, sugere
+categorias de alimentos e porções aproximadas e exige que o usuário revise cada
+item antes do cálculo. Os nutrientes vêm exclusivamente do banco local, e a
+estimativa usa os dados de tratamento previamente cadastrados.
 
 ## Como funciona
 
 1. A câmera ou a galeria fornece uma imagem real.
-2. O navegador reduz e prepara a foto.
-3. O backend envia a imagem para um modelo OpenAI com visão e recebe sugestões estruturadas.
-4. O app relaciona os nomes ao banco local. A IA não fornece os nutrientes usados no cálculo.
+2. O navegador valida, redimensiona e prepara a foto.
+3. Uma rede neural Food-101 quantizada analisa a imagem dentro de um Web Worker.
+4. O app relaciona somente sugestões seguras ao banco nutricional local.
 5. O usuário corrige alimentos, porções e ingredientes ocultos.
-6. O cálculo usa apenas a lista confirmada, a prescrição cadastrada e a potência do medicamento selecionado.
+6. O cálculo determinístico usa apenas a lista confirmada e o tratamento salvo.
 
-Se a análise externa falhar, o app mostra um erro; ele não substitui silenciosamente o resultado por dados simulados. Casos preparados permanecem disponíveis somente no modo demonstrativo explícito.
+A IA não calcula nutrientes, não escolhe medicamento e não define dose. Itens
+sem correspondência segura permanecem como não identificados para correção
+manual. O modo demonstrativo continua separado e nunca substitui uma falha real
+silenciosamente.
 
-## Componentes principais
+## IA gratuita e local
 
-- Frontend estático em HTML, CSS e JavaScript.
-- Captura real e preparação local da imagem.
-- Função serverless em api/analyze-meal.js para proteger a chave da OpenAI.
-- Banco nutricional local com mapeamento conservador de nomes.
-- Revisão humana, ingredientes ocultos, cálculo, avisos, histórico e relatório.
+- Biblioteca: Transformers.js.
+- Modelo: `onnx-community/swin-finetuned-food101-ONNX`.
+- Execução: no navegador, fora da linha principal da interface.
+- Custo de API: nenhum.
+- Chave ou conta: nenhuma.
+- Envio da foto para análise: nenhum.
 
-## Configuração do servidor
+No primeiro uso, o navegador baixa aproximadamente 60 MB do modelo quantizado a
+partir do Hugging Face Hub. O arquivo pode ficar armazenado no cache, tornando
+as análises seguintes mais rápidas. É necessário acesso à internet para esse
+primeiro carregamento; depois, a disponibilidade offline depende do cache do
+navegador.
 
-Defina as variáveis no ambiente de hospedagem, nunca no JavaScript público:
+## Publicação
 
-- OPENAI_API_KEY: obrigatória e secreta.
-- OPENAI_MODEL: opcional; seleciona o modelo configurado no backend.
-- ALLOWED_ORIGINS: origens autorizadas a chamar a API, separadas por vírgula.
-- MAX_REQUESTS_PER_MINUTE: limite básico de análises por IP e por instância.
-
-O caminho mais simples é importar este repositório na Vercel: os arquivos estáticos e a função /api/analyze-meal ficam na mesma origem. Depois, cadastre as variáveis acima no painel da Vercel e publique novamente.
-
-Se o frontend continuar no GitHub Pages e somente a API for publicada na Vercel, altere a meta tag pancreai-analysis-endpoint de home.html para a URL HTTPS completa da função, por exemplo https://seu-projeto.vercel.app/api/analyze-meal. Inclua também https://rafaelfrancis09.github.io em ALLOWED_ORIGINS. A chave da OpenAI nunca deve ser colocada nessa meta tag nem em qualquer arquivo público.
-
-O endpoint GET /api/health permite verificar se o backend recebeu a configuração, sem revelar a chave.
+O projeto continua sendo um site estático em HTML, CSS e JavaScript e pode ser
+publicado diretamente pelo GitHub Pages. Não é necessário configurar Vercel,
+variáveis de ambiente, chave de API ou servidor de análise.
 
 ## Privacidade e segurança
 
-A foto é enviada a um serviço externo para análise. Fotografe somente o prato e não inclua rostos, documentos, dados pessoais ou informações de saúde desnecessárias. A chave da API deve permanecer exclusivamente no servidor.
+A foto é processada localmente e não é enviada pelo PancreAI a um serviço de
+visão. Dados de tratamento, preferências e histórico também ficam no navegador
+nesta versão. Ainda assim, fotografe apenas o prato e revise todas as sugestões.
 
 ## Limitação médica
 
-O PancreAI é um protótipo educacional, não um dispositivo médico. A identificação visual e as porções podem estar erradas, e o sistema não substitui avaliação médica ou nutricional. Não altere tratamento ou dose sem orientação profissional.
+O PancreAI é um protótipo educacional, não um dispositivo médico. A identificação
+visual e as porções podem estar erradas, e o sistema não substitui avaliação
+médica ou nutricional. Não altere tratamento ou dose sem orientação profissional.
 
-Mais detalhes estão em ARCHITECTURE.md.
+Os detalhes técnicos estão em [ARCHITECTURE.md](ARCHITECTURE.md).

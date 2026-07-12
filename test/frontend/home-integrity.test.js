@@ -41,6 +41,7 @@ test("dependências da análise real carregam antes do controlador da tela", () 
   const positions = expectedOrder.map((reference) => homeHtml.indexOf(reference));
   assert.equal(positions.every((position) => position >= 0), true);
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
-  assert.match(homeHtml, /meta name="pancreai-analysis-endpoint" content="\/api\/analyze-meal"/);
-  assert.equal(homeHtml.includes("OPENAI_API_KEY"), false);
+  assert.equal(homeHtml.includes("pancreai-analysis-endpoint"), false);
+  assert.equal(homeHtml.includes("API_KEY"), false);
+  assert.match(homeHtml, /src\/workers\/foodRecognitionWorker\.js|realMealRecognitionProvider\.js/);
 });
