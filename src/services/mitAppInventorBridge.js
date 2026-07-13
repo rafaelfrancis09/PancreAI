@@ -6,6 +6,7 @@
   const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
   const MAX_BASE64_CHARS = Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 16;
   const SESSION_KEY = "pancreaiMitBridgeEnabled";
+  const SOURCE_SESSION_KEY = "pancreaiMitCaptureSource";
   const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
   const EXTENSIONS = {
     "image/jpeg": "jpg",
@@ -17,6 +18,7 @@
   let pendingSource = null;
   let receiving = false;
   let forcedNativeMode = null;
+  let queuedDelivery = null;
 
   function safeSessionGet() {
     try {
@@ -32,6 +34,48 @@
       else window.sessionStorage?.removeItem(SESSION_KEY);
     } catch (_) {
       // Storage may be disabled inside some WebViews.
+    }
+  }
+
+  function safeSourceGet() {
+    try {
+      const source = window.sessionStorage?.getItem(SOURCE_SESSION_KEY);
+      return source === "camera" || source === "gallery" ? source : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function safeSourceSet(source) {
+    try {
+      if (source === "camera" || source === "gallery") {
+        window.sessionStorage?.setItem(SOURCE_SESSION_KEY, source);
+      } else {
+        window.sessionStorage?.removeItem(SOURCE_SESSION_KEY);
+      }
+    } catch (_) {
+      // Storage may be disabled inside some WebViews.
+    }
+  }
+
+  function safeWebViewStringGet() {
+    try {
+      if (typeof window.AppInventor?.getWebViewString === "function") {
+        return window.AppInventor.getWebViewString();
+      }
+    } catch (_) {
+      // The native interface may be unavailable while the WebView is resuming.
+    }
+    return null;
+  }
+
+  function safeWebViewStringClear() {
+    try {
+      if (typeof window.AppInventor?.setWebViewString === "function") {
+        window.AppInventor.setWebViewString("");
+      }
+    } catch (_) {
+      // A failed cleanup must not discard an image already delivered to the app.
     }
   }
 
@@ -83,14 +127,45 @@
   }
 
   function normalizeSource(value) {
-    const source = String(value || pendingSource || "gallery").toLowerCase();
+    const source = String(value || pendingSource || safeSourceGet() || "gallery").toLowerCase();
     return /camera|câmera|foto/.test(source) ? "camera_native_mit" : "gallery_native_mit";
   }
 
   function requestCapture(source) {
     pendingSource = source === "camera" ? "camera" : "gallery";
+    safeSourceSet(pendingSource);
     console.log(pendingSource === "camera" ? CAMERA_COMMAND : GALLERY_COMMAND);
     return isNativeCaptureEnabled();
+  }
+
+  function unwrapPayload(value, source) {
+    let payload = value;
+    let payloadSource = source;
+
+    if (payload == null || payload === "") {
+      payload = safeWebViewStringGet();
+    }
+
+    if (typeof payload === "string") {
+      const trimmed = payload.trim();
+      if (/^(?:"[\s\S]*"|\{[\s\S]*\})$/.test(trimmed)) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (typeof parsed === "string") payload = parsed;
+          else if (parsed && typeof parsed === "object") {
+            payload = parsed.base64Data ?? parsed.base64 ?? parsed.image ?? parsed.data;
+            payloadSource = parsed.source ?? parsed.origin ?? payloadSource;
+          }
+        } catch (_) {
+          // Strict Base64 validation below will reject malformed serialized data.
+        }
+      }
+    } else if (payload && typeof payload === "object") {
+      payloadSource = payload.source ?? payload.origin ?? payloadSource;
+      payload = payload.base64Data ?? payload.base64 ?? payload.image ?? payload.data;
+    }
+
+    return { value: payload, source: payloadSource };
   }
 
   function normalizeBase64(value) {
@@ -176,24 +251,15 @@
     }
   }
 
-  function setImageReceiver(receiver) {
-    imageReceiver = typeof receiver === "function" ? receiver : null;
-    return Boolean(imageReceiver);
-  }
-
-  async function receiveImageBase64(value, source) {
+  async function deliver(file, source) {
     if (receiving || typeof imageReceiver !== "function") return false;
-    const file = decodeImage(value);
-    if (!file) {
-      console.warn("PancreAI: imagem Base64 inválida ou não suportada.");
-      return false;
-    }
-
     receiving = true;
-    const normalizedSource = normalizeSource(source);
     try {
-      await imageReceiver(file, normalizedSource);
+      await imageReceiver(file, source);
       pendingSource = null;
+      safeSourceSet(null);
+      safeWebViewStringClear();
+      console.log("pancreaiImagemPronta");
       return true;
     } catch (_) {
       console.warn("PancreAI: não foi possível preparar a imagem recebida do MIT.");
@@ -201,6 +267,41 @@
     } finally {
       receiving = false;
     }
+  }
+
+  function setImageReceiver(receiver) {
+    imageReceiver = typeof receiver === "function" ? receiver : null;
+    if (imageReceiver && queuedDelivery) {
+      const delivery = queuedDelivery;
+      queuedDelivery = null;
+      void deliver(delivery.file, delivery.source);
+    } else if (imageReceiver) {
+      const pendingImage = safeWebViewStringGet();
+      if (typeof pendingImage === "string" && pendingImage.trim()) {
+        void Promise.resolve().then(() => {
+          if (imageReceiver && !receiving) void receiveImageBase64(pendingImage);
+        });
+      }
+    }
+    return Boolean(imageReceiver);
+  }
+
+  async function receiveImageBase64(value, source) {
+    if (receiving) return false;
+    const payload = unwrapPayload(value, source);
+    const file = decodeImage(payload.value);
+    if (!file) {
+      console.warn("PancreAI: imagem Base64 inválida ou não suportada.");
+      return false;
+    }
+
+    const normalizedSource = normalizeSource(payload.source);
+    console.log("pancreaiImagemRecebida");
+    if (typeof imageReceiver !== "function") {
+      queuedDelivery = { file, source: normalizedSource };
+      return true;
+    }
+    return deliver(file, normalizedSource);
   }
 
   const api = {
@@ -221,6 +322,9 @@
     mitAppInventorBridge: api
   };
   window.PancreAIReceiveImageBase64 = receiveImageBase64;
+  window.PancreAIReceiveImageFromWebViewString = (source) => receiveImageBase64(undefined, source);
+  window.EyessistantReceiveImageBase64 = receiveImageBase64;
+  window.EyesistantReceiveImageBase64 = receiveImageBase64;
   window.PancreAIEnableMITBridge = enable;
   window.PancreAIDisableMITBridge = disable;
 })();

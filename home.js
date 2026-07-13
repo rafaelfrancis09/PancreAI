@@ -1805,11 +1805,11 @@ if (reportBtn) {
 overlayClose.addEventListener("click", closeSheet);
 cancelBtn.addEventListener("click", closeSheet);
 cameraBtn.addEventListener("click", () => {
-  closeSheet();
   if (mitAppInventorBridge?.requestCamera?.()) {
     polish?.showToast("Abrindo câmera...");
     return;
   }
+  closeSheet();
   openCamera();
 });
 galleryBtn.addEventListener("click", openDeviceGallery);
