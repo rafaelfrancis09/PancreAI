@@ -94,6 +94,35 @@ test("analise bloqueia cliques duplicados enquanto uma requisicao esta em andame
   assert.match(homeJs, /analysisRetryBtn\.disabled = false/);
 });
 
+test("foto inadequada oferece nova captura e nova análise com a mesma imagem", () => {
+  const retakePosition = homeHtml.indexOf('id="retakeQualityPhotoBtn"');
+  const retryPosition = homeHtml.indexOf('id="retryQualityAnalysisBtn"');
+
+  assert.notEqual(retakePosition, -1);
+  assert.notEqual(retryPosition, -1);
+  assert.equal(retakePosition < retryPosition, true, "a nova foto deve ser a ação principal");
+  assert.equal(
+    homeJs.includes('const isInadequatePhoto = ["low", "poor", "bad"].includes(qualityLevel);'),
+    true
+  );
+  assert.equal(homeJs.includes("qualityAlertActions.hidden = !isInadequatePhoto;"), true);
+
+  const retryFlow = homeJs.slice(
+    homeJs.indexOf("function retryCurrentPhotoAnalysis()"),
+    homeJs.indexOf("function takeAnotherPhoto()")
+  );
+  assert.equal(retryFlow.includes("startAnalysis(null, { preserveCounters: true })"), true);
+
+  const retakeFlow = homeJs.slice(
+    homeJs.indexOf("function takeAnotherPhoto()"),
+    homeJs.indexOf("async function handleRealImageSelection")
+  );
+  assert.equal(retakeFlow.includes("mitAppInventorBridge?.requestCamera?.()"), true);
+  assert.equal(retakeFlow.includes("openCamera()"), true);
+  assert.equal([...i18nJs.matchAll(/"analysis.retakePhoto"/g)].length, 6);
+  assert.equal([...i18nJs.matchAll(/"analysis.inadequatePhotoHint"/g)].length, 6);
+  assert.doesNotMatch(homeHtml, /id=["']reanalyzeBtn["']/);
+});
 test("alimento não identificado pode ser confirmado nos modos adulto e infantil", () => {
   const confirmActions = [...homeJs.matchAll(/data-unknown-action=["']confirm["']/g)];
   assert.equal(confirmActions.length, 2, "deve existir um único botão Confirmar em cada versão do cartão");

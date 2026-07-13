@@ -627,6 +627,24 @@ button, input, select {
 }
 
 .summary-card--alert { border: 1px solid rgba(82, 181, 125, 0.16); }
+
+.quality-alert__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.quality-alert__actions[hidden] {
+  display: none !important;
+}
+
+.quality-alert__actions .confirm-btn,
+.quality-alert__actions .secondary-btn {
+  min-height: 50px;
+  margin: 0;
+}
+
 .summary-card--dashed { border: 1px dashed rgba(82, 181, 125, 0.24); }
 .summary-card--info { margin-bottom: 10px; }
 .medical-warning-list {

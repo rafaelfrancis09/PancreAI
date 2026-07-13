@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="pancreai-analysis-endpoint" content="/api/analyze-meal" />
     <title>PancreAI - Home</title>
-    <link rel="stylesheet" href="home.css?v=20260713-unknown1" />
+    <link rel="stylesheet" href="home.css?v=20260713-quality1" />
     <link rel="stylesheet" href="pancreai-theme.css?v=20260710-camera-gradient1" />
     <link rel="stylesheet" href="pancreai-linear.css?v=20260710-linear4" />
     <link rel="stylesheet" href="pancreai-runtime.css?v=20260710-runtime1" />
@@ -209,7 +209,15 @@
           </article>
 
           <div class="medical-warning-list" id="analysisWarnings" hidden></div>
-          <article class="summary-card summary-card--alert" id="qualityAlert" hidden></article>
+          <article class="summary-card summary-card--alert quality-alert" id="qualityAlert" hidden>
+            <h3 id="qualityAlertTitle">Revise a foto</h3>
+            <p id="qualityAlertLabel">Qualidade da foto inadequada.</p>
+            <small id="qualityAlertHint">Para melhorar a precisão, tire outra foto ou tente analisar esta imagem novamente.</small>
+            <div class="quality-alert__actions" id="qualityAlertActions" role="group" aria-label="Ações para foto inadequada">
+              <button class="confirm-btn" id="retakeQualityPhotoBtn" type="button">Tirar outra foto</button>
+              <button class="secondary-btn" id="retryQualityAnalysisBtn" type="button">Refazer análise</button>
+            </div>
+          </article>
           <article class="summary-card summary-card--alert" id="packagingCard" hidden></article>
           <article class="summary-card summary-card--dashed" id="unknownFoodCard" hidden></article>
 
@@ -231,7 +239,6 @@
 
           <button class="secondary-btn" id="addFoodBtn" type="button">Adicionar alimento</button>
           <button class="confirm-btn" id="confirmAnalysisBtn" type="button">Confirmar análise</button>
-          <button class="secondary-btn" id="reanalyzeBtn" type="button">Reanalisar foto</button>
         </div>
       </section>
 
@@ -322,7 +329,7 @@
       <input id="cameraFileInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden />
       <input id="galleryFileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
     </main>
-    <script src="i18n.js?v=20260712-gemini5"></script>
+    <script src="i18n.js?v=20260713-quality1"></script>
     <script src="i18n-full.js?v=20260713-mit1"></script>
     <script src="food-i18n.js?v=20260712-gemini5"></script>
     <script src="src/data/countryDatabase.js?v=20260709-treatment1"></script>
@@ -354,7 +361,7 @@
     <script src="simulated-analysis.js?v=20260713-unknown1"></script>
     <script src="app-icons.js"></script>
     <script src="ui-polish.js"></script>
-    <script src="home.js?v=20260713-mit2"></script>
+    <script src="home.js?v=20260713-quality1"></script>
   </body>
 </html>
 

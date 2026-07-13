@@ -63,6 +63,12 @@ const confidenceBadge = document.querySelector("#confidenceBadge");
 const confidenceBar = document.querySelector("#confidenceBar");
 const confidenceHint = document.querySelector("#confidenceHint");
 const qualityAlert = document.querySelector("#qualityAlert");
+const qualityAlertTitle = document.querySelector("#qualityAlertTitle");
+const qualityAlertLabel = document.querySelector("#qualityAlertLabel");
+const qualityAlertHint = document.querySelector("#qualityAlertHint");
+const qualityAlertActions = document.querySelector("#qualityAlertActions");
+const retakeQualityPhotoBtn = document.querySelector("#retakeQualityPhotoBtn");
+const retryQualityAnalysisBtn = document.querySelector("#retryQualityAnalysisBtn");
 const unknownFoodCard = document.querySelector("#unknownFoodCard");
 const packagingCard = document.querySelector("#packagingCard");
 const analysisWarnings = document.querySelector("#analysisWarnings");
@@ -70,7 +76,6 @@ const reviewWarnings = document.querySelector("#reviewWarnings");
 const resultWarnings = document.querySelector("#resultWarnings");
 const addFoodBtn = document.querySelector("#addFoodBtn");
 const confirmAnalysisBtn = document.querySelector("#confirmAnalysisBtn");
-const reanalyzeBtn = document.querySelector("#reanalyzeBtn");
 const hiddenFatsPanel = document.querySelector("#hiddenFatsPanel");
 const hiddenFatsCard = document.querySelector("#hiddenFatsCard");
 const learningCard = document.querySelector("#learningCard");
@@ -328,7 +333,6 @@ function applyHomeCopy() {
     ["#confidenceHint", "analysis.reviewBeforeCalculate"],
     ["#addFoodBtn", "analysis.addFood"],
     ["#confirmAnalysisBtn", "analysis.confirm"],
-    ["#reanalyzeBtn", "analysis.reanalyze"],
     [".screen--result .result-page__top h2", "result.title"],
     [".nutrition h3", "result.summary"],
     ["#explainBtn", "result.fullCalculation"],
@@ -660,6 +664,22 @@ function returnToCaptureSource() {
   if (["camera_real", "camera_file"].includes(state.captureSource)) openCamera();
   else setView("sheet");
 }
+
+function retryCurrentPhotoAnalysis() {
+  state.reanalyses += 1;
+  state.changes.push("Análise refeita com a mesma foto");
+  void startAnalysis(null, { preserveCounters: true });
+}
+
+function takeAnotherPhoto() {
+  cancelActiveAnalysis();
+  if (mitAppInventorBridge?.requestCamera?.()) {
+    polish?.showToast("Abrindo câmera...");
+    return;
+  }
+  void openCamera();
+}
+
 async function handleRealImageSelection(input, source) {
   const file = input?.files?.[0];
   if (input) input.value = "";
@@ -1062,13 +1082,25 @@ function renderConfirmation() {
     : state.analysis.confidence < 85
       ? "A precisão pode ser reduzida devido às condições da foto."
       : "Boa confiança visual. Revise os alimentos antes do cálculo.";
-  const shouldShowQualityAlert = state.analysis.confidence < 70;
+  const qualityDetails = state.analysis.photoQuality;
+  const qualityLevel = String(qualityDetails?.level || "").toLowerCase();
+  const isInadequatePhoto = ["low", "poor", "bad"].includes(qualityLevel);
+  const shouldShowQualityAlert =
+    state.analysis.confidence < 70 ||
+    Boolean(state.analysis.qualityWarning) ||
+    isInadequatePhoto;
   qualityAlert.hidden = !shouldShowQualityAlert;
-  qualityAlert.innerHTML = shouldShowQualityAlert ? `
-    <h3>Revise a foto</h3>
-    <p>${escapeHtml(state.analysis.photoQuality?.label || state.analysis.photoQuality || "Qualidade não informada")}</p>
-    <small>Confira os alimentos antes de calcular.</small>
-  ` : "";
+  qualityAlertActions.hidden = !isInadequatePhoto;
+  if (shouldShowQualityAlert) {
+    qualityAlertTitle.textContent = translate("analysis.reviewPhoto");
+    qualityAlertLabel.textContent =
+      qualityDetails?.label ||
+      (typeof qualityDetails === "string" ? qualityDetails : "") ||
+      translate("analysis.photoQualityUnknown");
+    qualityAlertHint.textContent = isInadequatePhoto
+      ? translate("analysis.inadequatePhotoHint")
+      : translate("analysis.reviewPhotoHint");
+  }
   if (state.analysis.packaging) {
     packagingCard.hidden = false;
     packagingCard.innerHTML = `<h3>Embalagem detectada</h3><p>${escapeHtml(translateFoodLabel(state.analysis.packaging))}</p><small>Confira o rótulo e ajuste o alimento ou a porção manualmente, se necessário.</small>`;
@@ -1093,7 +1125,8 @@ function applyConfirmationChildModeState() {
   if (confidenceHint && childMode) confidenceHint.textContent = "Confira se os alimentos estão certos. Um responsável pode revisar depois.";
   if (addFoodBtn) addFoodBtn.textContent = childMode ? "Adicionar algo que faltou" : translate("analysis.addFood");
   if (confirmAnalysisBtn) confirmAnalysisBtn.textContent = childMode ? "Tudo certo" : translate("analysis.confirm");
-  reanalyzeBtn?.classList.toggle("hide-in-child-mode", childMode);
+  if (retakeQualityPhotoBtn) retakeQualityPhotoBtn.textContent = translate("analysis.retakePhoto");
+  if (retryQualityAnalysisBtn) retryQualityAnalysisBtn.textContent = translate("analysis.reanalyze");
 }
 
 function applyResultChildModeState() {
@@ -1832,6 +1865,8 @@ capturePreview.addEventListener("error", showPreviewImageError);
 capturePreview.addEventListener("load", restorePreviewImage);
 analysisRetryBtn.addEventListener("click", () => startAnalysis(null, { preserveCounters: true }));
 analysisBackBtn.addEventListener("click", returnToCaptureSource);
+retakeQualityPhotoBtn.addEventListener("click", takeAnotherPhoto);
+retryQualityAnalysisBtn.addEventListener("click", retryCurrentPhotoAnalysis);
 responsibleConsentDismiss?.addEventListener("click", () => resolveResponsibleAdultConsent(false));
 responsibleConsentCancel?.addEventListener("click", () => resolveResponsibleAdultConsent(false));
 responsibleConsentConfirm?.addEventListener("click", () => resolveResponsibleAdultConsent(true));
@@ -1932,12 +1967,6 @@ foodSearchResults.addEventListener("click", (event) => {
 });
 
 confirmAnalysisBtn.addEventListener("click", finalizeAnalysis);
-reanalyzeBtn.addEventListener("click", () => {
-  state.reanalyses += 1;
-  state.changes.push(`Nova captura solicitada (${state.reanalyses})`);
-  returnToCaptureSource();
-});
-
 applyLearningBtn.addEventListener("click", () => {
   if (!state.suggestion) {
     return;

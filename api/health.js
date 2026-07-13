@@ -52,7 +52,7 @@ module.exports = function health(req, res) {
     configured,
     service: "pancreai-gemini-vision",
     provider: "gemini",
-    version: "2026-07-13-mit-return1",
+    version: "2026-07-13-quality-actions1",
     requestId
   }));
 };
