@@ -216,6 +216,58 @@ test("repete uma vez sem schema quando o Gemini rejeita responseJsonSchema", asy
   assert.equal(requests[1].generationConfig.responseMimeType, "application/json");
 });
 
+test("repete uma vez o mesmo modelo quando o Gemini falha temporariamente", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  const urls = [];
+  global.fetch = async (url) => {
+    urls.push(String(url));
+    if (urls.length === 1) {
+      return new Response(JSON.stringify({
+        error: { status: "UNAVAILABLE", message: "Service temporarily unavailable" }
+      }), { status: 503, headers: { "content-type": "application/json" } });
+    }
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 200);
+  assert.equal(urls.length, 2);
+  assert.equal(urls[0], urls[1]);
+  assert.match(urls[0], /gemini-2\.5-flash:generateContent$/);
+});
+
+test("limita a duas tentativas quando a indisponibilidade do Gemini persiste", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  let calls = 0;
+  global.fetch = async () => {
+    calls += 1;
+    return new Response(JSON.stringify({
+      error: { status: "INTERNAL", message: "Temporary backend error" }
+    }), { status: 500, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, "analysis_unavailable");
+  assert.equal(calls, 2);
+});
 test("classifica credencial e modelo inválidos sem vazar a mensagem externa", () => {
   const credentials = handler._private.upstreamError({
     status: 400,
@@ -234,6 +286,10 @@ test("classifica credencial e modelo inválidos sem vazar a mensagem externa", (
   assert.equal(model.status, 503);
   assert.equal(model.code, "analysis_model_unavailable");
   assert.equal(handler._private.GEMINI_TIMEOUT_MS, 50000);
+  assert.equal(handler._private.GEMINI_TRANSIENT_RETRY_LIMIT, 1);
+  assert.equal(handler._private.GEMINI_TRANSIENT_RETRY_DELAY_MS, 800);
+  assert.equal(handler._private.isTransientUpstreamFailure({ status: 503, providerCode: "UNAVAILABLE" }), true);
+  assert.equal(handler._private.isTransientUpstreamFailure({ status: 429, providerCode: "RESOURCE_EXHAUSTED" }), false);
 });
 test("usa Gemini 2.5 Flash Lite quando o modelo principal não está disponível", async (t) => {
   const previousKey = process.env.GEMINI_API_KEY;

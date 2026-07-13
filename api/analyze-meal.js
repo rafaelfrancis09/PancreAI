@@ -14,6 +14,8 @@ const DEFAULT_MODEL = "gemini-2.5-flash";
 const FALLBACK_MODEL = "gemini-2.5-flash-lite";
 const LATEST_FLASH_MODEL = "gemini-3.5-flash";
 const GEMINI_TIMEOUT_MS = 50_000;
+const GEMINI_TRANSIENT_RETRY_LIMIT = 1;
+const GEMINI_TRANSIENT_RETRY_DELAY_MS = 800;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const requestBuckets = new Map();
 
@@ -146,6 +148,35 @@ function shouldRetryWithoutSchema(details) {
     );
 }
 
+function isTransientUpstreamFailure(details) {
+  const status = Number(details?.status) || 0;
+  const providerCode = safeProviderText(details?.providerCode, 80).toUpperCase();
+  return [500, 502, 503, 504].includes(status) ||
+    ["INTERNAL", "UNAVAILABLE", "DEADLINE_EXCEEDED"].includes(providerCode);
+}
+
+function waitForRetry(delayMs, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      const error = new Error("The operation was aborted");
+      error.name = "AbortError";
+      reject(error);
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timeout);
+      const error = new Error("The operation was aborted");
+      error.name = "AbortError";
+      reject(error);
+    };
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener?.("abort", onAbort);
+      resolve();
+    }, delayMs);
+    signal?.addEventListener?.("abort", onAbort, { once: true });
+  });
+}
+
 function enforceRateLimit(req, now = Date.now()) {
   const forwarded = getHeader(req, "x-forwarded-for");
   const key = forwarded.split(",")[0]?.trim() || getHeader(req, "x-real-ip") || "unknown";
@@ -220,23 +251,44 @@ async function callGemini({ apiKey, model, image, requestId }) {
     body: JSON.stringify(body),
     signal: controller.signal
   });
+  const sendWithTransientRetry = async (activeModel, body) => {
+    let response;
+    let details = null;
+    for (let attempt = 0; attempt <= GEMINI_TRANSIENT_RETRY_LIMIT; attempt += 1) {
+      response = await send(activeModel, body);
+      if (response.ok) return { response, details: null };
+      details = await readUpstreamError(response);
+      if (!isTransientUpstreamFailure(details) || attempt >= GEMINI_TRANSIENT_RETRY_LIMIT) break;
+      console.warn("[PancreAI analyze-meal transient-retry]", {
+        requestId,
+        model: activeModel,
+        attempt: attempt + 1,
+        upstreamStatus: details.status,
+        upstreamCode: details.providerCode || undefined
+      });
+      await waitForRetry(GEMINI_TRANSIENT_RETRY_DELAY_MS, controller.signal);
+    }
+    return { response, details };
+  };
 
   try {
     let lastDetails = null;
     for (let index = 0; index < candidates.length; index += 1) {
       const activeModel = candidates[index];
       const modelRequest = requestForModel(request, activeModel);
-      let response = await send(activeModel, modelRequest);
+      let upstream = await sendWithTransientRetry(activeModel, modelRequest);
+      let response = upstream.response;
       if (!response.ok) {
-        let details = await readUpstreamError(response);
+        let details = upstream.details;
         if (shouldRetryWithoutSchema(details)) {
           const schemaFallbackRequest = {
             ...modelRequest,
             generationConfig: { ...modelRequest.generationConfig }
           };
           delete schemaFallbackRequest.generationConfig.responseJsonSchema;
-          response = await send(activeModel, schemaFallbackRequest);
-          if (!response.ok) details = await readUpstreamError(response);
+          upstream = await sendWithTransientRetry(activeModel, schemaFallbackRequest);
+          response = upstream.response;
+          if (!response.ok) details = upstream.details;
         }
         if (!response.ok) {
           lastDetails = details;
@@ -346,10 +398,13 @@ module.exports._private = {
   FALLBACK_MODEL,
   LATEST_FLASH_MODEL,
   GEMINI_TIMEOUT_MS,
+  GEMINI_TRANSIENT_RETRY_DELAY_MS,
+  GEMINI_TRANSIENT_RETRY_LIMIT,
   allowedOriginsForRequest,
   callGemini,
   enforceRateLimit,
   isModelNotFound,
+  isTransientUpstreamFailure,
   modelCandidates,
   modelEndpoint,
   normalizeModelName,
