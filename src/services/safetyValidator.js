@@ -78,6 +78,14 @@
       warnings.push(createWarning("warning", "Alimento não identificado", "Edite ou remova itens sem identificação confiável antes de confirmar."));
     }
 
+    if (analysis?.confirmedUnknownItems?.length) {
+      warnings.push(createWarning(
+        "warning",
+        "Cálculo parcial",
+        "Alimentos confirmados sem dados nutricionais no banco não foram incluídos no cálculo."
+      ));
+    }
+
     return warnings;
   }
 

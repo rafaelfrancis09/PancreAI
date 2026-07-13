@@ -101,6 +101,7 @@ const simulator = window.PancreAISimulator;
 const captureService = window.PancreAIServices?.simulatedCaptureService;
 const realCaptureService = window.PancreAIServices?.realImageCaptureService;
 const realRecognitionProvider = window.PancreAIServices?.realMealRecognitionProvider;
+const foodMatcher = window.PancreAIRecognition?.foodMatcher;
 const polish = window.PancreAIPolish;
 const historyService = window.PancreAIServices?.historyService;
 const medicalWarningsService = window.PancreAIServices?.medicalWarningsService;
@@ -142,6 +143,8 @@ const state = {
   foods: [],
   unknownFood: null,
   unknownFoods: [],
+  confirmedUnknownFoods: [],
+  unknownReviewTotal: 0,
   hiddenSelections: [],
   result: null,
   suggestion: null,
@@ -954,15 +957,41 @@ function renderFoodList() {
     requestAnimationFrame(() => item.classList.remove("ui-enter"));
   });
 
+  state.confirmedUnknownFoods.forEach((food, index) => {
+    const item = document.createElement("article");
+    item.className = `food-item food-item--confirmed food-item--unlisted${childMode ? " food-item--child" : ""} ui-enter`;
+    const label = translateFoodLabel(food.label || food.name || "Item confirmado");
+    const quantity = Number(food.quantityGrams || 0);
+    item.innerHTML = `
+      <div class="food-item__main">
+        <strong>${escapeHtml(label)}</strong>
+        <p>Identificação confirmada${quantity > 0 ? ` &middot; ${core.formatQuantity(quantity)}` : ""}</p>
+        <small>Sem dados nutricionais no banco — não incluído no cálculo.</small>
+        <span class="food-item__confirmed">
+          <svg class="app-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12 2.2 2.2 4.8-5"></path></svg>
+          Confirmado
+        </span>
+      </div>
+      <div class="food-item__actions${childMode ? " food-item__actions--child" : ""}">
+        <button class="food-item__button" data-action="replace-confirmed-unknown" data-index="${index}" type="button">Substituir</button>
+        <button class="food-item__button" data-action="remove-confirmed-unknown" data-index="${index}" type="button">Remover</button>
+      </div>
+    `;
+    confirmFoodList.appendChild(item);
+    requestAnimationFrame(() => item.classList.remove("ui-enter"));
+  });
+
   if (state.unknownFood) {
     const unknownLabel = translateFoodLabel(state.unknownFood.label || state.unknownFood.name || "Item não identificado");
-    const unknownProgress = state.unknownFoods.length > 1 ? ` (1/${state.unknownFoods.length})` : "";
+    const unknownPosition = Math.max(1, state.unknownReviewTotal - state.unknownFoods.length + 1);
+    const unknownProgress = state.unknownReviewTotal > 1 ? ` (${unknownPosition}/${state.unknownReviewTotal})` : "";
     unknownFoodCard.hidden = false;
     unknownFoodCard.innerHTML = childMode ? `
       <h3>Tem algo que não reconhecemos</h3>
       <p><strong>${escapeHtml(unknownLabel)}${unknownProgress}</strong></p>
       <p>Peça para um responsável conferir ou substitua pelo alimento correto.</p>
       <div class="food-item__actions food-item__actions--child">
+        <button class="food-item__button food-item__button--ok" data-unknown-action="confirm" type="button">Confirmar</button>
         <button class="food-item__button" data-unknown-action="replace" type="button">Substituir</button>
         <button class="food-item__button" data-unknown-action="remove" type="button">Remover</button>
       </div>
@@ -971,6 +1000,7 @@ function renderFoodList() {
       <p><strong>${escapeHtml(unknownLabel)}${unknownProgress}</strong></p>
       <p>O módulo de análise encontrou um item sem identificação confiável.</p>
       <div class="food-item__actions">
+        <button class="food-item__button food-item__button--ok" data-unknown-action="confirm" type="button">Confirmar</button>
         <button class="food-item__button" data-unknown-action="edit" type="button">Editar</button>
         <button class="food-item__button" data-unknown-action="replace" type="button">Substituir</button>
         <button class="food-item__button" data-unknown-action="remove" type="button">Remover</button>
@@ -1166,6 +1196,7 @@ function buildMealRecord() {
     foods: cloneFoods(state.foods),
     detectedFoods: cloneFoods(state.detectedFoods),
     reviewedFoods: cloneFoods(state.foods),
+    confirmedUnknownItems: cloneFoods(state.confirmedUnknownFoods),
     hiddenIngredientsAdded: state.hiddenSelections.filter((item) => item.selected).map((item) => ({ ...item })),
     finalFat: state.result.totalFat,
     finalResult: {
@@ -1253,6 +1284,9 @@ function applyAnalysis(analysis) {
         : []
   );
   state.unknownFood = state.unknownFoods[0] || null;
+  state.confirmedUnknownFoods = [];
+  state.unknownReviewTotal = state.unknownFoods.length;
+  syncUnknownReviewState();
   state.hiddenSelections = (Array.isArray(state.analysis.hiddenFats) ? state.analysis.hiddenFats : [])
     .map((item) => ({ ...item }));
   sessionStorage.removeItem("pancreaiSelectedDose");
@@ -1314,6 +1348,8 @@ async function runAnalysis(file, options = {}) {
   state.foods = [];
   state.unknownFood = null;
   state.unknownFoods = [];
+  state.confirmedUnknownFoods = [];
+  state.unknownReviewTotal = 0;
   state.result = null;
   state.selectedDose = 0;
   if (!preserveCounters) {
@@ -1520,10 +1556,76 @@ function removeFood(index, element) {
   commitRemoval();
 }
 
-function openFoodSearch(target) {
+function syncUnknownReviewState() {
+  state.unknownFood = state.unknownFoods[0] || null;
+  if (!state.analysis) return;
+  state.analysis.unknownItems = cloneFoods(state.unknownFoods);
+  state.analysis.unknownFood = state.unknownFood ? { ...state.unknownFood } : null;
+  state.analysis.confirmedUnknownItems = cloneFoods(state.confirmedUnknownFoods);
+}
+
+function takeCurrentUnknown() {
+  const [removed] = state.unknownFoods.splice(0, 1);
+  syncUnknownReviewState();
+  return removed || null;
+}
+
+function confirmUnknownFood() {
+  const unknown = state.unknownFood;
+  if (!unknown) return;
+  const label = String(unknown.label || unknown.name || "Item não identificado").trim();
+  const mapped = foodMatcher?.mapRecognizedItem?.({
+    ...unknown,
+    name: label,
+    quantityGrams: unknown.quantityGrams
+  });
+  const canPromoteToCalculatedFood = Boolean(
+    mapped?.matched &&
+    mapped.detectedItem?.nutrients &&
+    Number(mapped.detectedItem.quantityGrams) > 0
+  );
+  const resolved = takeCurrentUnknown();
+  if (!resolved) return;
+
+  if (canPromoteToCalculatedFood) {
+    const food = { ...foodMatcher.toLegacyFood(mapped.detectedItem), confirmed: true };
+    state.foods.push(food);
+    state.addedItems.push(food.name);
+    state.changes.push(`${label} confirmado como ${food.name}`);
+    polish?.showToast("Alimento confirmado");
+  } else {
+    state.confirmedUnknownFoods.push({
+      ...resolved,
+      userConfirmed: true,
+      confirmedAt: new Date().toISOString()
+    });
+    syncUnknownReviewState();
+    state.changes.push(`${label} confirmado sem correspondência nutricional`);
+    polish?.showToast("Identificação confirmada");
+  }
+  renderConfirmation();
+}
+
+function replaceConfirmedUnknown(index) {
+  const item = state.confirmedUnknownFoods[index];
+  if (!item) return;
+  const label = String(item.label || item.name || "").trim();
+  openFoodSearch(`replace-confirmed-unknown:${index}`, label);
+}
+
+function removeConfirmedUnknown(index) {
+  const [removed] = state.confirmedUnknownFoods.splice(index, 1);
+  if (!removed) return;
+  syncUnknownReviewState();
+  state.changes.push(`${removed.label || removed.name || "Item confirmado"} removido da análise`);
+  renderConfirmation();
+  polish?.showToast("Alimento removido");
+}
+
+function openFoodSearch(target, initialQuery = "") {
   pendingFoodTarget = target;
-  foodSearchInput.value = "";
-  renderFoodSearchResults(simulator.searchFoods(""));
+  foodSearchInput.value = initialQuery;
+  renderFoodSearchResults(simulator.searchFoods(initialQuery));
   openModal(foodSearchModal);
   foodSearchInput.focus();
 }
@@ -1555,9 +1657,18 @@ function addFoodByName(foodName) {
   }
 
   if (pendingFoodTarget === "replace-unknown") {
-    state.unknownFoods.shift();
-    state.unknownFood = state.unknownFoods[0] || null;
+    takeCurrentUnknown();
     state.changes.push(`Alimento não identificado substituído por ${foodName}`);
+  } else {
+    const confirmedTarget = /^replace-confirmed-unknown:(\d+)$/.exec(String(pendingFoodTarget || ""));
+    if (confirmedTarget) {
+      const index = Number(confirmedTarget[1]);
+      const [removed] = state.confirmedUnknownFoods.splice(index, 1);
+      if (removed) {
+        syncUnknownReviewState();
+        state.changes.push(`${removed.label || removed.name || "Item confirmado"} substituído por ${foodName}`);
+      }
+    }
   }
 
   state.foods.push({
@@ -1575,14 +1686,18 @@ function addFoodByName(foodName) {
 }
 
 function handleUnknownFood(action) {
+  if (action === "confirm") {
+    confirmUnknownFood();
+    return;
+  }
   if (action === "remove") {
-    state.unknownFoods.shift();
-    state.unknownFood = state.unknownFoods[0] || null;
+    takeCurrentUnknown();
     state.changes.push("Alimento não identificado removido");
     renderConfirmation();
     return;
   }
-  openFoodSearch("replace-unknown");
+  const label = String(state.unknownFood?.label || state.unknownFood?.name || "").trim();
+  openFoodSearch("replace-unknown", label);
 }
 
 function restoreDraftResult() {
@@ -1597,6 +1712,10 @@ function restoreDraftResult() {
   state.captureSource = draft.captureSource || null;
   state.detectedFoods = cloneFoods(draft.detectedFoods || draft.foods || []);
   state.foods = cloneFoods(draft.reviewedFoods || draft.foods || []);
+  state.confirmedUnknownFoods = cloneFoods(draft.confirmedUnknownItems || []);
+  state.unknownFoods = [];
+  state.unknownFood = null;
+  state.unknownReviewTotal = 0;
   state.hiddenSelections = (draft.hiddenSelections || draft.hiddenIngredientsAdded || []).map((item) => ({ ...item }));
   const draftPhotoQuality = draft.photoQuality || "Foto boa";
   const draftQualityLevel = typeof draftPhotoQuality === "object"
@@ -1613,6 +1732,8 @@ function restoreDraftResult() {
     confidence: draft.confidence || 85,
     photoQuality: draftPhotoQuality,
     packaging: draft.packaging || null,
+    unknownItems: [],
+    confirmedUnknownItems: cloneFoods(state.confirmedUnknownFoods),
     qualityWarning: draftQualityLevel ? ["medium", "low", "poor", "bad"].includes(draftQualityLevel) : !["Foto excelente", "Foto boa"].includes(draftQualityLabel),
     specialResult: draft.specialResult || draft.finalResult?.specialResult || null
   };
@@ -1705,17 +1826,27 @@ confirmFoodList.addEventListener("click", (event) => {
     return;
   }
   const index = Number(button.dataset.index || -1);
-  if (button.dataset.action === "confirm") {
+  const action = button.dataset.action;
+  if (action === "replace-confirmed-unknown") {
+    replaceConfirmedUnknown(index);
+    return;
+  }
+  if (action === "remove-confirmed-unknown") {
+    removeConfirmedUnknown(index);
+    return;
+  }
+  if (action === "confirm") {
     const food = state.foods[index];
     if (!food) return;
     state.foods[index] = { ...food, confirmed: true };
     renderFoodList();
     polish?.showToast("Alimento confirmado");
     return;
-  }  if (button.dataset.action === "edit") {
+  }
+  if (action === "edit") {
     editFood(index);
   }
-  if (button.dataset.action === "remove") {
+  if (action === "remove") {
     removeFood(index, button.closest(".food-item"));
   }
 });

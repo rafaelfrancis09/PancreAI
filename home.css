@@ -790,6 +790,18 @@ button, input, select {
   background: #f6fbf7;
 }
 
+.food-item--unlisted {
+  border: 1px solid rgba(77, 188, 131, 0.28);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbf9 100%);
+}
+
+.food-item--unlisted .food-item__main small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .food-item strong { color: var(--text); display: block; }
 .food-item p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
 .food-item__actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }

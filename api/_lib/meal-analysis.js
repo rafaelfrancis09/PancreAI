@@ -70,9 +70,10 @@ const MEAL_ANALYSIS_SCHEMA = {
         additionalProperties: false,
         properties: {
           label: { type: "string", description: "Descrição visual curta do item incerto." },
+          quantityGrams: { type: "integer", minimum: 1, maximum: 3000 },
           confidence: { type: "integer", minimum: 0, maximum: 100 }
         },
-        required: ["label", "confidence"]
+        required: ["label", "quantityGrams", "confidence"]
       }
     },
     possibleHiddenIngredients: {
@@ -440,14 +441,14 @@ function normalizeAnalysis(raw, catalog = [], idFactory = randomUUID) {
     const candidateName = cleanText(item?.name, 100);
     if (!candidateName) continue;
     const confidence = Math.round(clamp(Number(item?.confidence) || 0, 0, 100));
+    const quantityGrams = Math.round(clamp(Number(item?.quantityGrams) || 1, 1, 3000));
     const canonicalEntry = catalogByName.get(catalogKey(candidateName));
     if (enforceCatalog && !canonicalEntry) {
-      unknownItems.push({ id: `unknown_${idFactory()}`, label: candidateName, confidence });
+      unknownItems.push({ id: `unknown_${idFactory()}`, label: candidateName, quantityGrams, confidence });
       continue;
     }
     const name = canonicalEntry?.name || candidateName;
     const key = catalogKey(name);
-    const quantityGrams = Math.round(clamp(Number(item?.quantityGrams) || 1, 1, 3000));
     const previous = detectedByName.get(key);
     if (previous) {
       previous.quantityGrams = Math.min(3000, previous.quantityGrams + quantityGrams);
@@ -464,6 +465,7 @@ function normalizeAnalysis(raw, catalog = [], idFactory = randomUUID) {
     unknownItems.push({
       id: `unknown_${idFactory()}`,
       label,
+      quantityGrams: Math.round(clamp(Number(item?.quantityGrams) || 1, 1, 3000)),
       confidence: Math.round(clamp(Number(item?.confidence) || 0, 0, 100))
     });
   }

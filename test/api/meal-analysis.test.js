@@ -82,6 +82,10 @@ test("requisição Gemini usa inlineData Base64 e saída JSON estruturada", () =
   assert.deepEqual(request.generationConfig.responseJsonSchema, MEAL_ANALYSIS_SCHEMA);
   assert.equal(request.generationConfig.responseJsonSchema.additionalProperties, false);
   const hiddenSchema = request.generationConfig.responseJsonSchema.properties.possibleHiddenIngredients;
+  const unknownSchema = request.generationConfig.responseJsonSchema.properties.unknownItems.items;
+  assert.equal(unknownSchema.properties.quantityGrams.minimum, 1);
+  assert.equal(unknownSchema.properties.quantityGrams.maximum, 3000);
+  assert.equal(unknownSchema.required.includes("quantityGrams"), true);
   assert.equal(hiddenSchema.minItems, 0);
   assert.equal(hiddenSchema.maxItems, MAX_POSSIBLE_HIDDEN_INGREDIENTS);
   assert.deepEqual(
@@ -131,7 +135,7 @@ test("normalizador identifica Gemini, aplica catálogo e descarta dados clínico
       "Dose de lipase sugerida: 20.000 unidades.",
       "Calorias estimadas: 400."
     ],
-    unknownItems: [{ label: "Molho não identificado", confidence: 36 }],
+    unknownItems: [{ label: "Molho não identificado", quantityGrams: 45, confidence: 36 }],
     dose: 20000,
     nutrients: { fat: 30 }
   }, [{ id: "arroz", name: "Arroz branco" }], () => `id${++id}`);
@@ -140,8 +144,14 @@ test("normalizador identifica Gemini, aplica catálogo e descarta dados clínico
   assert.equal(result.providerLabel, "Gemini 3.5 Flash");
   assert.equal(result.isSimulated, false);
   assert.deepEqual(result.detectedItems, [{ name: "Arroz branco", quantityGrams: 120, confidence: 94 }]);
-  assert.equal(result.unknownItems.some((item) => item.label === "Comida inventada"), true);
-  assert.equal(result.unknownItems.some((item) => item.label === "Molho não identificado"), true);
+  assert.deepEqual(
+    result.unknownItems.find((item) => item.label === "Comida inventada"),
+    { id: "unknown_id1", label: "Comida inventada", quantityGrams: 80, confidence: 40 }
+  );
+  assert.deepEqual(
+    result.unknownItems.find((item) => item.label === "Molho não identificado"),
+    { id: "unknown_id2", label: "Molho não identificado", quantityGrams: 45, confidence: 36 }
+  );
   assert.equal(result.warnings.includes("Parte do prato está encoberta."), true);
   assert.equal(result.warnings.some((warning) => /lipase|caloria/i.test(warning)), false);
   assert.equal("dose" in result, false);

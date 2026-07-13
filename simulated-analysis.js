@@ -46,7 +46,9 @@
       analysis,
       history: core?.getHistory?.() || []
     });
-    const missingNutritionCount = foods.filter((food) => food.missingNutrition).length;
+    const confirmedUnknownItems = analysis.confirmedUnknownItems || [];
+    const missingNutritionCount = foods.filter((food) => food.missingNutrition).length
+      + confirmedUnknownItems.length;
     const calculationReliability = confidenceService.calculate({
       analysis,
       changes: analysis.changes || [],
@@ -81,6 +83,7 @@
       foods,
       unknownFood: analysis.unknownFood || null,
       unknownItems: analysis.unknownItems || [],
+      confirmedUnknownItems,
       selectedAccompaniment: analysis.selectedAccompaniment,
       packaging: analysis.packaging,
       photoQuality: toLegacyPhotoQuality(analysis),

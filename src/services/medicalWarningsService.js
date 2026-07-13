@@ -102,6 +102,16 @@
       }));
     }
 
+    if (analysis?.confirmedUnknownItems?.length) {
+      warnings.push(warning({
+        id: "analysis-confirmed-unlisted-food",
+        severity: "warning",
+        title: "Cálculo parcial",
+        message: "Alimentos confirmados sem dados nutricionais no banco não foram incluídos no cálculo.",
+        stage: "analysis"
+      }));
+    }
+
     if (analysis?.packaging) {
       warnings.push(warning({
         id: "analysis-packaging",
