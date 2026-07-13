@@ -100,6 +100,7 @@ const core = window.PancreAICore;
 const simulator = window.PancreAISimulator;
 const captureService = window.PancreAIServices?.simulatedCaptureService;
 const realCaptureService = window.PancreAIServices?.realImageCaptureService;
+const mitAppInventorBridge = window.PancreAIServices?.mitAppInventorBridge;
 const realRecognitionProvider = window.PancreAIServices?.realMealRecognitionProvider;
 const foodMatcher = window.PancreAIRecognition?.foodMatcher;
 const polish = window.PancreAIPolish;
@@ -559,6 +560,10 @@ function renderGallery() {
 }
 
 function openDeviceGallery() {
+  if (mitAppInventorBridge?.requestGallery?.()) {
+    polish?.showToast("Abrindo galeria...");
+    return;
+  }
   galleryFileInput.value = "";
   galleryFileInput.click();
 }
@@ -602,6 +607,32 @@ async function showRealCapturePreview(file, source, options = {}) {
   imageErrorCard.hidden = true;
   setView("preview");
 }
+
+async function handleMitAppInventorImage(file, source) {
+  const fromCamera = String(source || "").includes("camera");
+  const captureSource = fromCamera ? "camera_native_mit" : "gallery_native_mit";
+  const trigger = fromCamera ? captureBtn : galleryBtn;
+
+  if (fromCamera) {
+    cameraOperationId += 1;
+    stopLiveCamera();
+    resetCameraUi();
+  }
+  if (trigger) trigger.disabled = true;
+  polish?.showToast("Preparando foto...");
+
+  try {
+    await showRealCapturePreview(file, captureSource);
+  } catch (error) {
+    polish?.showToast(error?.message || "Não foi possível preparar esta foto.");
+    setView("sheet");
+    throw error;
+  } finally {
+    if (trigger) trigger.disabled = false;
+  }
+}
+
+mitAppInventorBridge?.setImageReceiver?.(handleMitAppInventorImage);
 
 function showPreviewImageError() {
   if (app.dataset.view !== "preview") return;
@@ -1458,6 +1489,10 @@ async function openCamera() {
 async function captureFromCamera() {
   if (captureBtn.disabled) return;
   if (!cameraStream || !cameraVideo || cameraVideo.readyState < 2) {
+    if (mitAppInventorBridge?.requestCamera?.()) {
+      setCameraMessage("Abrindo câmera...");
+      return;
+    }
     cameraFileInput.value = "";
     cameraFileInput.click();
     return;
@@ -1771,6 +1806,10 @@ overlayClose.addEventListener("click", closeSheet);
 cancelBtn.addEventListener("click", closeSheet);
 cameraBtn.addEventListener("click", () => {
   closeSheet();
+  if (mitAppInventorBridge?.requestCamera?.()) {
+    polish?.showToast("Abrindo câmera...");
+    return;
+  }
   openCamera();
 });
 galleryBtn.addEventListener("click", openDeviceGallery);

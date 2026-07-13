@@ -139,6 +139,8 @@
     ["Câmera", "Camera", "Cámara", "Caméra", "Kamera", "Fotocamera"],
     ["Posicione a refeição no quadro.", "Position the meal inside the frame.", "Coloca la comida dentro del encuadre.", "Placez le repas dans le cadre.", "Positioniere die Mahlzeit im Rahmen.", "Posiziona il pasto nell’inquadratura."],
     ["Abrindo câmera...", "Opening camera...", "Abriendo cámara...", "Ouverture de la caméra...", "Kamera wird geöffnet...", "Apertura fotocamera..."],
+    ["Abrindo galeria...", "Opening gallery...", "Abriendo galería...", "Ouverture de la galerie...", "Galerie wird geöffnet...", "Apertura galleria..."],
+    ["Preparando foto...", "Preparing photo...", "Preparando foto...", "Préparation de la photo...", "Foto wird vorbereitet...", "Preparazione foto..."],
     ["Centralize o prato no guia.", "Center the plate in the guide.", "Centra el plato en la guía.", "Centrez l’assiette dans le guide.", "Zentriere den Teller in der Führung.", "Centra il piatto nella guida."],
     ["Prato centralizado.", "Plate centered.", "Plato centrado.", "Assiette centrée.", "Teller zentriert.", "Piatto centrato."],
     ["Capturando foto...", "Capturing photo...", "Capturando foto...", "Capture de la photo...", "Foto wird aufgenommen...", "Acquisizione foto..."],

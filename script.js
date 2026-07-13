@@ -17,6 +17,13 @@ const LANGUAGE_STORAGE_KEY = "pancreai_selected_language";
 const LANGUAGE_SETTINGS_KEY = "pancreai_language_settings";
 const i18n = window.PancreAII18n;
 const pageQuery = new URLSearchParams(window.location.search);
+const mitBridgePreference = pageQuery.get("bridge");
+try {
+  if (mitBridgePreference === "mit") sessionStorage.setItem("pancreaiMitBridgeEnabled", "true");
+  if (mitBridgePreference === "browser") sessionStorage.removeItem("pancreaiMitBridgeEnabled");
+} catch (_) {
+  // Some embedded WebViews disable session storage; home.js also detects Android WebView directly.
+}
 const languageOnlyMode = pageQuery.get("language") === "1";
 const languageReturnTarget = pageQuery.get("return") === "profile" ? "profile.html" : null;
 
