@@ -176,3 +176,56 @@ test("métodos inválidos não iniciam uma análise", async () => {
   assert.equal(response.body.error.code, "method_not_allowed");
   assert.match(response.headers.allow, /POST/);
 });
+test("repete uma vez sem schema quando o Gemini rejeita responseJsonSchema", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  const requests = [];
+  global.fetch = async (_url, options) => {
+    requests.push(JSON.parse(options.body));
+    if (requests.length === 1) {
+      return new Response(JSON.stringify({
+        error: {
+          status: "INVALID_ARGUMENT",
+          message: "Invalid responseJsonSchema: schema is not supported"
+        }
+      }), { status: 400, headers: { "content-type": "application/json" } });
+    }
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 200);
+  assert.equal(requests.length, 2);
+  assert.equal(Object.hasOwn(requests[0].generationConfig, "responseJsonSchema"), true);
+  assert.equal(Object.hasOwn(requests[1].generationConfig, "responseJsonSchema"), false);
+  assert.equal(requests[1].generationConfig.responseMimeType, "application/json");
+});
+
+test("classifica credencial e modelo inválidos sem vazar a mensagem externa", () => {
+  const credentials = handler._private.upstreamError({
+    status: 400,
+    providerCode: "INVALID_ARGUMENT",
+    providerMessage: "API key not valid: secret-value"
+  });
+  assert.equal(credentials.status, 503);
+  assert.equal(credentials.code, "analysis_credentials_invalid");
+  assert.equal(credentials.message.includes("secret-value"), false);
+
+  const model = handler._private.upstreamError({
+    status: 404,
+    providerCode: "NOT_FOUND",
+    providerMessage: "models/wrong not found"
+  });
+  assert.equal(model.status, 503);
+  assert.equal(model.code, "analysis_model_unavailable");
+  assert.equal(handler._private.GEMINI_TIMEOUT_MS, 50000);
+});

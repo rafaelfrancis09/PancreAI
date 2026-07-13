@@ -318,7 +318,8 @@ function createGeminiRequest({ image, catalog, locale = "pt-BR" }) {
     }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 1600,
+      maxOutputTokens: 4096,
+      thinkingConfig: { thinkingBudget: 0 },
       responseMimeType: "application/json",
       responseJsonSchema: MEAL_ANALYSIS_SCHEMA
     }

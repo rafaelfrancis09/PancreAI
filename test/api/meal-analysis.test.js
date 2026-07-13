@@ -74,6 +74,8 @@ test("requisição Gemini usa inlineData Base64 e saída JSON estruturada", () =
   assert.equal(parts[1].inlineData.mimeType, "image/jpeg");
   assert.equal(parts[1].inlineData.data, JPEG_BYTES.toString("base64"));
   assert.match(parts[0].text, /Arroz branco/);
+  assert.equal(request.generationConfig.maxOutputTokens, 4096);
+  assert.deepEqual(request.generationConfig.thinkingConfig, { thinkingBudget: 0 });
   assert.equal(request.generationConfig.responseMimeType, "application/json");
   assert.deepEqual(request.generationConfig.responseJsonSchema, MEAL_ANALYSIS_SCHEMA);
   assert.equal(request.generationConfig.responseJsonSchema.additionalProperties, false);

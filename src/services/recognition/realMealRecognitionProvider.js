@@ -6,7 +6,7 @@
   const nutritionDatabase = window.PancreAIData?.nutritionDatabase;
   const hiddenIngredientsService = window.PancreAIServices?.hiddenIngredientsService;
   const DEFAULT_ENDPOINT = "/api/analyze-meal";
-  const DEFAULT_TIMEOUT_MS = 45000;
+  const DEFAULT_TIMEOUT_MS = 58000;
   const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
   const USAGE_CONTEXT = "responsible_adult";
   let endpointOverride = null;

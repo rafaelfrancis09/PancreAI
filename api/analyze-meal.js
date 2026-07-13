@@ -11,7 +11,7 @@ const {
 
 const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-2.5-flash";
-const GEMINI_TIMEOUT_MS = 25_000;
+const GEMINI_TIMEOUT_MS = 50_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const requestBuckets = new Map();
 
@@ -59,20 +59,89 @@ function safeApiError(error) {
   return new ApiError(500, "internal_error", "Não foi possível analisar a imagem agora.");
 }
 
-function upstreamError(status) {
-  if (status === 429) {
-    return new ApiError(429, "analysis_rate_limited", "O limite temporário do serviço de análise foi atingido. Aguarde e tente novamente.");
+function safeProviderText(value, maxLength = 240) {
+  return String(value || "")
+    .replace(/AIza[\w-]+/g, "[redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+async function readUpstreamError(response) {
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
   }
-  if (status === 400 || status === 404) {
-    return new ApiError(502, "analysis_failed", "A imagem não pôde ser analisada. Tente outra foto.");
+  return {
+    status: Number(response.status) || 502,
+    providerCode: safeProviderText(payload?.error?.status || payload?.error?.code, 80).toUpperCase(),
+    providerMessage: safeProviderText(payload?.error?.message, 240)
+  };
+}
+
+function makeUpstreamError(details, status, code, message) {
+  const error = new ApiError(status, code, message);
+  error.upstreamStatus = Number(details.status) || null;
+  error.upstreamCode = safeProviderText(details.providerCode, 80) || null;
+  return error;
+}
+
+function upstreamError(input) {
+  const details = typeof input === "number" ? { status: input } : (input || {});
+  const status = Number(details.status) || 502;
+  const providerCode = safeProviderText(details.providerCode, 80).toUpperCase();
+  const providerMessage = safeProviderText(details.providerMessage, 240);
+  const invalidCredentials = ["API_KEY_INVALID", "UNAUTHENTICATED", "PERMISSION_DENIED"].includes(providerCode) ||
+    /api key.*(invalid|not valid)|invalid api key|permission denied/i.test(providerMessage);
+
+  if (invalidCredentials || status === 401 || status === 403) {
+    return makeUpstreamError(
+      details,
+      503,
+      "analysis_credentials_invalid",
+      "A chave do Gemini precisa ser corrigida na configuração da Vercel."
+    );
   }
-  if (status === 401 || status === 403) {
-    return new ApiError(503, "analysis_unavailable", "O serviço de análise ainda não está disponível.");
+  if (status === 404 || providerCode === "NOT_FOUND") {
+    return makeUpstreamError(
+      details,
+      503,
+      "analysis_model_unavailable",
+      "O modelo do Gemini configurado não foi encontrado. Use gemini-2.5-flash."
+    );
+  }
+  if (status === 429 || providerCode === "RESOURCE_EXHAUSTED") {
+    return makeUpstreamError(
+      details,
+      429,
+      "analysis_rate_limited",
+      "O limite temporário do serviço de análise foi atingido. Aguarde e tente novamente."
+    );
   }
   if (status >= 500) {
-    return new ApiError(503, "analysis_unavailable", "O serviço de análise está temporariamente indisponível.");
+    return makeUpstreamError(
+      details,
+      503,
+      "analysis_unavailable",
+      "O serviço de análise está temporariamente indisponível."
+    );
   }
-  return new ApiError(502, "analysis_failed", "A imagem não pôde ser analisada. Tente outra foto.");
+  return makeUpstreamError(
+    details,
+    502,
+    "analysis_failed",
+    "A imagem não pôde ser analisada. Tente outra foto."
+  );
+}
+
+function shouldRetryWithoutSchema(details) {
+  return Number(details?.status) === 400 &&
+    safeProviderText(details?.providerCode, 80).toUpperCase() === "INVALID_ARGUMENT" &&
+    /schema|responseJsonSchema|response_json_schema|generationConfig/i.test(
+      safeProviderText(details?.providerMessage, 240)
+    );
 }
 
 function enforceRateLimit(req, now = Date.now()) {
@@ -101,23 +170,37 @@ function modelEndpoint(model) {
 async function callGemini({ apiKey, model, image, requestId }) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
-  try {
-    const response = await fetch(modelEndpoint(model), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-        "X-Client-Request-Id": requestId
-      },
-      body: JSON.stringify(createGeminiRequest({
-        image,
-        catalog: image.catalog,
-        locale: image.locale
-      })),
-      signal: controller.signal
-    });
+  const request = createGeminiRequest({
+    image,
+    catalog: image.catalog,
+    locale: image.locale
+  });
+  const send = (body) => fetch(modelEndpoint(model), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+      "X-Client-Request-Id": requestId
+    },
+    body: JSON.stringify(body),
+    signal: controller.signal
+  });
 
-    if (!response.ok) throw upstreamError(response.status);
+  try {
+    let response = await send(request);
+    if (!response.ok) {
+      let details = await readUpstreamError(response);
+      if (shouldRetryWithoutSchema(details)) {
+        const fallbackRequest = {
+          ...request,
+          generationConfig: { ...request.generationConfig }
+        };
+        delete fallbackRequest.generationConfig.responseJsonSchema;
+        response = await send(fallbackRequest);
+        if (!response.ok) details = await readUpstreamError(response);
+      }
+      if (!response.ok) throw upstreamError(details);
+    }
 
     let payload;
     try {
@@ -188,7 +271,9 @@ async function handler(req, res) {
       requestId,
       code: safeError.code,
       status: safeError.status,
-      errorType: error?.name || "Error"
+      errorType: error?.name || "Error",
+      upstreamStatus: error?.upstreamStatus || undefined,
+      upstreamCode: error?.upstreamCode || undefined
     });
     return sendJson(res, safeError.status, {
       error: { code: safeError.code, message: safeError.message, requestId }
@@ -204,5 +289,7 @@ module.exports._private = {
   callGemini,
   enforceRateLimit,
   modelEndpoint,
+  readUpstreamError,
+  shouldRetryWithoutSchema,
   upstreamError
 };
