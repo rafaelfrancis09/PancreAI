@@ -488,7 +488,7 @@ function normalizeAnalysis(raw, catalog = [], idFactory = randomUUID) {
   return {
     id: `ai_analysis_${idFactory()}`,
     provider: "gemini",
-    providerLabel: "Gemini 2.5 Flash",
+    providerLabel: "Gemini 3.5 Flash",
     isSimulated: false,
     mealName: cleanText(raw.mealName, 100) || (detectedItems.length ? "Refeição identificada" : "Refeição não identificada"),
     category: cleanText(raw.category, 60) || "Refeição",

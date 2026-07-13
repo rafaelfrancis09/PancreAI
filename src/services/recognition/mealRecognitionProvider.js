@@ -7,7 +7,7 @@
   const providerContract = {
     expectedMethod: "analyze(imageReference, options)",
     currentProvider: "RealMealRecognitionProvider",
-    currentModel: "gemini-2.5-flash",
+    currentModel: "gemini-3.5-flash",
     execution: "secure-backend",
     analysisMode: "real",
     outputFields: [

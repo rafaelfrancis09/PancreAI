@@ -52,7 +52,7 @@ module.exports = function health(req, res) {
     configured,
     service: "pancreai-gemini-vision",
     provider: "gemini",
-    version: "2026-07-11",
+    version: "2026-07-13-model-fallback1",
     requestId
   }));
 };

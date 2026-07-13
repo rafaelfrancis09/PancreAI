@@ -10,9 +10,10 @@ const {
 } = require("./_lib/meal-analysis");
 
 const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = "gemini-2.5-flash";
-const FALLBACK_MODEL = "gemini-2.5-flash-lite";
-const LATEST_FLASH_MODEL = "gemini-3.5-flash";
+const DEFAULT_MODEL = "gemini-3.5-flash";
+const FALLBACK_MODEL = "gemini-3.1-flash-lite";
+const LEGACY_FLASH_MODEL = "gemini-2.5-flash";
+const LEGACY_FLASH_LITE_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_TIMEOUT_MS = 50_000;
 const GEMINI_TRANSIENT_RETRY_LIMIT = 1;
 const GEMINI_TRANSIENT_RETRY_DELAY_MS = 800;
@@ -206,7 +207,13 @@ function normalizeModelName(value, fallback = DEFAULT_MODEL) {
 }
 
 function modelCandidates(primary) {
-  return [...new Set([normalizeModelName(primary), FALLBACK_MODEL, LATEST_FLASH_MODEL])];
+  return [...new Set([
+    normalizeModelName(primary),
+    DEFAULT_MODEL,
+    FALLBACK_MODEL,
+    LEGACY_FLASH_MODEL,
+    LEGACY_FLASH_LITE_MODEL
+  ])];
 }
 
 function isModelNotFound(details) {
@@ -215,9 +222,22 @@ function isModelNotFound(details) {
 }
 
 function providerLabelForModel(model) {
-  if (model === FALLBACK_MODEL) return "Gemini 2.5 Flash Lite";
-  if (model === LATEST_FLASH_MODEL) return "Gemini 3.5 Flash";
-  return "Gemini 2.5 Flash";
+  if (model === DEFAULT_MODEL) return "Gemini 3.5 Flash";
+  if (model === FALLBACK_MODEL) return "Gemini 3.1 Flash Lite";
+  if (model === LEGACY_FLASH_LITE_MODEL) return "Gemini 2.5 Flash Lite";
+  if (model === LEGACY_FLASH_MODEL) return "Gemini 2.5 Flash";
+  return "Gemini";
+}
+
+function transientRetryDelayMs(requestId, attempt = 0) {
+  const seed = String(requestId || "pancreai");
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = ((hash * 31) + seed.charCodeAt(index)) >>> 0;
+  }
+  const base = GEMINI_TRANSIENT_RETRY_DELAY_MS * (2 ** Math.max(0, Number(attempt) || 0));
+  const jitterRange = Math.max(1, Math.round(base * 0.25));
+  return base - jitterRange + (hash % ((jitterRange * 2) + 1));
 }
 
 function requestForModel(request, model) {
@@ -251,24 +271,39 @@ async function callGemini({ apiKey, model, image, requestId }) {
     body: JSON.stringify(body),
     signal: controller.signal
   });
-  const sendWithTransientRetry = async (activeModel, body) => {
+  const sendWithTransientRetry = async (activeModel, body, maximumAttempts) => {
     let response;
     let details = null;
-    for (let attempt = 0; attempt <= GEMINI_TRANSIENT_RETRY_LIMIT; attempt += 1) {
-      response = await send(activeModel, body);
-      if (response.ok) return { response, details: null };
+    let attempts = 0;
+    while (attempts < maximumAttempts) {
+      try {
+        response = await send(activeModel, body);
+      } catch (error) {
+        if (error?.name === "AbortError") throw error;
+        details = {
+          status: 503,
+          providerCode: "NETWORK_ERROR",
+          providerMessage: "Temporary connection failure"
+        };
+        attempts += 1;
+        if (attempts >= maximumAttempts) break;
+        await waitForRetry(transientRetryDelayMs(requestId, attempts - 1), controller.signal);
+        continue;
+      }
+      attempts += 1;
+      if (response.ok) return { response, details: null, attempts };
       details = await readUpstreamError(response);
-      if (!isTransientUpstreamFailure(details) || attempt >= GEMINI_TRANSIENT_RETRY_LIMIT) break;
+      if (!isTransientUpstreamFailure(details) || attempts >= maximumAttempts) break;
       console.warn("[PancreAI analyze-meal transient-retry]", {
         requestId,
         model: activeModel,
-        attempt: attempt + 1,
+        attempt: attempts,
         upstreamStatus: details.status,
         upstreamCode: details.providerCode || undefined
       });
-      await waitForRetry(GEMINI_TRANSIENT_RETRY_DELAY_MS, controller.signal);
+      await waitForRetry(transientRetryDelayMs(requestId, attempts - 1), controller.signal);
     }
-    return { response, details };
+    return { response, details, attempts };
   };
 
   try {
@@ -276,9 +311,14 @@ async function callGemini({ apiKey, model, image, requestId }) {
     for (let index = 0; index < candidates.length; index += 1) {
       const activeModel = candidates[index];
       const modelRequest = requestForModel(request, activeModel);
-      let upstream = await sendWithTransientRetry(activeModel, modelRequest);
+      const isCurrentCapacityModel = activeModel === DEFAULT_MODEL || activeModel === FALLBACK_MODEL;
+      const maximumAttempts = index === 0 || isCurrentCapacityModel
+        ? GEMINI_TRANSIENT_RETRY_LIMIT + 1
+        : 1;
+      let upstream = await sendWithTransientRetry(activeModel, modelRequest, maximumAttempts);
+
       let response = upstream.response;
-      if (!response.ok) {
+      if (!response || !response.ok) {
         let details = upstream.details;
         if (shouldRetryWithoutSchema(details)) {
           const schemaFallbackRequest = {
@@ -286,14 +326,19 @@ async function callGemini({ apiKey, model, image, requestId }) {
             generationConfig: { ...modelRequest.generationConfig }
           };
           delete schemaFallbackRequest.generationConfig.responseJsonSchema;
-          upstream = await sendWithTransientRetry(activeModel, schemaFallbackRequest);
+          upstream = await sendWithTransientRetry(activeModel, schemaFallbackRequest, 1);
+
           response = upstream.response;
-          if (!response.ok) details = upstream.details;
+          if (!response || !response.ok) details = upstream.details;
         }
-        if (!response.ok) {
+        if (!response || !response.ok) {
           lastDetails = details;
           const nextModel = candidates[index + 1];
-          if (nextModel && isModelNotFound(details)) {
+          if (nextModel && (
+            isModelNotFound(details) ||
+            isTransientUpstreamFailure(details) ||
+            shouldRetryWithoutSchema(details)
+          )) {
             console.warn("[PancreAI analyze-meal model-fallback]", {
               requestId,
               fromModel: activeModel,
@@ -396,7 +441,8 @@ module.exports = handler;
 module.exports._private = {
   DEFAULT_MODEL,
   FALLBACK_MODEL,
-  LATEST_FLASH_MODEL,
+  LEGACY_FLASH_MODEL,
+  LEGACY_FLASH_LITE_MODEL,
   GEMINI_TIMEOUT_MS,
   GEMINI_TRANSIENT_RETRY_DELAY_MS,
   GEMINI_TRANSIENT_RETRY_LIMIT,
@@ -412,5 +458,6 @@ module.exports._private = {
   readUpstreamError,
   requestForModel,
   shouldRetryWithoutSchema,
+  transientRetryDelayMs,
   upstreamError
 };

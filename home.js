@@ -111,6 +111,7 @@ let analysisTimerId = null;
 const softMessageTimers = new WeakMap();
 let analysisRequestId = 0;
 let analysisAbortController = null;
+let analysisStartPromise = null;
 let cameraStream = null;
 let cameraOperationId = 0;
 let activeObjectUrl = null;
@@ -1151,7 +1152,7 @@ function buildMealRecord() {
   return {
     id: `meal-${now.getTime()}`,
     provider: state.result?.provider || state.analysis?.provider || "gemini",
-    providerLabel: state.result?.providerLabel || state.analysis?.providerLabel || "Gemini 2.5 Flash",
+    providerLabel: state.result?.providerLabel || state.analysis?.providerLabel || "Gemini 3.5 Flash",
     isSimulated: state.result?.isSimulated ?? state.analysis?.isSimulated ?? false,
     mealId: state.simulatedMealId || state.analysis?.mealId || null,
     filename: state.simulatedFilename || state.photoFilename || state.analysis?.filename || null,
@@ -1266,7 +1267,19 @@ function showAnalysisError(error) {
   analysisErrorActions.hidden = false;
 }
 
-async function startAnalysis(file, options = {}) {
+function startAnalysis(file, options = {}) {
+  if (analysisStartPromise) return analysisStartPromise;
+  usePhotoBtn.disabled = true;
+  analysisRetryBtn.disabled = true;
+  analysisStartPromise = runAnalysis(file, options).finally(() => {
+    analysisStartPromise = null;
+    usePhotoBtn.disabled = false;
+    analysisRetryBtn.disabled = false;
+  });
+  return analysisStartPromise;
+}
+
+async function runAnalysis(file, options = {}) {
   const preserveCounters = Boolean(options.preserveCounters);
   if (!core.isSetupComplete()) {
     localStorage.setItem("pancreaiReturnTo", "home.html");

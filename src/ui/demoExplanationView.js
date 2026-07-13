@@ -11,7 +11,7 @@
     {
       icon: "food",
       title: "O Gemini faz a análise visual",
-      text: "A foto é enviada pelo backend ao Gemini 2.5 Flash, que reconhece alimentos e estima porções visuais. A IA pode errar, por isso cada sugestão precisa ser revisada."
+      text: "A foto é enviada pelo backend ao Gemini Flash, que reconhece alimentos e estima porções visuais. A IA pode errar, por isso cada sugestão precisa ser revisada."
     },
     {
       icon: "db",
@@ -64,7 +64,7 @@
     "Câmera ou galeria",
     "Imagem validada",
     "Backend seguro",
-    "Gemini 2.5 Flash",
+    "Gemini Flash",
     "Revisão obrigatória",
     "Banco nutricional local",
     "Ingredientes ocultos",
@@ -76,7 +76,7 @@
   const currentFlow = architecture.currentFlow || [
     "Foto real",
     "Backend seguro",
-    "Gemini 2.5 Flash",
+    "Gemini Flash",
     "Revisão obrigatória",
     "Banco nutricional local",
     "Cálculo determinístico",
@@ -166,12 +166,12 @@
         <div>
           <span class="demo-eyebrow">Visão geral</span>
           <h2>Como o PancreAI funciona</h2>
-          <p>A câmera e a galeria recebem fotos reais. O backend envia a imagem ao Gemini 2.5 Flash, que reconhece alimentos e estima porções visuais.</p>
+          <p>A câmera e a galeria recebem fotos reais. O backend envia a imagem ao Gemini Flash, que reconhece alimentos e estima porções visuais.</p>
           <p>O usuário revisa essas sugestões. Depois, o banco local fornece os nutrientes e o motor de cálculo aplica regras determinísticas aos dados confirmados e ao tratamento cadastrado.</p>
           <strong class="summary-callout">A IA fornece sugestões visuais. Somente a lista revisada pelo usuário alimenta o cálculo.</strong>
         </div>
         <div class="summary-metrics" aria-label="Dados desta versão">
-          <div><strong>1</strong><span>modelo visual</span><small>Gemini 2.5 Flash via backend</small></div>
+          <div><strong>1</strong><span>modelo visual</span><small>Gemini Flash via backend</small></div>
           <div><strong>${nutritionCount}</strong><span>alimentos pesquisáveis</span><small>Base nutricional local</small></div>
           <div><strong>100%</strong><span>revisão necessária</span><small>Antes de todo cálculo</small></div>
         </div>
@@ -186,7 +186,7 @@
         <h2>IA para reconhecer, regras locais para calcular</h2>
         <p>O reconhecimento visual não controla o banco nutricional, a prescrição nem o cálculo. Essa separação reduz o impacto de uma sugestão incorreta e mantém a revisão visível.</p>
         <div class="comparison-grid">
-          <article><h3>Gemini 2.5 Flash</h3>${renderList(aiItems)}</article>
+          <article><h3>Gemini Flash</h3>${renderList(aiItems)}</article>
           <article><h3>Funciona dentro do PancreAI</h3>${renderList(localItems)}</article>
         </div>
       </section>

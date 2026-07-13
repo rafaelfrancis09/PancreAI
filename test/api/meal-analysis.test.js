@@ -137,7 +137,7 @@ test("normalizador identifica Gemini, aplica catálogo e descarta dados clínico
   }, [{ id: "arroz", name: "Arroz branco" }], () => `id${++id}`);
 
   assert.equal(result.provider, "gemini");
-  assert.equal(result.providerLabel, "Gemini 2.5 Flash");
+  assert.equal(result.providerLabel, "Gemini 3.5 Flash");
   assert.equal(result.isSimulated, false);
   assert.deepEqual(result.detectedItems, [{ name: "Arroz branco", quantityGrams: 120, confidence: 94 }]);
   assert.equal(result.unknownItems.some((item) => item.label === "Comida inventada"), true);

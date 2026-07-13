@@ -1,7 +1,8 @@
 # API de análise visual
 
 Esta pasta contém a função serverless usada pelo PancreAI para analisar fotos de
-refeições com o Gemini 2.5 Flash sem expor a chave no navegador.
+refeições com o Gemini 3.5 Flash, com fallback automático para o Gemini 3.1
+Flash-Lite, sem expor a chave no navegador.
 
 ## Rotas
 
@@ -13,14 +14,15 @@ refeições com o Gemini 2.5 Flash sem expor a chave no navegador.
 
 ```text
 GEMINI_API_KEY=sua_chave_do_google_ai_studio
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash
 ALLOWED_ORIGINS=https://seu-dominio.example
 MAX_REQUESTS_PER_MINUTE=10
 ```
 
 `GEMINI_API_KEY` é obrigatória e deve existir somente no ambiente do servidor.
 Nunca coloque a chave em HTML, JavaScript do navegador, URL ou commit. O modelo
-padrão é `gemini-2.5-flash`.
+padrão é `gemini-3.5-flash`; se ele estiver temporariamente indisponível, o
+backend tenta `gemini-3.1-flash-lite` automaticamente.
 
 Se o frontend e a função estiverem no mesmo domínio, o endpoint relativo
 `/api/analyze-meal` funciona diretamente. Para manter o frontend no GitHub Pages,

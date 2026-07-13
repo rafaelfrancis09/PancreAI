@@ -15,7 +15,7 @@
       core.saveMealRecord({
         ...record,
         provider: record.provider || "gemini",
-        providerLabel: record.providerLabel || "Gemini 2.5 Flash",
+        providerLabel: record.providerLabel || "Gemini 3.5 Flash",
         isSimulated: record.isSimulated ?? false
       });
     }

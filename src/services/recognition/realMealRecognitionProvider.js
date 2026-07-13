@@ -156,7 +156,7 @@
     return {
       id: safeText(payload.id, ids?.createId?.("gemini_analysis") || `gemini_analysis_${Date.now()}`, 100),
       provider: safeText(payload.provider, "gemini", 60),
-      providerLabel: safeText(payload.providerLabel, "Gemini 2.5 Flash", 80),
+      providerLabel: safeText(payload.providerLabel, "Gemini 3.5 Flash", 80),
       isSimulated: false,
       mealName,
       category,

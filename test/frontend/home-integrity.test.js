@@ -86,3 +86,10 @@ test("botões de galeria abrem diretamente as fotos do dispositivo", () => {
   assert.doesNotMatch(homeJs, /galleryBtn\.addEventListener\("click", openGallery\)/);
   assert.doesNotMatch(homeJs, /cameraSwitchBtn\.addEventListener\("click", openGallery\)/);
 });
+test("analise bloqueia cliques duplicados enquanto uma requisicao esta em andamento", () => {
+  assert.match(homeJs, /let analysisStartPromise = null/);
+  assert.match(homeJs, /if \(analysisStartPromise\) return analysisStartPromise/);
+  assert.match(homeJs, /analysisStartPromise = runAnalysis\(file, options\)\.finally/);
+  assert.match(homeJs, /usePhotoBtn\.disabled = true/);
+  assert.match(homeJs, /analysisRetryBtn\.disabled = false/);
+});

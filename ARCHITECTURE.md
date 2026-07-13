@@ -1,8 +1,7 @@
 # Arquitetura atual do PancreAI
 
 O PancreAI é um aplicativo web em HTML, CSS e JavaScript com uma função de backend
-para análise de imagens. Ele recebe uma foto real da refeição, usa o Gemini 2.5
-Flash para reconhecer alimentos e estimar porções visuais, exige revisão e calcula
+para análise de imagens. Ele recebe uma foto real da refeição, usa o Gemini 3.5 Flash, com fallback para o Gemini 3.1 Flash-Lite, para reconhecer alimentos e estimar porções visuais, exige revisão e calcula
 uma estimativa com regras determinísticas e dados locais.
 
 O aplicativo não é um dispositivo médico, não prescreve tratamento e não foi
@@ -16,7 +15,7 @@ validado para decisões clínicas.
 - `realMealRecognitionProvider.js` envia a foto e o catálogo permitido ao endpoint
   `POST /api/analyze-meal`.
 - A função serverless valida o arquivo e solicita uma resposta estruturada ao
-  Gemini 2.5 Flash com `GEMINI_API_KEY`, disponível somente no servidor.
+  Gemini 3.5 Flash, com fallback para o Gemini 3.1 Flash-Lite, usando `GEMINI_API_KEY`, disponível somente no servidor.
 - O backend devolve sugestões visuais normalizadas; nutrientes, medicamento e dose
   não são solicitados nem aceitos da IA.
 
@@ -42,7 +41,7 @@ conferência manual.
 
 1. O usuário fotografa a refeição ou escolhe uma imagem.
 2. O navegador valida e prepara a foto.
-3. O backend envia a imagem ao Gemini 2.5 Flash e solicita somente a análise visual.
+3. O backend envia a imagem ao Gemini 3.5 Flash ou ao fallback Gemini 3.1 Flash-Lite e solicita somente a análise visual.
 4. A resposta é limitada aos nomes do catálogo e às porções aproximadas.
 5. O usuário revisa, corrige quantidades, remove erros e adiciona itens ausentes.
 6. O banco local calcula nutrientes para as quantidades confirmadas.
