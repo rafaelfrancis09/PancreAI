@@ -21,6 +21,7 @@
       "detectedItems",
       "warnings",
       "unknownItems",
+      "possibleHiddenIngredients",
       "packagingDetected"
     ]
   };

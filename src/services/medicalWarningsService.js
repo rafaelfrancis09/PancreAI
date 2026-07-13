@@ -127,7 +127,7 @@
         id: "review-hidden-ingredients",
         severity: "info",
         title: "Ingredientes ocultos podem mudar o resultado",
-        message: "Óleo, azeite, manteiga, molhos e maionese podem aumentar a gordura da refeição.",
+        message: "Revise as possibilidades exibidas e marque apenas o que realmente estava no preparo.",
         stage: "review"
       }));
     }

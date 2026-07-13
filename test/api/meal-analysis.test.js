@@ -4,6 +4,8 @@ const assert = require("node:assert/strict");
 const {
   ApiError,
   MEAL_ANALYSIS_SCHEMA,
+  MAX_POSSIBLE_HIDDEN_INGREDIENTS,
+  POSSIBLE_HIDDEN_INGREDIENT_CATALOG,
   RESPONSIBLE_ADULT_CONTEXT,
   createGeminiRequest,
   extractGeminiResponseText,
@@ -79,6 +81,18 @@ test("requisição Gemini usa inlineData Base64 e saída JSON estruturada", () =
   assert.equal(request.generationConfig.responseMimeType, "application/json");
   assert.deepEqual(request.generationConfig.responseJsonSchema, MEAL_ANALYSIS_SCHEMA);
   assert.equal(request.generationConfig.responseJsonSchema.additionalProperties, false);
+  const hiddenSchema = request.generationConfig.responseJsonSchema.properties.possibleHiddenIngredients;
+  assert.equal(hiddenSchema.minItems, 0);
+  assert.equal(hiddenSchema.maxItems, MAX_POSSIBLE_HIDDEN_INGREDIENTS);
+  assert.deepEqual(
+    hiddenSchema.items.properties.id.enum,
+    POSSIBLE_HIDDEN_INGREDIENT_CATALOG.map((ingredient) => ingredient.id)
+  );
+  assert.equal(hiddenSchema.items.additionalProperties, false);
+  assert.equal(request.generationConfig.responseJsonSchema.required.includes("possibleHiddenIngredients"), true);
+  assert.match(parts[0].text, /array pode e deve ficar vazio/i);
+  assert.match(parts[0].text, /nunca preencha todos/i);
+  assert.match(request.systemInstruction.parts[0].text, /possibilidades de preparo contextuais, nunca ingredientes confirmados/i);
   assert.match(request.systemInstruction.parts[0].text, /não (?:calcule|faça)/i);
 });
 
@@ -135,6 +149,75 @@ test("normalizador identifica Gemini, aplica catálogo e descarta dados clínico
   assert.equal(result.packaging, null);
 });
 
+test("normalizador mantém apenas possibilidades permitidas ligadas a alimentos detectados", () => {
+  const catalog = [
+    { id: "arroz", name: "Arroz branco" },
+    { id: "estrogonofe", name: "Estrogonofe de frango" }
+  ];
+  const result = normalizeAnalysis({
+    mealName: "Estrogonofe com arroz",
+    category: "Almoço",
+    confidence: 90,
+    photoQuality: { level: "good" },
+    detectedItems: [
+      { name: "arroz branco", quantityGrams: 120, confidence: 93 },
+      { name: "Estrogonofe de frango", quantityGrams: 180, confidence: 89 }
+    ],
+    warnings: [],
+    unknownItems: [],
+    possibleHiddenIngredients: [
+      { id: "oleo", relatedItem: " ARROZ BRANCO ", selected: true, fatPerAmount: 999 },
+      { id: "oleo", relatedItem: "Estrogonofe de frango" },
+      { id: "creme_de_leite", relatedItem: "estrogonofe de frango" },
+      { id: "outro", relatedItem: "Arroz branco" },
+      { id: "manteiga", relatedItem: "Item inexistente" },
+      "azeite",
+      { id: "maionese", relatedItem: "Arroz branco" },
+      { id: "azeite", relatedItem: "Arroz branco" },
+      { id: "molho", relatedItem: "Estrogonofe de frango" }
+    ]
+  }, catalog, () => "hidden");
+
+  assert.deepEqual(result.possibleHiddenIngredients, [
+    { id: "oleo", relatedItem: "Arroz branco" },
+    { id: "creme_de_leite", relatedItem: "Estrogonofe de frango" },
+    { id: "maionese", relatedItem: "Arroz branco" },
+    { id: "azeite", relatedItem: "Arroz branco" }
+  ]);
+  assert.equal(result.possibleHiddenIngredients.length, MAX_POSSIBLE_HIDDEN_INGREDIENTS);
+  assert.equal("selected" in result.possibleHiddenIngredients[0], false);
+  assert.equal("fatPerAmount" in result.possibleHiddenIngredients[0], false);
+});
+
+test("normalizador não cria opções padrão e suprime possibilidades sem contexto confiável", () => {
+  const base = {
+    mealName: "Arroz",
+    category: "Almoço",
+    confidence: 80,
+    photoQuality: { level: "good" },
+    detectedItems: [{ name: "Arroz branco", quantityGrams: 120, confidence: 90 }],
+    warnings: [],
+    unknownItems: []
+  };
+  const catalog = [{ id: "arroz", name: "Arroz branco" }];
+
+  assert.deepEqual(normalizeAnalysis(base, catalog, () => "none").possibleHiddenIngredients, []);
+
+  const lowQuality = normalizeAnalysis({
+    ...base,
+    photoQuality: { level: "low" },
+    possibleHiddenIngredients: [{ id: "oleo", relatedItem: "Arroz branco" }]
+  }, catalog, () => "low");
+  assert.deepEqual(lowQuality.possibleHiddenIngredients, []);
+
+  const unmatchedFood = normalizeAnalysis({
+    ...base,
+    detectedItems: [{ name: "Prato fora do catálogo", quantityGrams: 100, confidence: 40 }],
+    possibleHiddenIngredients: [{ id: "oleo", relatedItem: "Prato fora do catálogo" }]
+  }, catalog, () => "unmatched");
+  assert.deepEqual(unmatchedFood.detectedItems, []);
+  assert.deepEqual(unmatchedFood.possibleHiddenIngredients, []);
+});
 test("normalizador limita a revisão a doze itens sem perda silenciosa no frontend", () => {
   let id = 0;
   const result = normalizeAnalysis({

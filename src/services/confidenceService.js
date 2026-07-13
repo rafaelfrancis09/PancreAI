@@ -37,7 +37,8 @@
       reasons.push("A refeição foi revisada manualmente.");
     }
 
-    if (!(hiddenSelections || []).some((item) => item.selected)) {
+    const hiddenOptions = (hiddenSelections || []).filter((item) => item?.label);
+    if (hiddenOptions.length && !hiddenOptions.some((item) => item.selected)) {
       score -= 4;
       reasons.push("Ingredientes ocultos precisam ser considerados quando existirem.");
     }

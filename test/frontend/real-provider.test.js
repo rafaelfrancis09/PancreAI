@@ -4,6 +4,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
+const hiddenIngredientsSource = fs.readFileSync(
+  path.join(__dirname, "..", "..", "src", "services", "hiddenIngredientsService.js"),
+  "utf8"
+);
 const providerSource = fs.readFileSync(
   path.join(__dirname, "..", "..", "src", "services", "recognition", "realMealRecognitionProvider.js"),
   "utf8"
@@ -93,12 +97,13 @@ function createProvider(fetchImpl, metaEndpoint = "/api/analyze-meal") {
     PancreAIData: { nutritionDatabase: { foods: Object.entries(catalog).map(([name, food]) => ({ id: food.id, name })) } },
     PancreAIUtils: { ids: { createId: (prefix) => `${prefix}_${++idCounter}` } },
     PancreAIRecognition: { foodMatcher },
-    PancreAIServices: { hiddenIngredientsService: { getDefaultSelections: () => [] } },
+    PancreAIServices: {},
     clearTimeout,
     fetch: fetchImpl,
     setTimeout
   };
 
+  vm.runInNewContext(hiddenIngredientsSource, context, { filename: "hiddenIngredientsService.js" });
   vm.runInNewContext(providerSource, context, { filename: "realMealRecognitionProvider.js" });
   return context.window.PancreAIServices.realMealRecognitionProvider;
 }
@@ -117,7 +122,11 @@ function successfulPayload() {
       { name: "Feijão carioca", quantityGrams: 80, confidence: 88 }
     ],
     warnings: ["Confirme as porções."],
-    unknownItems: []
+    unknownItems: [],
+    possibleHiddenIngredients: [
+      { id: "oleo", relatedItem: "Arroz branco" },
+      { id: "manteiga", relatedItem: "Feijão carioca" }
+    ]
   };
 }
 
@@ -155,6 +164,9 @@ test("provider envia multipart ao endpoint configurado com contexto adulto e cat
   assert.equal(result.foods[0].name, "Arroz branco");
   assert.equal(result.foods[0].grams, 120);
   assert.equal(result.foods[0].fat, 0.36);
+  assert.deepEqual(Array.from(result.hiddenFats, (item) => item.id), ["oleo", "manteiga"]);
+  assert.equal(result.hiddenFats.every((item) => item.selected === false), true);
+  assert.equal(result.hiddenFats[0].relatedItem, "Arroz branco");
   assert.equal(provider.getEndpoint(), "https://api.pancreai.test/api/analyze-meal");
   assert.equal(provider.isAvailable(), true);
 });

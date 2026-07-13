@@ -143,13 +143,23 @@
     if (unknownItems.length) warnings.push("Há alimentos que precisam ser identificados manualmente.");
 
     const packaging = safeText(payload.packaging?.label || payload.packaging, "", 100) || null;
+    const mealName = safeText(payload.mealName || payload.meal?.name, "Refeição analisada", 120);
+    const category = safeText(payload.category || payload.meal?.category, "refeicao", 60);
+    const hiddenFats = hiddenIngredientsService?.getSuggestedSelections?.({
+      possibleHiddenIngredients: payload.possibleHiddenIngredients,
+      hiddenIngredientSuggestions: payload.hiddenIngredientSuggestions,
+      hiddenFats: payload.hiddenFats,
+      mealName,
+      category,
+      foods: mapped.foods
+    }) || [];
     return {
       id: safeText(payload.id, ids?.createId?.("gemini_analysis") || `gemini_analysis_${Date.now()}`, 100),
       provider: safeText(payload.provider, "gemini", 60),
       providerLabel: safeText(payload.providerLabel, "Gemini 2.5 Flash", 80),
       isSimulated: false,
-      mealName: safeText(payload.mealName || payload.meal?.name, "Refeição analisada", 120),
-      category: safeText(payload.category || payload.meal?.category, "refeicao", 60),
+      mealName,
+      category,
       confidence,
       photoQuality,
       photoQualityDetails: photoQuality,
@@ -161,7 +171,7 @@
       packaging,
       foods: mapped.foods,
       qualityWarning: ["low", "poor", "bad", "medium"].includes(String(photoQuality.level).toLowerCase()),
-      hiddenFats: hiddenIngredientsService?.getDefaultSelections?.() || [],
+      hiddenFats,
       rawMetadata: payload.metadata && typeof payload.metadata === "object"
         ? {
             requestId: safeText(payload.metadata.requestId, "", 100) || null,

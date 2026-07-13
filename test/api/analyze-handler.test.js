@@ -55,7 +55,8 @@ function geminiPayload() {
           photoQuality: { level: "good" },
           detectedItems: [{ name: "Arroz branco", quantityGrams: 120, confidence: 93 }],
           warnings: [],
-          unknownItems: []
+          unknownItems: [],
+          possibleHiddenIngredients: [{ id: "oleo", relatedItem: "Arroz branco" }]
         }) }]
       }
     }]
@@ -90,6 +91,9 @@ test("POST chama Gemini 2.5 Flash com chave apenas no header", async (t) => {
   assert.equal(response.body.provider, "gemini");
   assert.equal(response.body.providerLabel, "Gemini 2.5 Flash");
   assert.equal(response.body.isSimulated, false);
+  assert.deepEqual(response.body.possibleHiddenIngredients, [
+    { id: "oleo", relatedItem: "Arroz branco" }
+  ]);
   assert.match(upstream.url, /\/models\/gemini-2\.5-flash:generateContent$/);
   assert.equal(upstream.options.method, "POST");
   assert.equal(upstream.options.headers["x-goog-api-key"], secret);
@@ -99,6 +103,8 @@ test("POST chama Gemini 2.5 Flash com chave apenas no header", async (t) => {
   assert.equal(body.contents[0].parts[1].inlineData.data, JPEG_BYTES.toString("base64"));
   assert.equal(body.generationConfig.responseMimeType, "application/json");
   assert.equal(body.generationConfig.responseJsonSchema.additionalProperties, false);
+  assert.equal(body.generationConfig.responseJsonSchema.properties.possibleHiddenIngredients.maxItems, 4);
+  assert.equal(body.generationConfig.responseJsonSchema.required.includes("possibleHiddenIngredients"), true);
 });
 
 test("sem GEMINI_API_KEY responde configuração ausente sem chamar a rede", async (t) => {
