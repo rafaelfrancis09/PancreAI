@@ -554,6 +554,11 @@ function renderGallery() {
   galleryRendered = true;
 }
 
+function openDeviceGallery() {
+  galleryFileInput.value = "";
+  galleryFileInput.click();
+}
+
 function openGallery() {
   cameraOperationId += 1;
   stopLiveCamera();
@@ -618,7 +623,7 @@ function retryPreviewImage() {
 function returnToCaptureSource() {
   cancelActiveAnalysis();
   if (["camera_real", "camera_file"].includes(state.captureSource)) openCamera();
-  else openGallery();
+  else setView("sheet");
 }
 async function handleRealImageSelection(input, source) {
   const file = input?.files?.[0];
@@ -626,8 +631,14 @@ async function handleRealImageSelection(input, source) {
   if (!file) return;
 
   const isCameraFallback = source === "camera_file";
-  const trigger = isCameraFallback ? captureBtn : deviceGalleryBtn;
+  const selectedFromCamera = source === "gallery_upload" && app.dataset.view === "camera";
+  const trigger = isCameraFallback ? captureBtn : selectedFromCamera ? cameraSwitchBtn : galleryBtn;
   if (trigger) trigger.disabled = true;
+  if (selectedFromCamera) {
+    cameraOperationId += 1;
+    stopLiveCamera();
+    resetCameraUi();
+  }
   if (isCameraFallback) {
     cameraOperationId += 1;
     stopLiveCamera();
@@ -646,8 +657,10 @@ async function handleRealImageSelection(input, source) {
       cameraShell.dataset.cameraState = "error";
       setView("camera");
       setCameraMessage(error?.message || "Não foi possível preparar esta foto.");
+    } else if (selectedFromCamera) {
+      void openCamera();
     } else {
-      setView("gallery");
+      setView("sheet");
     }
   } finally {
     if (trigger) trigger.disabled = false;
@@ -1626,16 +1639,13 @@ cameraBtn.addEventListener("click", () => {
   closeSheet();
   openCamera();
 });
-galleryBtn.addEventListener("click", openGallery);
-deviceGalleryBtn.addEventListener("click", () => {
-  galleryFileInput.value = "";
-  galleryFileInput.click();
-});
+galleryBtn.addEventListener("click", openDeviceGallery);
+deviceGalleryBtn.addEventListener("click", openDeviceGallery);
 galleryFileInput.addEventListener("change", () => handleRealImageSelection(galleryFileInput, "gallery_upload"));
 cameraFileInput.addEventListener("change", () => handleRealImageSelection(cameraFileInput, "camera_file"));
 cameraCloseBtn.addEventListener("click", closeCamera);
 cameraCancelBtn.addEventListener("click", closeCamera);
-cameraSwitchBtn.addEventListener("click", openGallery);
+cameraSwitchBtn.addEventListener("click", openDeviceGallery);
 captureBtn.addEventListener("click", captureFromCamera);
 galleryBackBtn.addEventListener("click", () => setView("sheet"));
 galleryPrevBtn.addEventListener("click", () => changeGalleryPage(-1));

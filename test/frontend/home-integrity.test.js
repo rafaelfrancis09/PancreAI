@@ -79,3 +79,10 @@ test("erro de análise cancela a mensagem de progresso pendente", () => {
   assert.match(homeJs, /setSoftMessage\(analysisMessage, message, \{ immediate: true \}\)/);
   assert.match(homeJs, /analysisPanel\?\.classList\.add\("is-error"\)/);
 });
+test("botões de galeria abrem diretamente as fotos do dispositivo", () => {
+  assert.match(homeJs, /function openDeviceGallery\(\)[\s\S]*?galleryFileInput\.click\(\)/);
+  assert.match(homeJs, /galleryBtn\.addEventListener\("click", openDeviceGallery\)/);
+  assert.match(homeJs, /cameraSwitchBtn\.addEventListener\("click", openDeviceGallery\)/);
+  assert.doesNotMatch(homeJs, /galleryBtn\.addEventListener\("click", openGallery\)/);
+  assert.doesNotMatch(homeJs, /cameraSwitchBtn\.addEventListener\("click", openGallery\)/);
+});
