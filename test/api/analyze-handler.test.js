@@ -229,3 +229,85 @@ test("classifica credencial e modelo inválidos sem vazar a mensagem externa", (
   assert.equal(model.code, "analysis_model_unavailable");
   assert.equal(handler._private.GEMINI_TIMEOUT_MS, 50000);
 });
+test("usa Gemini 2.5 Flash Lite quando o modelo principal não está disponível", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_MODEL;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  delete process.env.GEMINI_MODEL;
+  const calls = [];
+  global.fetch = async (url, options) => {
+    calls.push({ url: String(url), signal: options.signal });
+    if (calls.length === 1) {
+      return new Response(JSON.stringify({
+        error: { status: "NOT_FOUND", message: "Model was not found" }
+      }), { status: 404, headers: { "content-type": "application/json" } });
+    }
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_MODEL;
+    else process.env.GEMINI_MODEL = previousModel;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 200);
+  assert.equal(response.body.providerLabel, "Gemini 2.5 Flash Lite");
+  assert.equal(response.body.metadata.model, "gemini-2.5-flash-lite");
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /gemini-2\.5-flash:generateContent$/);
+  assert.match(calls[1].url, /gemini-2\.5-flash-lite:generateContent$/);
+  assert.equal(calls[0].signal, calls[1].signal);
+});
+
+test("não troca de modelo quando a chave do Gemini é inválida", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "invalid-test-key";
+  let calls = 0;
+  global.fetch = async () => {
+    calls += 1;
+    return new Response(JSON.stringify({
+      error: { status: "INVALID_ARGUMENT", message: "API key not valid" }
+    }), { status: 400, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, "analysis_credentials_invalid");
+  assert.equal(calls, 1);
+});
+
+test("retorna erro após tentar exatamente os dois modelos compatíveis", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  const urls = [];
+  global.fetch = async (url) => {
+    urls.push(String(url));
+    return new Response(JSON.stringify({
+      error: { status: "NOT_FOUND", message: "Model was not found" }
+    }), { status: 404, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, "analysis_model_unavailable");
+  assert.equal(urls.length, 2);
+});

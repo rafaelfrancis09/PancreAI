@@ -11,6 +11,7 @@ const {
 
 const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-2.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_TIMEOUT_MS = 50_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const requestBuckets = new Map();
@@ -109,7 +110,7 @@ function upstreamError(input) {
       details,
       503,
       "analysis_model_unavailable",
-      "O modelo do Gemini configurado não foi encontrado. Use gemini-2.5-flash."
+      "Nenhum modelo Gemini compatível foi encontrado para esta chave."
     );
   }
   if (status === 429 || providerCode === "RESOURCE_EXHAUSTED") {
@@ -163,8 +164,30 @@ function enforceRateLimit(req, now = Date.now()) {
   return { remaining: Math.max(0, maximum - bucket.count) };
 }
 
+function normalizeModelName(value, fallback = DEFAULT_MODEL) {
+  const normalized = String(value || "")
+    .trim()
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .replace(/^models\//i, "")
+    .trim();
+  return /^[a-z0-9._-]+$/i.test(normalized) ? normalized : fallback;
+}
+
+function modelCandidates(primary) {
+  return [...new Set([normalizeModelName(primary), FALLBACK_MODEL])];
+}
+
+function isModelNotFound(details) {
+  return Number(details?.status) === 404 ||
+    safeProviderText(details?.providerCode, 80).toUpperCase() === "NOT_FOUND";
+}
+
+function providerLabelForModel(model) {
+  return model === FALLBACK_MODEL ? "Gemini 2.5 Flash Lite" : "Gemini 2.5 Flash";
+}
+
 function modelEndpoint(model) {
-  return `${GEMINI_API_BASE_URL}/${encodeURIComponent(model)}:generateContent`;
+  return `${GEMINI_API_BASE_URL}/${encodeURIComponent(normalizeModelName(model))}:generateContent`;
 }
 
 async function callGemini({ apiKey, model, image, requestId }) {
@@ -175,7 +198,8 @@ async function callGemini({ apiKey, model, image, requestId }) {
     catalog: image.catalog,
     locale: image.locale
   });
-  const send = (body) => fetch(modelEndpoint(model), {
+  const candidates = modelCandidates(model);
+  const send = (activeModel, body) => fetch(modelEndpoint(activeModel), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -187,28 +211,51 @@ async function callGemini({ apiKey, model, image, requestId }) {
   });
 
   try {
-    let response = await send(request);
-    if (!response.ok) {
-      let details = await readUpstreamError(response);
-      if (shouldRetryWithoutSchema(details)) {
-        const fallbackRequest = {
-          ...request,
-          generationConfig: { ...request.generationConfig }
-        };
-        delete fallbackRequest.generationConfig.responseJsonSchema;
-        response = await send(fallbackRequest);
-        if (!response.ok) details = await readUpstreamError(response);
+    let lastDetails = null;
+    for (let index = 0; index < candidates.length; index += 1) {
+      const activeModel = candidates[index];
+      let response = await send(activeModel, request);
+      if (!response.ok) {
+        let details = await readUpstreamError(response);
+        if (shouldRetryWithoutSchema(details)) {
+          const schemaFallbackRequest = {
+            ...request,
+            generationConfig: { ...request.generationConfig }
+          };
+          delete schemaFallbackRequest.generationConfig.responseJsonSchema;
+          response = await send(activeModel, schemaFallbackRequest);
+          if (!response.ok) details = await readUpstreamError(response);
+        }
+        if (!response.ok) {
+          lastDetails = details;
+          const nextModel = candidates[index + 1];
+          if (nextModel && isModelNotFound(details)) {
+            console.warn("[PancreAI analyze-meal model-fallback]", {
+              requestId,
+              fromModel: activeModel,
+              toModel: nextModel,
+              upstreamStatus: details.status,
+              upstreamCode: details.providerCode || undefined
+            });
+            continue;
+          }
+          throw upstreamError(details);
+        }
       }
-      if (!response.ok) throw upstreamError(details);
-    }
 
-    let payload;
-    try {
-      payload = await response.json();
-    } catch {
-      throw new ApiError(502, "invalid_ai_response", "A IA retornou uma resposta inesperada.");
+      let payload;
+      try {
+        payload = await response.json();
+      } catch {
+        throw new ApiError(502, "invalid_ai_response", "A IA retornou uma resposta inesperada.");
+      }
+      return {
+        ...parseAndNormalizeGeminiResponse(payload, image.catalog),
+        providerLabel: providerLabelForModel(activeModel),
+        metadata: { model: activeModel }
+      };
     }
-    return parseAndNormalizeGeminiResponse(payload, image.catalog);
+    throw upstreamError(lastDetails || { status: 404, providerCode: "NOT_FOUND" });
   } catch (error) {
     if (controller.signal.aborted && !(error instanceof ApiError)) {
       throw new ApiError(504, "analysis_timeout", "A análise demorou demais. Tente novamente.");
@@ -260,7 +307,7 @@ async function handler(req, res) {
     }
     const result = await callGemini({
       apiKey,
-      model: String(process.env.GEMINI_MODEL || DEFAULT_MODEL).trim() || DEFAULT_MODEL,
+      model: normalizeModelName(process.env.GEMINI_MODEL, DEFAULT_MODEL),
       image,
       requestId
     });
@@ -284,11 +331,16 @@ async function handler(req, res) {
 module.exports = handler;
 module.exports._private = {
   DEFAULT_MODEL,
+  FALLBACK_MODEL,
   GEMINI_TIMEOUT_MS,
   allowedOriginsForRequest,
   callGemini,
   enforceRateLimit,
+  isModelNotFound,
+  modelCandidates,
   modelEndpoint,
+  normalizeModelName,
+  providerLabelForModel,
   readUpstreamError,
   shouldRetryWithoutSchema,
   upstreamError
