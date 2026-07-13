@@ -289,7 +289,7 @@ test("não troca de modelo quando a chave do Gemini é inválida", async (t) => 
   assert.equal(calls, 1);
 });
 
-test("retorna erro após tentar exatamente os dois modelos compatíveis", async (t) => {
+test("retorna erro após tentar exatamente os três modelos compatíveis", async (t) => {
   const previousKey = process.env.GEMINI_API_KEY;
   const previousFetch = global.fetch;
   process.env.GEMINI_API_KEY = "configured-test-key";
@@ -309,5 +309,38 @@ test("retorna erro após tentar exatamente os dois modelos compatíveis", async 
   const response = await runHandler(jsonRequest());
   assert.equal(response.status, 503);
   assert.equal(response.body.error.code, "analysis_model_unavailable");
-  assert.equal(urls.length, 2);
+  assert.equal(urls.length, 3);
+});
+test("usa Gemini 3.5 Flash para chaves novas quando os modelos 2.5 não existem", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-auth-key";
+  const calls = [];
+  global.fetch = async (url, options) => {
+    const call = { url: String(url), body: JSON.parse(options.body), signal: options.signal };
+    calls.push(call);
+    if (!call.url.includes("gemini-3.5-flash")) {
+      return new Response(JSON.stringify({
+        error: { status: "NOT_FOUND", message: "Model was not found" }
+      }), { status: 404, headers: { "content-type": "application/json" } });
+    }
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 200);
+  assert.equal(response.body.providerLabel, "Gemini 3.5 Flash");
+  assert.equal(response.body.metadata.model, "gemini-3.5-flash");
+  assert.equal(calls.length, 3);
+  assert.match(calls[2].url, /gemini-3\.5-flash:generateContent$/);
+  assert.deepEqual(calls[2].body.generationConfig.thinkingConfig, { thinkingLevel: "minimal" });
+  assert.equal(calls[0].signal, calls[2].signal);
 });

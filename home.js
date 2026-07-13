@@ -52,6 +52,7 @@ const favoriteBtn = document.querySelector("#favoriteBtn");
 const explainBtn = document.querySelector("#explainBtn");
 const analysisTitle = document.querySelector("#analysisTitle");
 const analysisMessage = document.querySelector("#analysisMessage");
+const analysisPanel = analysisTitle?.closest(".analysis");
 const progressFill = document.querySelector("#progressFill");
 const analysisErrorActions = document.querySelector("#analysisErrorActions");
 const analysisRetryBtn = document.querySelector("#analysisRetryBtn");
@@ -107,6 +108,7 @@ const i18n = window.PancreAII18n;
 const query = new URLSearchParams(window.location.search);
 
 let analysisTimerId = null;
+const softMessageTimers = new WeakMap();
 let analysisRequestId = 0;
 let analysisAbortController = null;
 let cameraStream = null;
@@ -371,11 +373,20 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function cancelSoftMessage(element) {
+  if (!element) return;
+  const pendingTimer = softMessageTimers.get(element);
+  if (pendingTimer) window.clearTimeout(pendingTimer);
+  softMessageTimers.delete(element);
+  element.classList.remove("is-changing");
+}
+
 function clearAnalysisTimer() {
   if (analysisTimerId) {
     window.clearTimeout(analysisTimerId);
     analysisTimerId = null;
   }
+  cancelSoftMessage(analysisMessage);
 }
 
 function cancelActiveAnalysis() {
@@ -400,21 +411,23 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function setSoftMessage(element, message) {
+function setSoftMessage(element, message, options = {}) {
   if (!element) return;
+  cancelSoftMessage(element);
   if (element.textContent === message) return;
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (reducedMotion || isChildModeActive()) {
+  if (options.immediate || reducedMotion || isChildModeActive()) {
     element.textContent = message;
     return;
   }
-  element.classList.remove("is-changing");
   void element.offsetWidth;
   element.classList.add("is-changing");
-  window.setTimeout(() => {
+  const timer = window.setTimeout(() => {
     element.textContent = message;
     element.classList.remove("is-changing");
+    softMessageTimers.delete(element);
   }, 180);
+  softMessageTimers.set(element, timer);
 }
 
 function setAnalysisMessage(message) {
@@ -1233,8 +1246,9 @@ function applyAnalysis(analysis) {
 
 function showAnalysisError(error) {
   const message = error?.message || "Tente novamente ou volte para escolher outra foto.";
+  analysisPanel?.classList.add("is-error");
   analysisTitle.textContent = "Não foi possível analisar esta imagem.";
-  analysisMessage.textContent = message;
+  setSoftMessage(analysisMessage, message, { immediate: true });
   progressFill.style.width = "0%";
   analysisErrorActions.hidden = false;
 }
@@ -1285,6 +1299,7 @@ async function startAnalysis(file, options = {}) {
 
   setView("analyzing");
   clearAnalysisTimer();
+  analysisPanel?.classList.remove("is-error");
   analysisErrorActions.hidden = true;
 
   const quickChildFlow = isChildModeActive();

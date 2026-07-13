@@ -12,6 +12,7 @@ const {
 const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-2.5-flash";
 const FALLBACK_MODEL = "gemini-2.5-flash-lite";
+const LATEST_FLASH_MODEL = "gemini-3.5-flash";
 const GEMINI_TIMEOUT_MS = 50_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const requestBuckets = new Map();
@@ -174,7 +175,7 @@ function normalizeModelName(value, fallback = DEFAULT_MODEL) {
 }
 
 function modelCandidates(primary) {
-  return [...new Set([normalizeModelName(primary), FALLBACK_MODEL])];
+  return [...new Set([normalizeModelName(primary), FALLBACK_MODEL, LATEST_FLASH_MODEL])];
 }
 
 function isModelNotFound(details) {
@@ -183,7 +184,17 @@ function isModelNotFound(details) {
 }
 
 function providerLabelForModel(model) {
-  return model === FALLBACK_MODEL ? "Gemini 2.5 Flash Lite" : "Gemini 2.5 Flash";
+  if (model === FALLBACK_MODEL) return "Gemini 2.5 Flash Lite";
+  if (model === LATEST_FLASH_MODEL) return "Gemini 3.5 Flash";
+  return "Gemini 2.5 Flash";
+}
+
+function requestForModel(request, model) {
+  const generationConfig = { ...request.generationConfig };
+  if (/^gemini-3(?:\.|-)/i.test(model)) {
+    generationConfig.thinkingConfig = { thinkingLevel: "minimal" };
+  }
+  return { ...request, generationConfig };
 }
 
 function modelEndpoint(model) {
@@ -214,13 +225,14 @@ async function callGemini({ apiKey, model, image, requestId }) {
     let lastDetails = null;
     for (let index = 0; index < candidates.length; index += 1) {
       const activeModel = candidates[index];
-      let response = await send(activeModel, request);
+      const modelRequest = requestForModel(request, activeModel);
+      let response = await send(activeModel, modelRequest);
       if (!response.ok) {
         let details = await readUpstreamError(response);
         if (shouldRetryWithoutSchema(details)) {
           const schemaFallbackRequest = {
-            ...request,
-            generationConfig: { ...request.generationConfig }
+            ...modelRequest,
+            generationConfig: { ...modelRequest.generationConfig }
           };
           delete schemaFallbackRequest.generationConfig.responseJsonSchema;
           response = await send(activeModel, schemaFallbackRequest);
@@ -332,6 +344,7 @@ module.exports = handler;
 module.exports._private = {
   DEFAULT_MODEL,
   FALLBACK_MODEL,
+  LATEST_FLASH_MODEL,
   GEMINI_TIMEOUT_MS,
   allowedOriginsForRequest,
   callGemini,
@@ -342,6 +355,7 @@ module.exports._private = {
   normalizeModelName,
   providerLabelForModel,
   readUpstreamError,
+  requestForModel,
   shouldRetryWithoutSchema,
   upstreamError
 };

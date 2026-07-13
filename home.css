@@ -513,6 +513,12 @@ button, input, select {
   text-align: center;
 }
 
+.analysis.is-error .analysis__ring::before,
+.analysis.is-error .analysis__ring::after {
+  animation-play-state: paused;
+  opacity: 0.35;
+}
+
 .analysis__ring {
   width: 140px;
   height: 140px;

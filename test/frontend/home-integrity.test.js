@@ -73,3 +73,9 @@ test("confirmação do responsável possui texto nos seis idiomas ativos", () =>
   assert.equal([...i18nJs.matchAll(/"analysis\.adultConsentMessage"/g)].length, 6);
   assert.equal([...i18nJs.matchAll(/"analysis\.adultConsentConfirm"/g)].length, 6);
 });
+test("erro de análise cancela a mensagem de progresso pendente", () => {
+  assert.match(homeJs, /const softMessageTimers = new WeakMap\(\)/);
+  assert.match(homeJs, /function clearAnalysisTimer\(\)[\s\S]*?cancelSoftMessage\(analysisMessage\)/);
+  assert.match(homeJs, /setSoftMessage\(analysisMessage, message, \{ immediate: true \}\)/);
+  assert.match(homeJs, /analysisPanel\?\.classList\.add\("is-error"\)/);
+});
