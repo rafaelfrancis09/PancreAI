@@ -117,12 +117,12 @@ function upstreamError(input) {
       "Nenhum modelo Gemini compatível foi encontrado para esta chave."
     );
   }
-  if (status === 429 || providerCode === "RESOURCE_EXHAUSTED") {
+  if (isModelRateLimited(details)) {
     return makeUpstreamError(
       details,
       429,
       "analysis_rate_limited",
-      "O limite temporário do serviço de análise foi atingido. Aguarde e tente novamente."
+      "As cotas de análise disponíveis estão no limite no momento. Tente novamente mais tarde."
     );
   }
   if (status >= 500) {
@@ -219,6 +219,11 @@ function modelCandidates(primary) {
 function isModelNotFound(details) {
   return Number(details?.status) === 404 ||
     safeProviderText(details?.providerCode, 80).toUpperCase() === "NOT_FOUND";
+}
+
+function isModelRateLimited(details) {
+  return Number(details?.status) === 429 ||
+    safeProviderText(details?.providerCode, 80).toUpperCase() === "RESOURCE_EXHAUSTED";
 }
 
 function providerLabelForModel(model) {
@@ -336,6 +341,7 @@ async function callGemini({ apiKey, model, image, requestId }) {
           const nextModel = candidates[index + 1];
           if (nextModel && (
             isModelNotFound(details) ||
+            isModelRateLimited(details) ||
             isTransientUpstreamFailure(details) ||
             shouldRetryWithoutSchema(details)
           )) {
@@ -450,6 +456,7 @@ module.exports._private = {
   callGemini,
   enforceRateLimit,
   isModelNotFound,
+  isModelRateLimited,
   isTransientUpstreamFailure,
   modelCandidates,
   modelEndpoint,

@@ -401,7 +401,43 @@ test("retorna erro após tentar exatamente os quatro modelos compatíveis", asyn
   assert.match(urls[3], /gemini-2\.5-flash-lite:generateContent$/);
 });
 
-test("429 não repete nem troca de modelo", async (t) => {
+test("429 no modelo principal avança uma vez ao próximo e conclui", async (t) => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousModel = process.env.GEMINI_MODEL;
+  const previousFetch = global.fetch;
+  process.env.GEMINI_API_KEY = "configured-test-key";
+  delete process.env.GEMINI_MODEL;
+  const urls = [];
+  global.fetch = async (url) => {
+    urls.push(String(url));
+    if (urls.length === 1) {
+      return new Response(JSON.stringify({
+        error: { status: "RESOURCE_EXHAUSTED", message: "Quota exceeded for this model" }
+      }), { status: 429, headers: { "content-type": "application/json" } });
+    }
+    return new Response(JSON.stringify(geminiPayload()), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  };
+  t.after(() => {
+    global.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousModel === undefined) delete process.env.GEMINI_MODEL;
+    else process.env.GEMINI_MODEL = previousModel;
+  });
+
+  const response = await runHandler(jsonRequest());
+  assert.equal(response.status, 200);
+  assert.equal(response.body.providerLabel, "Gemini 3.1 Flash Lite");
+  assert.equal(response.body.metadata.model, "gemini-3.1-flash-lite");
+  assert.equal(urls.length, 2);
+  assert.match(urls[0], /gemini-3\.5-flash:generateContent$/);
+  assert.match(urls[1], /gemini-3\.1-flash-lite:generateContent$/);
+});
+
+test("429 em todos os modelos tenta cada candidato exatamente uma vez", async (t) => {
   const previousKey = process.env.GEMINI_API_KEY;
   const previousModel = process.env.GEMINI_MODEL;
   const previousFetch = global.fetch;
@@ -411,7 +447,7 @@ test("429 não repete nem troca de modelo", async (t) => {
   global.fetch = async (url) => {
     urls.push(String(url));
     return new Response(JSON.stringify({
-      error: { status: "RESOURCE_EXHAUSTED", message: "Quota exceeded" }
+      error: { status: "RESOURCE_EXHAUSTED", message: "Quota exceeded for this model" }
     }), { status: 429, headers: { "content-type": "application/json" } });
   };
   t.after(() => {
@@ -425,8 +461,12 @@ test("429 não repete nem troca de modelo", async (t) => {
   const response = await runHandler(jsonRequest());
   assert.equal(response.status, 429);
   assert.equal(response.body.error.code, "analysis_rate_limited");
-  assert.equal(urls.length, 1);
+  assert.equal(urls.length, 4);
   assert.match(urls[0], /gemini-3\.5-flash:generateContent$/);
+  assert.match(urls[1], /gemini-3\.1-flash-lite:generateContent$/);
+  assert.match(urls[2], /gemini-2\.5-flash:generateContent$/);
+  assert.match(urls[3], /gemini-2\.5-flash-lite:generateContent$/);
+  assert.equal(new Set(urls).size, 4);
 });
 test("modelo de reserva repete uma vez após 503 antes de avançar", async (t) => {
   const previousKey = process.env.GEMINI_API_KEY;

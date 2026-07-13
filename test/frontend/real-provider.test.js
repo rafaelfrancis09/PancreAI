@@ -234,6 +234,6 @@ test("erro JSON do backend preserva apenas código próprio e mensagem segura", 
       new Blob([Buffer.from([0xff, 0xd8, 0xff])], { type: "image/jpeg" }),
       { usageContext: "responsible_adult" }
     ),
-    (error) => error.code === "analysis_rate_limited" && error.status === 429 && /limite gratuito/i.test(error.message)
+    (error) => error.code === "analysis_rate_limited" && error.status === 429 && /tente novamente em instantes/i.test(error.message)
   );
 });

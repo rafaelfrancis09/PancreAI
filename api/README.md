@@ -1,8 +1,8 @@
 # API de análise visual
 
 Esta pasta contém a função serverless usada pelo PancreAI para analisar fotos de
-refeições com o Gemini 3.5 Flash, com fallback automático para o Gemini 3.1
-Flash-Lite, sem expor a chave no navegador.
+refeições com modelos Gemini Flash compatíveis, trocando automaticamente quando
+um modelo está indisponível ou atinge sua cota, sem expor a chave no navegador.
 
 ## Rotas
 

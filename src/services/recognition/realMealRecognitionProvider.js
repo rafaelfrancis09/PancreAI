@@ -200,7 +200,7 @@
         : response.status === 403
           ? backendMessage || "Este endereço do app não tem permissão para usar a análise."
           : response.status === 429
-            ? "O limite gratuito de análises foi atingido. Tente novamente em alguns minutos."
+            ? backendMessage || "O limite de uso da análise foi atingido no momento. Tente novamente mais tarde."
             : response.status >= 500
               ? backendMessage || "O serviço de análise está temporariamente indisponível."
               : backendMessage || "Não foi possível analisar esta imagem.";

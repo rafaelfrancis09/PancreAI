@@ -11,7 +11,7 @@ do banco local, e a estimativa usa os dados de tratamento previamente cadastrado
 2. O navegador valida, redimensiona e comprime a foto.
 3. O frontend envia a imagem ao endpoint seguro `POST /api/analyze-meal`.
 4. O backend, com a chave protegida no servidor, solicita a análise visual ao
-   Gemini 3.5 Flash, com fallback automático para o Gemini 3.1 Flash-Lite.
+   Gemini 3.5 Flash e avança automaticamente pelos modelos Flash compatíveis quando um deles está indisponível ou sem cota.
 5. O app aceita somente alimentos ligados ao catálogo local e mostra as sugestões
    para revisão.
 6. O usuário corrige alimentos, porções e ingredientes ocultos.
